@@ -19,4 +19,6 @@ func TestGossipDeserialization(t *testing.T) {
 	t.Log(gossip)
 
 	assert.Equal(t, 4, len(*gossip), "should have 4 entries")
+	assert.Equal(t, 1409082055.744880, []GossipDetail(*gossip)[0].Time, "time should be")
+	assert.Equal(t, 0.0, []GossipDetail(*gossip)[0].Age, "age should be")
 }
