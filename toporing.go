@@ -1,6 +1,32 @@
 package gosnowth
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"net/http"
+	"path"
+
+	"github.com/pkg/errors"
+)
+
+// GetTopoRingInfo - Get the toporing information from the node.
+func (sc *SnowthClient) GetTopoRingInfo(hash string, node *SnowthNode) (*TopoRing, error) {
+	var resource = path.Join("/toporing/xml", hash)
+	req, err := http.NewRequest("GET", sc.getURL(node, resource), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create request")
+	}
+	resp, err := sc.do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to perform request")
+	}
+
+	var toporing = new(TopoRing)
+	if err := decodeXMLFromResponse(toporing, resp); err != nil {
+		return nil, errors.Wrap(err, "failed to decode")
+	}
+
+	return toporing, nil
+}
 
 // TopoRing - structure for the response of the toporing api calls
 type TopoRing struct {

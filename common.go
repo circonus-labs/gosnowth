@@ -1,8 +1,10 @@
 package gosnowth
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -88,6 +90,16 @@ func decodeJSONFromResponse(v interface{}, resp *http.Response) error {
 		return errors.Wrap(err, "failed to decode response body")
 	}
 	return nil
+}
+
+func encodeXML(v interface{}) (io.Reader, error) {
+	buf := bytes.NewBuffer([]byte{})
+	dec := xml.NewEncoder(buf)
+
+	if err := dec.Encode(v); err != nil {
+		return nil, errors.Wrap(err, "failed to encode")
+	}
+	return buf, nil
 }
 
 func decodeXMLFromResponse(v interface{}, resp *http.Response) error {
