@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -27,6 +28,8 @@ type SnowthClient struct {
 
 	inactiveNodesMu *sync.RWMutex
 	inactiveNodes   []*SnowthNode
+
+	watchInterval time.Duration
 }
 
 // NewSnowthClient - given a variadic addrs parameter, the client will
@@ -39,6 +42,7 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 		activeNodes:     []*SnowthNode{},
 		inactiveNodesMu: new(sync.RWMutex),
 		inactiveNodes:   []*SnowthNode{},
+		watchInterval:   5 * time.Second,
 	}
 
 	for _, addr := range addrs {
@@ -63,12 +67,62 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 	}
 
 	// TODO: run background watching task to manage active/inactive nodes
+	go sc.watchAndUpdate()
 
 	if err := sc.discoverNodes(); err != nil {
 		return nil, errors.Wrap(err, "failed to discover nodes")
 	}
 
 	return sc, nil
+}
+
+// isNodeActive - aliveness check for node
+func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
+	var id = node.identifier
+	if id == "" {
+		// go get state to figure out identity
+		state, err := sc.GetNodeState(node)
+		if err != nil {
+			// error means we failed, node is not active
+			return false
+		}
+		id = state.Identity
+	}
+	gossip, err := sc.GetGossipInfo(node)
+	if err != nil {
+		return false
+	}
+	var age float64 = 100.0
+	for _, entry := range []GossipDetail(*gossip) {
+		if entry.ID == id {
+			age = entry.Age
+			break
+		}
+	}
+	if age > 10.0 {
+		return false
+	}
+	return true
+}
+
+// watchAndUpdate - watch gossip data for all nodes, and move the nodes to active
+// or inactive as required
+func (sc *SnowthClient) watchAndUpdate() {
+	for {
+		<-time.After(sc.watchInterval)
+		for _, node := range sc.ListInactiveNodes() {
+			if sc.isNodeActive(node) {
+				// move to active
+				sc.ActivateNodes(node)
+			}
+		}
+		for _, node := range sc.ListActiveNodes() {
+			if !sc.isNodeActive(node) {
+				// move to active
+				sc.DeactivateNodes(node)
+			}
+		}
+	}
 }
 
 // discoverNodes - private method for the client to discover peer nodes
@@ -79,11 +133,15 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 func (sc *SnowthClient) discoverNodes() error {
 	// take our list of active nodes, interrogate gossipinfo
 	// get more nodes from the gossip info
+	var (
+		success = false
+		mErr    = newMultiError()
+	)
 	for _, node := range sc.ListActiveNodes() {
 		// lookup the topology
 		topology, err := sc.GetTopologyInfo(node)
 		if err != nil {
-			log.Printf("error getting topology info: %+v", err)
+			mErr.Add(errors.Wrap(err, "error getting topology info: %+v"))
 			continue
 		}
 
@@ -91,8 +149,14 @@ func (sc *SnowthClient) discoverNodes() error {
 		for _, topoNode := range topology.Nodes {
 			sc.populateNodeInfo(topology.Hash, topoNode)
 		}
+		success = true
 	}
 
+	if !success {
+		// we didn't get any topology information, therefore we didn't
+		// discover correctly, return the multitude of errors
+		return mErr
+	}
 	return nil
 }
 
