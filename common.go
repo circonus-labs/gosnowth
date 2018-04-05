@@ -27,26 +27,26 @@ type multiError struct {
 	errs []error
 }
 
-func newMultiError() multiError {
-	return multiError{
+func newMultiError() *multiError {
+	return &multiError{
 		errs: []error{},
 	}
 }
 
-func (me multiError) Add(err error) {
+func (me *multiError) Add(err error) {
 	if err != nil {
 		me.errs = append(me.errs, err)
 	}
 }
 
-func (me multiError) HasError() bool {
+func (me *multiError) HasError() bool {
 	if len(me.errs) > 0 {
 		return true
 	}
 	return false
 }
 
-func (me multiError) Error() string {
+func (me *multiError) Error() string {
 	var errStrs []string
 	for _, err := range me.errs {
 		errStrs = append(errStrs, err.Error())

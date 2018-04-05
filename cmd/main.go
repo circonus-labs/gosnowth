@@ -30,4 +30,18 @@ func main() {
 		}
 		log.Printf("%+v", gossip)
 	}
+	for _, node := range client.ListActiveNodes() {
+		topology, err := client.GetTopologyInfo(node)
+		if err != nil {
+			log.Fatalf("failed to get topology: %v", err)
+		}
+		log.Printf("%+v", topology)
+	}
+	for _, node := range client.ListActiveNodes() {
+		toporing, err := client.GetTopoRingInfo(node.GetCurrentTopology(), node)
+		if err != nil {
+			log.Fatalf("failed to get topology: %v", err)
+		}
+		log.Printf("%+v", toporing)
+	}
 }

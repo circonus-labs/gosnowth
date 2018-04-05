@@ -19,6 +19,10 @@ type SnowthNode struct {
 	currentTopology string
 }
 
+func (sn *SnowthNode) GetCurrentTopology() string {
+	return sn.currentTopology
+}
+
 // SnowthClient - client functionality for talking with a snowth topology
 type SnowthClient struct {
 	c *http.Client
@@ -66,7 +70,6 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 		sc.ActivateNodes(node)
 	}
 
-	// TODO: run background watching task to manage active/inactive nodes
 	go sc.watchAndUpdate()
 
 	if err := sc.discoverNodes(); err != nil {
