@@ -92,4 +92,18 @@ func main() {
 			log.Fatalf("failed to write text data: %v", err)
 		}
 	}
+	// write histogram data
+	for _, node := range client.ListActiveNodes() {
+		guid, _ := uuid.NewV4()
+		err := client.WriteHistogram(
+			[]gosnowth.HistogramData{
+				gosnowth.HistogramData{
+					Metric: "test-text-metric2", ID: guid.String(),
+					Offset:    time.Now().Unix(),
+					Histogram: "AA=", Period: 60,
+				}}, node)
+		if err != nil {
+			log.Fatalf("failed to write histogram data: %v", err)
+		}
+	}
 }
