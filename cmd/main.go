@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
-	"strconv"
 	"time"
 
+	"github.com/circonus-labs/circonusllhist"
 	"github.com/satori/go.uuid"
 
 	"github.com/circonus/gosnowth"
@@ -53,45 +53,55 @@ func main() {
 		}
 		log.Printf("%+v", toporing)
 	}
-	// write nnt data to node
-	for _, node := range client.ListActiveNodes() {
-		guid, _ := uuid.NewV4()
+	/*
+		// write nnt data to node
+		for _, node := range client.ListActiveNodes() {
+			guid, _ := uuid.NewV4()
 
-		err := client.WriteNNT(
-			[]gosnowth.NNTData{
-				gosnowth.NNTData{
-					Metric: "test-metric", ID: guid.String(),
-					Offset: time.Now().Unix(),
-					Count:  5, Value: 100,
-					Parts: gosnowth.Parts{
-						Period: 60,
-						Data: []gosnowth.NNTPartsData{
-							gosnowth.NNTPartsData{Count: 1, Value: 100},
-							gosnowth.NNTPartsData{Count: 1, Value: 100},
-							gosnowth.NNTPartsData{Count: 1, Value: 100},
-							gosnowth.NNTPartsData{Count: 1, Value: 100},
-							gosnowth.NNTPartsData{Count: 1, Value: 100},
+			err := client.WriteNNT(
+				[]gosnowth.NNTData{
+					gosnowth.NNTData{
+						Metric: "test-metric", ID: guid.String(),
+						Offset: time.Now().Unix(),
+						Count:  5, Value: 100,
+						Parts: gosnowth.Parts{
+							Period: 60,
+							Data: []gosnowth.NNTPartsData{
+								gosnowth.NNTPartsData{Count: 1, Value: 100},
+								gosnowth.NNTPartsData{Count: 1, Value: 100},
+								gosnowth.NNTPartsData{Count: 1, Value: 100},
+								gosnowth.NNTPartsData{Count: 1, Value: 100},
+								gosnowth.NNTPartsData{Count: 1, Value: 100},
+							},
 						},
-					},
-				}}, node)
-		if err != nil {
-			log.Fatalf("failed to write nnt data: %v", err)
+					}}, node)
+			if err != nil {
+				log.Fatalf("failed to write nnt data: %v", err)
+			}
 		}
-	}
-	// write text data
-	for _, node := range client.ListActiveNodes() {
-		guid, _ := uuid.NewV4()
-		err := client.WriteText(
-			[]gosnowth.TextData{
-				gosnowth.TextData{
-					Metric: "test-text-metric2", ID: guid.String(),
-					Offset: strconv.FormatInt(time.Now().Unix(), 10),
-					Value:  "a_text_data_value",
-				}}, node)
-		if err != nil {
-			log.Fatalf("failed to write text data: %v", err)
+		// write text data
+		for _, node := range client.ListActiveNodes() {
+			guid, _ := uuid.NewV4()
+			err := client.WriteText(
+				[]gosnowth.TextData{
+					gosnowth.TextData{
+						Metric: "test-text-metric2", ID: guid.String(),
+						Offset: strconv.FormatInt(time.Now().Unix(), 10),
+						Value:  "a_text_data_value",
+					}}, node)
+			if err != nil {
+				log.Fatalf("failed to write text data: %v", err)
+			}
 		}
-	}
+	*/
+
+	newHistogram, err := circonusllhist.NewFromStrings([]string{
+		"H[0.0e+00]=1",
+		"H[1.0e+01]=1",
+		"H[2.0e+02]=1",
+		"H[3.0e+03]=1",
+	}, false)
+
 	// write histogram data
 	for _, node := range client.ListActiveNodes() {
 		guid, _ := uuid.NewV4()
@@ -100,7 +110,7 @@ func main() {
 				gosnowth.HistogramData{
 					Metric: "test-text-metric2", ID: guid.String(),
 					Offset:    time.Now().Unix(),
-					Histogram: "AA=", Period: 60,
+					Histogram: newHistogram, Period: 60,
 				}}, node)
 		if err != nil {
 			log.Fatalf("failed to write histogram data: %v", err)

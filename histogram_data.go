@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/circonus-labs/circonusllhist"
 	"github.com/pkg/errors"
 )
 
@@ -40,9 +41,9 @@ func (sc *SnowthClient) WriteHistogram(data []HistogramData, node *SnowthNode) e
 
 // HistogramData - representation of Text Data for data submission and retrieval
 type HistogramData struct {
-	Metric    string `json:"metric"`
-	ID        string `json:"id"`
-	Offset    int64  `json:"offset"`
-	Period    int64  `json:"period"`
-	Histogram string `json:"histogram"`
+	Metric    string                    `json:"metric"`
+	ID        string                    `json:"id"`
+	Offset    int64                     `json:"offset"`
+	Period    int64                     `json:"period"`
+	Histogram *circonusllhist.Histogram `json:"histogram"`
 }
