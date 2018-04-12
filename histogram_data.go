@@ -32,7 +32,7 @@ func (sc *SnowthClient) WriteHistogram(data []HistogramData, node *SnowthNode) e
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
-		return fmt.Errorf("non-success status code returned: %s -> %",
+		return fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
 

@@ -31,7 +31,7 @@ func (sc *SnowthClient) WriteText(data []TextData, node *SnowthNode) error {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
-		return fmt.Errorf("non-success status code returned: %s -> %",
+		return fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
 
