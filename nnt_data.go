@@ -117,8 +117,8 @@ type NNTAllValue struct {
 	Counter2StdDev    int64     `json:"counter2_stddev"`
 }
 
-// ReadNNTAverage - Read NNT data from a node
-func (sc *SnowthClient) ReadNNTValue(
+// ReadNNTValues - Read NNT data from a node
+func (sc *SnowthClient) ReadNNTValues(
 	node *SnowthNode, start, end time.Time, period int64,
 	t, id, metric string) ([]NNTValue, error) {
 

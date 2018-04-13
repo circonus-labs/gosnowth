@@ -2,9 +2,9 @@ package main
 
 import (
 	"log"
+	"strconv"
 	"time"
 
-	"github.com/circonus-labs/circonusllhist"
 	"github.com/satori/go.uuid"
 
 	"github.com/circonus/gosnowth"
@@ -53,67 +53,88 @@ func main() {
 		}
 		log.Printf("%+v", toporing)
 	}
-	/*
-		// write nnt data to node
-		for _, node := range client.ListActiveNodes() {
-			guid, _ := uuid.NewV4()
+	// write nnt data to node
+	for _, node := range client.ListActiveNodes() {
+		guid, _ := uuid.NewV4()
 
-			err := client.WriteNNT(
-				[]gosnowth.NNTData{
-					gosnowth.NNTData{
-						Metric: "test-metric", ID: guid.String(),
-						Offset: time.Now().Unix(),
-						Count:  5, Value: 100,
-						Parts: gosnowth.Parts{
-							Period: 60,
-							Data: []gosnowth.NNTPartsData{
-								gosnowth.NNTPartsData{Count: 1, Value: 100},
-								gosnowth.NNTPartsData{Count: 1, Value: 100},
-								gosnowth.NNTPartsData{Count: 1, Value: 100},
-								gosnowth.NNTPartsData{Count: 1, Value: 100},
-								gosnowth.NNTPartsData{Count: 1, Value: 100},
-							},
+		offset := (time.Now().Unix() / 60) * 60
+
+		err := client.WriteNNT(
+			[]gosnowth.NNTData{
+				gosnowth.NNTData{
+					Metric: "test-metric", ID: guid.String(),
+					Offset: offset,
+					Count:  5, Value: 100,
+					Parts: gosnowth.Parts{
+						Period: 60,
+						Data: []gosnowth.NNTPartsData{
+							gosnowth.NNTPartsData{Count: 1, Value: 100},
+							gosnowth.NNTPartsData{Count: 1, Value: 100},
+							gosnowth.NNTPartsData{Count: 1, Value: 100},
+							gosnowth.NNTPartsData{Count: 1, Value: 100},
+							gosnowth.NNTPartsData{Count: 1, Value: 100},
 						},
-					}}, node)
-			if err != nil {
-				log.Fatalf("failed to write nnt data: %v", err)
-			}
+					},
+				}}, node)
+		if err != nil {
+			log.Fatalf("failed to write nnt data: %v", err)
 		}
-		// write text data
+
+		data, err := client.ReadNNTValues(node,
+			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second), 60,
+			"count", guid.String(), "test-metric")
+
+		log.Printf("!!!!!!!!!!!! READ NNT DATA !!!!!!!!!!!!!!!!!!!\n %+v\n\n", data)
+		if err != nil {
+			log.Fatalf("failed to read nnt data: %v", err)
+		}
+	}
+	// write text data
+	for _, node := range client.ListActiveNodes() {
+		guid, _ := uuid.NewV4()
+
+		err := client.WriteText(
+			[]gosnowth.TextData{
+				gosnowth.TextData{
+					Metric: "test-text-metric2", ID: guid.String(),
+					Offset: strconv.FormatInt(time.Now().Unix(), 10),
+					Value:  "a_text_data_value",
+				}}, node)
+		if err != nil {
+			log.Fatalf("failed to write text data: %v", err)
+		}
+
+		data, err := client.ReadTextValues(node,
+			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second),
+			guid.String(), "test-text-metric2")
+
+		log.Printf("!!!!!!!!!!!! READ TEXT DATA !!!!!!!!!!!!!!!!!!!\n %+v\n\n", data)
+		if err != nil {
+			log.Fatalf("failed to read TEXT data: %v", err)
+		}
+	}
+	/*
+
+		newHistogram, err := circonusllhist.NewFromStrings([]string{
+			"H[0.0e+00]=1",
+			"H[1.0e+01]=1",
+			"H[2.0e+02]=1",
+			"H[3.0e+03]=1",
+		}, false)
+
+		// write histogram data
 		for _, node := range client.ListActiveNodes() {
 			guid, _ := uuid.NewV4()
-			err := client.WriteText(
-				[]gosnowth.TextData{
-					gosnowth.TextData{
+			err := client.WriteHistogram(
+				[]gosnowth.HistogramData{
+					gosnowth.HistogramData{
 						Metric: "test-text-metric2", ID: guid.String(),
-						Offset: strconv.FormatInt(time.Now().Unix(), 10),
-						Value:  "a_text_data_value",
+						Offset:    time.Now().Unix(),
+						Histogram: newHistogram, Period: 60,
 					}}, node)
 			if err != nil {
-				log.Fatalf("failed to write text data: %v", err)
+				log.Fatalf("failed to write histogram data: %v", err)
 			}
 		}
 	*/
-
-	newHistogram, err := circonusllhist.NewFromStrings([]string{
-		"H[0.0e+00]=1",
-		"H[1.0e+01]=1",
-		"H[2.0e+02]=1",
-		"H[3.0e+03]=1",
-	}, false)
-
-	// write histogram data
-	for _, node := range client.ListActiveNodes() {
-		guid, _ := uuid.NewV4()
-		err := client.WriteHistogram(
-			[]gosnowth.HistogramData{
-				gosnowth.HistogramData{
-					Metric: "test-text-metric2", ID: guid.String(),
-					Offset:    time.Now().Unix(),
-					Histogram: newHistogram, Period: 60,
-				}}, node)
-		if err != nil {
-			log.Fatalf("failed to write histogram data: %v", err)
-		}
-	}
 }
