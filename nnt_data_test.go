@@ -37,6 +37,4 @@ func TestNNTAllValue(t *testing.T) {
 	if err := json.Unmarshal([]byte(data), &nntavr); err != nil {
 		t.Error("error unmarshalling: ", err)
 	}
-
-	t.Errorf("result: %+v\n", nntavr)
 }

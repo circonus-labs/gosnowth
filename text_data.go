@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"path"
+	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -36,6 +39,63 @@ func (sc *SnowthClient) WriteText(data []TextData, node *SnowthNode) error {
 	}
 
 	return nil
+}
+
+func (sc *SnowthClient) ReadTextValues(
+	node *SnowthNode, start, end time.Time,
+	id, metric string) ([]TextValue, error) {
+
+	var ref = path.Join("/read",
+		strconv.FormatInt(start.Unix(), 10),
+		strconv.FormatInt(end.Unix(), 10),
+		id, metric)
+
+	req, err := http.NewRequest("GET", sc.getURL(node, ref), nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create request")
+	}
+	resp, err := sc.do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to perform request")
+	}
+
+	var (
+		tvr = TextValueResponse{}
+	)
+	if err := decodeJSONFromResponse(&tvr, resp); err != nil {
+		return nil, errors.Wrap(err, "failed to decode")
+	}
+
+	return tvr.Data, nil
+}
+
+type TextValueResponse struct {
+	Data []TextValue
+}
+
+func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
+	tvr.Data = []TextValue{}
+	var values = [][]interface{}{}
+
+	if err := json.Unmarshal(b, &values); err != nil {
+		return errors.Wrap(err, "failed to deserialize nnt average response")
+	}
+
+	for _, entry := range values {
+		var tv = TextValue{}
+		tv.Value = entry[1].(string)
+		// grab the timestamp
+		if v, ok := entry[0].(float64); ok {
+			tv.Time = time.Unix(int64(v), 0)
+		}
+		tvr.Data = append(tvr.Data, tv)
+	}
+	return nil
+}
+
+type TextValue struct {
+	Time  time.Time
+	Value string
 }
 
 // TextData - representation of Text Data for data submission and retrieval
