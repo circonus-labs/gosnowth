@@ -12,7 +12,7 @@ import (
 
 // WriteText - Write Text data to a node, data should be a slice of TextData
 // and node is the node to write the data to
-func (sc *SnowthClient) WriteText(data []TextData, node *SnowthNode) error {
+func (sc *SnowthClient) WriteText(node *SnowthNode, data ...TextData) error {
 
 	buf := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(buf)
@@ -31,7 +31,7 @@ func (sc *SnowthClient) WriteText(data []TextData, node *SnowthNode) error {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
-		return fmt.Errorf("non-success status code returned: %s -> %",
+		return fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
 

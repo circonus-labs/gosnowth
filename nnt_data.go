@@ -12,8 +12,8 @@ import (
 
 // WriteNNT - Write NNT data to a node, data should be a slice of NNTData
 // and node is the node to write the data to
-func (sc *SnowthClient) WriteNNT(data []NNTData, node *SnowthNode) error {
-	buf := bytes.NewBuffer([]byte{})
+func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) error {
+	buf := new(bytes.Buffer)
 	enc := json.NewEncoder(buf)
 	if err := enc.Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode NNTData for write")
@@ -30,7 +30,7 @@ func (sc *SnowthClient) WriteNNT(data []NNTData, node *SnowthNode) error {
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
 		defer resp.Body.Close()
-		return fmt.Errorf("non-success status code returned: %s -> %",
+		return fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
 
