@@ -19,6 +19,10 @@ type SnowthNode struct {
 	currentTopology string
 }
 
+func (sn *SnowthNode) GetURL() *url.URL {
+	return sn.url
+}
+
 func (sn *SnowthNode) GetCurrentTopology() string {
 	return sn.currentTopology
 }

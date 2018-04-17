@@ -13,7 +13,7 @@ import (
 
 // WriteHistogram - Write Histogram data to a node, data should be a slice of
 // Histogram Data and node is the node to write the data to
-func (sc *SnowthClient) WriteHistogram(data []HistogramData, node *SnowthNode) error {
+func (sc *SnowthClient) WriteHistogram(node *SnowthNode, data ...HistogramData) error {
 
 	buf := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(buf)

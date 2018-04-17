@@ -15,7 +15,7 @@ import (
 
 // WriteText - Write Text data to a node, data should be a slice of TextData
 // and node is the node to write the data to
-func (sc *SnowthClient) WriteText(data []TextData, node *SnowthNode) error {
+func (sc *SnowthClient) WriteText(node *SnowthNode, data ...TextData) error {
 
 	buf := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(buf)
