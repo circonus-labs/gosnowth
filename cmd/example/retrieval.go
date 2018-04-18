@@ -1,4 +1,4 @@
-package example_test
+package example
 
 import (
 	"log"
@@ -23,18 +23,27 @@ func ExampleReadNNT() {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
 	// write text data in order to read back the data
+	guid, _ := uuid.NewV4()
 	for _, node := range client.ListActiveNodes() {
 		// create a new metric ID, a UUIDv4
-		guid, _ := uuid.NewV4()
 		// WriteText takes in a node and variadic of
 		// gosnowth.TextData entries
-		err := client.WriteText(
-			node,
-			gosnowth.TextData{
-				Metric: "test-text-metric2", ID: guid.String(),
-				Offset: strconv.FormatInt(time.Now().Unix(), 10),
-				Value:  "a_text_data_value",
+		err := client.WriteNNT(node,
+			gosnowth.NNTData{
+				Metric: "test-metric", ID: guid.String(),
+				Offset: (time.Now().Unix() / 60) * 60,
+				Count:  5, Value: 100,
+				Parts: gosnowth.Parts{
+					Period: 60,
+					Data: []gosnowth.NNTPartsData{
+						gosnowth.NNTPartsData{Count: 1, Value: 100},
+						gosnowth.NNTPartsData{Count: 1, Value: 100},
+						gosnowth.NNTPartsData{Count: 1, Value: 100},
+						gosnowth.NNTPartsData{Count: 1, Value: 100},
+						gosnowth.NNTPartsData{Count: 1, Value: 100},
+					}},
 			})
+
 		if err != nil {
 			log.Fatalf("failed to write text data: %v", err)
 		}
@@ -47,6 +56,10 @@ func ExampleReadNNT() {
 			log.Fatalf("failed to read nnt data: %v", err)
 		}
 		log.Printf("%+v\n", data)
+		data1, err := client.ReadNNTAllValues(node,
+			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second), 60,
+			guid.String(), "test-metric")
+		log.Printf("%+v\n", data1)
 	}
 }
 

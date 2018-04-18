@@ -28,7 +28,7 @@ func (sc *SnowthClient) ReadTextValues(
 	node *SnowthNode, start, end time.Time,
 	id, metric string) ([]TextValue, error) {
 	var (
-		tvr = TextValueResponse{}
+		tvr = new(TextValueResponse)
 		err = sc.do(node, "GET", path.Join("/read",
 			strconv.FormatInt(start.Unix(), 10),
 			strconv.FormatInt(end.Unix(), 10),

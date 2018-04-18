@@ -27,7 +27,7 @@ func (sc *SnowthClient) ReadNNTAllValues(
 	id, metric string) ([]NNTAllValue, error) {
 
 	var (
-		nntvr = NNTAllValueResponse{}
+		nntvr = new(NNTAllValueResponse)
 		err   = sc.do(node, "GET", path.Join("/read",
 			strconv.FormatInt(start.Unix(), 10),
 			strconv.FormatInt(end.Unix(), 10),
@@ -90,8 +90,9 @@ type NNTAllValue struct {
 func (sc *SnowthClient) ReadNNTValues(
 	node *SnowthNode, start, end time.Time, period int64,
 	t, id, metric string) ([]NNTValue, error) {
+
 	var (
-		nntvr = NNTValueResponse{}
+		nntvr = new(NNTValueResponse)
 		err   = sc.do(node, "GET", path.Join("/read",
 			strconv.FormatInt(start.Unix(), 10),
 			strconv.FormatInt(end.Unix(), 10),

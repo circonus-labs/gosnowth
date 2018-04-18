@@ -10,8 +10,9 @@ import (
 // GetTopologyInfo - Get the topology information from the node.
 func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (topology *Topology, err error) {
 	topology = new(Topology)
-	err = sc.do(node, "GET", "/topology/xml", nil, topology, decodeXMLFromResponse)
-
+	err = sc.do(node, "GET",
+		path.Join("/topology/xml", node.GetCurrentTopology()),
+		nil, topology, decodeXMLFromResponse)
 	return
 }
 

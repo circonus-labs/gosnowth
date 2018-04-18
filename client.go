@@ -204,7 +204,7 @@ func (sc *SnowthClient) discoverNodes() error {
 
 		// populate all the nodes with the appropriate topology information
 		for _, topoNode := range topology.Nodes {
-			sc.populateNodeInfo(topology.Hash, topoNode)
+			sc.populateNodeInfo(node.GetCurrentTopology(), topoNode)
 		}
 		success = true
 	}
@@ -335,8 +335,10 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 			resp.Status, string(body))
 	}
 
-	if err := decodeFunc(respValue, resp); err != nil {
-		return errors.Wrap(err, "failed to decode")
+	if respValue != nil {
+		if err := decodeFunc(respValue, resp); err != nil {
+			return errors.Wrap(err, "failed to decode")
+		}
 	}
 
 	return nil
