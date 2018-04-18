@@ -2,7 +2,9 @@ package gosnowth
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
+	"time"
 )
 
 func TestNNTValue(t *testing.T) {
@@ -12,6 +14,22 @@ func TestNNTValue(t *testing.T) {
 	)
 	if err := json.Unmarshal([]byte(data), &nnta); err != nil {
 		t.Error("error unmarshalling: ", err)
+	}
+
+	fmt.Println(nnta)
+
+	if nnta.Data[0].Time != time.Unix(1380000000, 0) {
+		t.Error("invalid time parsing")
+	}
+	if nnta.Data[1].Time != time.Unix(1380000300, 0) {
+		t.Error("invalid time parsing")
+	}
+
+	if nnta.Data[0].Value != 50 {
+		t.Error("invalid value parsing")
+	}
+	if nnta.Data[1].Value != 60 {
+		t.Error("invalid value parsing")
 	}
 }
 
