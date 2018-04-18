@@ -12,33 +12,42 @@ import (
 	"github.com/pkg/errors"
 )
 
+// closeBody - helper function given a response it will close the
+// body of the response
 func closeBody(resp *http.Response) {
 	if resp != nil && resp.Body != nil {
 		resp.Body.Close()
 	}
 }
 
+// resolveURL - given a URL and a string reference, it will resolve the
+// address of the URL plus the reference
 func resolveURL(baseURL *url.URL, ref string) string {
 	refURL, _ := url.Parse(ref)
 	return baseURL.ResolveReference(refURL).String()
 }
 
+// multiError - sometimes you need to keep track of multiple errors,
+// and this struct will allow you to keep track of multiple errors.
 type multiError struct {
 	errs []error
 }
 
+// newMultiError - will allow you to create a new multiError instance
 func newMultiError() *multiError {
 	return &multiError{
 		errs: []error{},
 	}
 }
 
+// Add - add an error to the list of errors
 func (me *multiError) Add(err error) {
 	if err != nil {
 		me.errs = append(me.errs, err)
 	}
 }
 
+// HasError - Do we have any errors in our list of errors
 func (me *multiError) HasError() bool {
 	if len(me.errs) > 0 {
 		return true
@@ -46,6 +55,8 @@ func (me *multiError) HasError() bool {
 	return false
 }
 
+// Error - implement the error interface, provide string representation
+// of the errors in our list of errors
 func (me *multiError) Error() string {
 	var errStrs []string
 	for _, err := range me.errs {
@@ -82,6 +93,7 @@ func removeNode(a []*SnowthNode, index int) []*SnowthNode {
 	return a
 }
 
+// decodeJSONFromResponse - given a response decode the body as json
 func decodeJSONFromResponse(v interface{}, resp *http.Response) error {
 	defer closeBody(resp)
 	dec := json.NewDecoder(resp.Body)
@@ -92,6 +104,8 @@ func decodeJSONFromResponse(v interface{}, resp *http.Response) error {
 	return nil
 }
 
+// encodeXML - produce a reader which when read will be the xml
+// representation of the interface provided
 func encodeXML(v interface{}) (io.Reader, error) {
 	buf := bytes.NewBuffer([]byte{})
 	dec := xml.NewEncoder(buf)
@@ -102,6 +116,7 @@ func encodeXML(v interface{}) (io.Reader, error) {
 	return buf, nil
 }
 
+// decodeXMLFromResponse - Decode the response body as xml
 func decodeXMLFromResponse(v interface{}, resp *http.Response) error {
 	defer closeBody(resp)
 	dec := xml.NewDecoder(resp.Body)

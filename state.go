@@ -2,29 +2,14 @@ package gosnowth
 
 import (
 	"encoding/json"
-	"net/http"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // GetNodeState - Get the node state from the client.
-func (sc *SnowthClient) GetNodeState(node *SnowthNode) (*NodeState, error) {
-	req, err := http.NewRequest("GET", sc.getURL(node, "/state"), nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform request")
-	}
-
-	var state = new(NodeState)
-	if err := decodeJSONFromResponse(state, resp); err != nil {
-		return nil, errors.Wrap(err, "failed to decode")
-	}
-
-	return state, nil
+func (sc *SnowthClient) GetNodeState(node *SnowthNode) (state *NodeState, err error) {
+	state = new(NodeState)
+	err = sc.do(node, "GET", "/state", nil, state, decodeJSONFromResponse)
+	return
 }
 
 // NodeState - the structure of the /state api call

@@ -2,6 +2,8 @@ package gosnowth
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -11,38 +13,74 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SnowthNode - representation of a snowth node, contains identifier and
-// base url for connecting to this node
+// SnowthNode - The representation of a snowth node. An IRONdb cluster consists of
+// several nodes.  A SnowthNode has a URL to the API of that Node, an identifier,
+// and a current topology.  The identifier is how the node is identified within
+// the cluster, and the topology is the current topology that the node falls
+// within.  A topology is a set of nodes that distribute data amoungst each other.
 type SnowthNode struct {
 	url             *url.URL
 	identifier      string
 	currentTopology string
 }
 
+// GetURL - This will return the *url.URL of the given SnowthNode.  This will be
+// useful if you need the raw connection string of a given snowthnode, such as in
+// the event you are making a proxy for a snowth node.
 func (sn *SnowthNode) GetURL() *url.URL {
 	return sn.url
 }
 
+// GetCurrentTopology - This will return the hash string representation of the
+// node's current topology.
 func (sn *SnowthNode) GetCurrentTopology() string {
 	return sn.currentTopology
 }
 
-// SnowthClient - client functionality for talking with a snowth topology
+// SnowthClient - The client functionality for operating against SnowthNodes.
+// Operations for the client can be broken down into 6 major sections:
+//		1.) State and Topology
+// Within the state and topology APIs, there are several useful apis, including
+// apis to retrieve Node state, Node gossip information, topology information,
+// and toporing information.  Each of these operations is implemented as a method
+// on this client.
+//		2.) Rebalancing APIs
+// In order to add or remove nodes within an IRONdb cluster you will have to use
+// the rebalancing APIs.  Implemented within this package you will be able to
+// load a new topology, rebalance nodes to the new topology, as well as check
+// load state information and abort a topology change.
+//		3.) Data Retrieval APIs
+// IRONdb houses data, and the data retrieval APIs allow for accessing of that
+// stored data.  Data types implemented include NNT, Text, and Histogram data
+// element types.
+//		4.) Data Submission APIs
+// IRONdb houses data, to which you can use to submit data to the cluster.  Data
+// types supported include the same for the retrieval APIs, NNT, Text and
+// Histogram data types.
+//		5.) Data Deletion APIs
+// Data sometimes needs to be deleted, and that is performed with the data
+// deletion APIs.  This client implements the data deletion apis to remove data
+// from the nodes.
+//		6.) Lua Extensions APIs
 type SnowthClient struct {
 	c *http.Client
 
+	// in order to keep track of healthy nodes within the cluster,
+	// we have two lists of SnowthNode types, active and inactive.
 	activeNodesMu *sync.RWMutex
 	activeNodes   []*SnowthNode
 
 	inactiveNodesMu *sync.RWMutex
 	inactiveNodes   []*SnowthNode
 
+	// watchInterval is the duration between checks to tell if a node is active
+	// or inactive.
 	watchInterval time.Duration
 }
 
 // NewSnowthClient - given a variadic addrs parameter, the client will
 // construct all the needed state to communicate with a group of nodes
-// which constitute a cluster
+// which constitute a cluster.  It will return a pointer to a SnowthClient
 func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 	sc := &SnowthClient{
 		c:               http.DefaultClient,
@@ -53,6 +91,10 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 		watchInterval:   5 * time.Second,
 	}
 
+	// for each of the addrs we need to parse the connection string,
+	// then create a node for that connection string, poll the state
+	// of that node, and populate the identifier and topology of that
+	// node.  Finally we will add the node and activate it.
 	for _, addr := range addrs {
 		url, err := url.Parse(addr)
 		if err != nil {
@@ -73,9 +115,13 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 		sc.AddNodes(node)
 		sc.ActivateNodes(node)
 	}
-
+	// start a goroutine to watch for changes in state of the nodes,
+	// and manage the active/inactive lists accordingly
 	go sc.watchAndUpdate()
 
+	// for robustness, we will perform a discovery of associated nodes
+	// this works by pulling the topology information for given nodes
+	// and adding nodes discovered within the topology into the client
 	if err := sc.discoverNodes(); err != nil {
 		return nil, errors.Wrap(err, "failed to discover nodes")
 	}
@@ -83,7 +129,10 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 	return sc, nil
 }
 
-// isNodeActive - aliveness check for node
+// isNodeActive - The check to see if a given node is active or not.
+// this will take into account ability to get the node state, gossip
+// information as well as the gossip age of the node.  If the age is
+// larger than 10 we will not consider this node active.
 func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 	var id = node.identifier
 	if id == "" {
@@ -113,7 +162,8 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 }
 
 // watchAndUpdate - watch gossip data for all nodes, and move the nodes to active
-// or inactive as required
+// or inactive as required.  Will walk through the inactive nodes, checking for
+// aliveness, then walk through active nodes checking for aliveness.
 func (sc *SnowthClient) watchAndUpdate() {
 	for {
 		<-time.After(sc.watchInterval)
@@ -154,7 +204,7 @@ func (sc *SnowthClient) discoverNodes() error {
 
 		// populate all the nodes with the appropriate topology information
 		for _, topoNode := range topology.Nodes {
-			sc.populateNodeInfo(topology.Hash, topoNode)
+			sc.populateNodeInfo(node.GetCurrentTopology(), topoNode)
 		}
 		success = true
 	}
@@ -265,8 +315,34 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 }
 
 // do - helper to perform the request for the client
-func (sc *SnowthClient) do(r *http.Request) (*http.Response, error) {
-	return sc.c.Do(r)
+func (sc *SnowthClient) do(node *SnowthNode, method, url string,
+	body io.Reader, respValue interface{},
+	decodeFunc func(interface{}, *http.Response) error) error {
+
+	r, err := http.NewRequest(method, sc.getURL(node, url), body)
+	if err != nil {
+		return errors.Wrap(err, "failed to create request")
+	}
+	resp, err := sc.c.Do(r)
+	if err != nil {
+		return errors.Wrap(err, "failed to perform request")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		return fmt.Errorf("non-success status code returned: %s -> %s",
+			resp.Status, string(body))
+	}
+
+	if respValue != nil {
+		if err := decodeFunc(respValue, resp); err != nil {
+			return errors.Wrap(err, "failed to decode")
+		}
+	}
+
+	return nil
+
 }
 
 // getURL - helper to resolve a reference against a particular node

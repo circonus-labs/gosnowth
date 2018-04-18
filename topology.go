@@ -2,74 +2,34 @@ package gosnowth
 
 import (
 	"encoding/xml"
-	"fmt"
-	"net/http"
 	"path"
 
 	"github.com/pkg/errors"
 )
 
 // GetTopologyInfo - Get the topology information from the node.
-func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (*Topology, error) {
-	var resource = path.Join("/topology/xml", node.currentTopology)
-	req, err := http.NewRequest("GET", sc.getURL(node, resource), nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform request")
-	}
-
-	var topology = new(Topology)
-	if err := decodeXMLFromResponse(topology, resp); err != nil {
-		return nil, errors.Wrap(err, "failed to decode")
-	}
-	topology.Hash = node.currentTopology
-
-	return topology, nil
+func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (topology *Topology, err error) {
+	topology = new(Topology)
+	err = sc.do(node, "GET",
+		path.Join("/topology/xml", node.GetCurrentTopology()),
+		nil, topology, decodeXMLFromResponse)
+	return
 }
 
 // LoadTopology - Load a new topology. Will not activate, just load and store.
-func (sc *SnowthClient) LoadTopology(hash string, topology *Topology, node *SnowthNode) error {
-
+func (sc *SnowthClient) LoadTopology(hash string, topology *Topology, node *SnowthNode) (err error) {
 	reqBody, err := encodeXML(topology)
 	if err != nil {
 		return errors.Wrap(err, "failed to encode request data")
 	}
-
-	var resource = path.Join("/topology", hash)
-	req, err := http.NewRequest("POST", sc.getURL(node, resource), reqBody)
-	if err != nil {
-		return errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return errors.Wrap(err, "failed to perform request")
-	}
-	defer closeBody(resp)
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid response status: %s", resp.Status)
-	}
-	return nil
+	err = sc.do(node, "POST", path.Join("/topology", hash), reqBody, nil, nil)
+	return
 }
 
 // ActivateTopology - Switch to a new topology.  THIS IS DANGEROUS.
-func (sc *SnowthClient) ActivateTopology(hash string, node *SnowthNode) error {
-	var resource = path.Join("/activate", hash)
-	req, err := http.NewRequest("GET", sc.getURL(node, resource), nil)
-	if err != nil {
-		return errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return errors.Wrap(err, "failed to perform request")
-	}
-	defer closeBody(resp)
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("invalid response status: %s", resp.Status)
-	}
-	return nil
+func (sc *SnowthClient) ActivateTopology(hash string, node *SnowthNode) (err error) {
+	err = sc.do(node, "GET", path.Join("/activate", hash), nil, nil, nil)
+	return
 }
 
 // Topology - the topology structure from the API
