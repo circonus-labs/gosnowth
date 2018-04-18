@@ -2,6 +2,8 @@ package gosnowth
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -313,8 +315,32 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 }
 
 // do - helper to perform the request for the client
-func (sc *SnowthClient) do(r *http.Request) (*http.Response, error) {
-	return sc.c.Do(r)
+func (sc *SnowthClient) do(node *SnowthNode, method, url string,
+	body io.Reader, respValue interface{},
+	decodeFunc func(interface{}, *http.Response) error) error {
+
+	r, err := http.NewRequest(method, sc.getURL(node, url), body)
+	if err != nil {
+		return errors.Wrap(err, "failed to create request")
+	}
+	resp, err := sc.c.Do(r)
+	if err != nil {
+		return errors.Wrap(err, "failed to perform request")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(resp.Body)
+		defer resp.Body.Close()
+		return fmt.Errorf("non-success status code returned: %s -> %s",
+			resp.Status, string(body))
+	}
+
+	if err := decodeFunc(respValue, resp); err != nil {
+		return errors.Wrap(err, "failed to decode")
+	}
+
+	return nil
+
 }
 
 // getURL - helper to resolve a reference against a particular node

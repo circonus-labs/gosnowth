@@ -68,12 +68,12 @@ func ExampleReadText() {
 		guid, _ := uuid.NewV4()
 
 		err := client.WriteText(
-			[]gosnowth.TextData{
-				gosnowth.TextData{
-					Metric: "test-text-metric2", ID: guid.String(),
-					Offset: strconv.FormatInt(time.Now().Unix(), 10),
-					Value:  "a_text_data_value",
-				}}, node)
+			node,
+			gosnowth.TextData{
+				Metric: "test-text-metric2", ID: guid.String(),
+				Offset: strconv.FormatInt(time.Now().Unix(), 10),
+				Value:  "a_text_data_value",
+			})
 		if err != nil {
 			log.Fatalf("failed to write text data: %v", err)
 		}

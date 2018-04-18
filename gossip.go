@@ -1,28 +1,14 @@
 package gosnowth
 
-import (
-	"net/http"
-
-	"github.com/pkg/errors"
-)
-
-// GetGossipInfo - Get the gossip information from the client.
-func (sc *SnowthClient) GetGossipInfo(node *SnowthNode) (*Gossip, error) {
-	req, err := http.NewRequest("GET", sc.getURL(node, "/gossip/json"), nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform request")
-	}
-
-	var gossip = new(Gossip)
-	if err := decodeJSONFromResponse(gossip, resp); err != nil {
-		return nil, errors.Wrap(err, "failed to decode")
-	}
-
-	return gossip, nil
+// GetGossipInfo - Get the gossip information from the client.  The gossip
+// response body will include a list of "GossipDetail" which provide
+// the identifier of the node, the node's gossip_time, gossip_age, as well
+// as topology state, current and next topology.  This gossip information is
+// useful to know because you can get availablility information about the node
+func (sc *SnowthClient) GetGossipInfo(node *SnowthNode) (gossip *Gossip, err error) {
+	gossip = new(Gossip)
+	err = sc.do(node, "GET", "/gossip/json", nil, gossip, decodeJSONFromResponse)
+	return
 }
 
 // Gossip - the gossip information from a node.  This structure includes

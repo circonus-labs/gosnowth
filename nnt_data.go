@@ -3,9 +3,6 @@ package gosnowth
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"path"
 	"strconv"
 	"time"
@@ -15,57 +12,29 @@ import (
 
 // WriteNNT - Write NNT data to a node, data should be a slice of NNTData
 // and node is the node to write the data to
-func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) error {
+func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) (err error) {
 	buf := new(bytes.Buffer)
 	enc := json.NewEncoder(buf)
 	if err := enc.Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode NNTData for write")
 	}
-
-	req, err := http.NewRequest("POST", sc.getURL(node, "/write/nnt"), buf)
-	if err != nil {
-		return errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return errors.Wrap(err, "failed to perform request")
-	}
-	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
-		return fmt.Errorf("non-success status code returned: %s -> %s",
-			resp.Status, string(body))
-	}
-
-	return nil
+	err = sc.do(node, "POST", "/write/nnt", buf, nil, nil)
+	return
 }
 
 func (sc *SnowthClient) ReadNNTAllValues(
 	node *SnowthNode, start, end time.Time, period int64,
 	id, metric string) ([]NNTAllValue, error) {
 
-	var ref = path.Join("/read",
-		strconv.FormatInt(start.Unix(), 10),
-		strconv.FormatInt(end.Unix(), 10),
-		strconv.FormatInt(period, 10), id, "all", metric)
-
-	req, err := http.NewRequest("GET", sc.getURL(node, ref), nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform request")
-	}
-
 	var (
 		nntvr = NNTAllValueResponse{}
+		err   = sc.do(node, "GET", path.Join("/read",
+			strconv.FormatInt(start.Unix(), 10),
+			strconv.FormatInt(end.Unix(), 10),
+			strconv.FormatInt(period, 10), id, "all", metric),
+			nil, nntvr, decodeJSONFromResponse)
 	)
-	if err := decodeJSONFromResponse(&nntvr, resp); err != nil {
-		return nil, errors.Wrap(err, "failed to decode")
-	}
-
-	return nntvr.Data, nil
+	return nntvr.Data, err
 }
 
 type NNTAllValueResponse struct {
@@ -121,29 +90,15 @@ type NNTAllValue struct {
 func (sc *SnowthClient) ReadNNTValues(
 	node *SnowthNode, start, end time.Time, period int64,
 	t, id, metric string) ([]NNTValue, error) {
-
-	var ref = path.Join("/read",
-		strconv.FormatInt(start.Unix(), 10),
-		strconv.FormatInt(end.Unix(), 10),
-		strconv.FormatInt(period, 10), id, t, metric)
-
-	req, err := http.NewRequest("GET", sc.getURL(node, ref), nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create request")
-	}
-	resp, err := sc.do(req)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to perform request")
-	}
-
 	var (
 		nntvr = NNTValueResponse{}
+		err   = sc.do(node, "GET", path.Join("/read",
+			strconv.FormatInt(start.Unix(), 10),
+			strconv.FormatInt(end.Unix(), 10),
+			strconv.FormatInt(period, 10), id, t, metric),
+			nil, nntvr, decodeJSONFromResponse)
 	)
-	if err := decodeJSONFromResponse(&nntvr, resp); err != nil {
-		return nil, errors.Wrap(err, "failed to decode")
-	}
-
-	return nntvr.Data, nil
+	return nntvr.Data, err
 }
 
 type NNTValueResponse struct {
