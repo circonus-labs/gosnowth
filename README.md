@@ -1,28 +1,32 @@
 # gosnowth
-The Golang snowth client
 
-## State and Topology
+The Go Snowth Client.  This codebase contains client code for accessing Snowth
+APIs.  IRONdb consists of a multitude of Snowth Nodes which can be queried
+directly through an exposed HTTP API documented in the IRONdb API documentation:
 
+https://github.com/circonus/irondb-docs/blob/master/api.md
+
+Each of the documented APIs are being implemented at methods of the SnowthClient
+structure defined in this repository.  In order to see the documentation of each
+of the methods, you can use the `godoc` tool to autogenerate the documentation
+shown below:
+
+```bash
+godoc github.com/circonus/gosnowth # plaintext
+godoc -html github.com/circonus/gosnowth # html output
 ```
-LocateMetric(uuid string, metric string, node *SnowthNode) (*DataLocation, error)
-GetTopologyInfo(node *SnowthNode) (*Topology, error)
-LoadTopology(hash string, topology *Topology, node *SnowthNode) error
-ActivateTopology(hash string, node *SnowthNode) error
-GetNodeState(node *SnowthNode) (*NodeState, error)
-GetGossipInfo(node *SnowthNode) (*Gossip, error)
-GetTopoRingInfo(hash string, node *SnowthNode) (*TopoRing, error)
+
+## Testing
+
+In order to test this package, run the go unit tests:
+
+```bash
+go test github.com/circonus/gosnowth # run package unit tests
 ```
 
-LocateMetric - used to locate a particular metric within a topology. Need to supply the check uuid string, and metric name string as well as a node.
+## Using
 
-GetTopologyInfo - get the topology that the passed in node belongs to
+In order to use this package, you can follow the examples in the `cmd/example`
+sub-package which shows how you would instantiate a new SnowthClient, as well
+as how to use the SnowthClient to operate on SnowthNodes.
 
-LoadTopology - load a new topology.  This does not activate, activate is a seperate call.  Provide the new topology hash, as well as a representation of the new topology and the node to perform the call against.
-
-ActivateTopology - given the hash provided as a parameter, activate this topology.  This is Dangerous.
-
-GetNodeState - get the state of the node that is provided as a parameter.
-
-GetGossipInfo - get the gossip information from the node.  Will include all of the other node's gossip information that this node knows about.
-
-GetTopoRingInfo - get the topology information for another topology.  Look up performed with the hash parameter against the node parameter.
