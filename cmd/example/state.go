@@ -14,6 +14,7 @@ import (
 func ExampleGetNodeState() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 	)
 	if err != nil {
@@ -37,6 +38,7 @@ func ExampleGetNodeState() {
 func ExampleGetNodeGossip() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)
@@ -61,6 +63,7 @@ func ExampleGetNodeGossip() {
 func ExampleGetTopology() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)
@@ -85,6 +88,7 @@ func ExampleGetTopology() {
 func ExampleGetTopoRing() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)
