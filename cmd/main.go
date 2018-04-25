@@ -2,7 +2,7 @@
 // client for various operations.
 package main
 
-import "github.com/circonus/gosnowth/cmd/example"
+import "github.com/circonus-labs/gosnowth/cmd/example"
 
 func main() {
 	example.ExampleGetNodeState()

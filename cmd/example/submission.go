@@ -6,9 +6,8 @@ import (
 	"time"
 
 	"github.com/circonus-labs/circonusllhist"
+	"github.com/circonus-labs/gosnowth"
 	"github.com/satori/go.uuid"
-
-	"github.com/circonus/gosnowth"
 )
 
 // ExampleSubmitText - this example shows how you

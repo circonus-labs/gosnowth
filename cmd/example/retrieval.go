@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/circonus/gosnowth"
+	"github.com/circonus-labs/gosnowth"
 	uuid "github.com/satori/go.uuid"
 )
 
