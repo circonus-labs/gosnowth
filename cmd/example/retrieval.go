@@ -16,6 +16,7 @@ import (
 func ExampleReadNNT() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)
@@ -70,6 +71,7 @@ func ExampleReadNNT() {
 func ExampleReadText() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)

@@ -17,6 +17,7 @@ import (
 func ExampleSubmitText() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)
@@ -49,6 +50,7 @@ func ExampleSubmitText() {
 func ExampleSubmitNNT() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)
@@ -89,6 +91,7 @@ func ExampleSubmitNNT() {
 func ExampleSubmitHistogram() {
 	// create a client, with a seed of nodes
 	client, err := gosnowth.NewSnowthClient(
+		true,
 		"http://localhost:8112",
 		"http://localhost:8113",
 	)

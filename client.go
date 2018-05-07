@@ -80,8 +80,10 @@ type SnowthClient struct {
 
 // NewSnowthClient - given a variadic addrs parameter, the client will
 // construct all the needed state to communicate with a group of nodes
-// which constitute a cluster.  It will return a pointer to a SnowthClient
-func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
+// which constitute a cluster.  It will return a pointer to a SnowthClient.
+// The discover parameter when true will allow the client to discover new
+// nodes from the topology
+func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 	sc := &SnowthClient{
 		c:               http.DefaultClient,
 		activeNodesMu:   new(sync.RWMutex),
@@ -119,11 +121,13 @@ func NewSnowthClient(addrs ...string) (*SnowthClient, error) {
 	// and manage the active/inactive lists accordingly
 	go sc.watchAndUpdate()
 
-	// for robustness, we will perform a discovery of associated nodes
-	// this works by pulling the topology information for given nodes
-	// and adding nodes discovered within the topology into the client
-	if err := sc.discoverNodes(); err != nil {
-		return nil, errors.Wrap(err, "failed to discover nodes")
+	if discover {
+		// for robustness, we will perform a discovery of associated nodes
+		// this works by pulling the topology information for given nodes
+		// and adding nodes discovered within the topology into the client
+		if err := sc.discoverNodes(); err != nil {
+			log.Printf("failed to perform discovery of new nodes")
+		}
 	}
 
 	return sc, nil
