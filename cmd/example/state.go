@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/circonus/gosnowth"
+	"github.com/circonus-labs/gosnowth"
 )
 
 // ExampleGetNodeState - this example shows how you can get
