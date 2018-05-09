@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -9,8 +10,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+type FindTagsResponse []FindTagsItem
+
+type FindTagsItem struct {
+	UUID       string
+	CheckName  string
+	MetricName string
+	Category   string
+	Type       string
+	AccountID  int32
+}
+
 // FindTags - Find metrics that are associated with tags
-func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32, query string) error {
+func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32, query string) (FindTagsResponse, error) {
 	url := fmt.Sprintf("%s?query=%s",
 		sc.getURL(node, fmt.Sprintf("/find/%d/tags", accountID)),
 		url.QueryEscape(query),
@@ -18,19 +30,25 @@ func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32, query string
 
 	r, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return errors.Wrap(err, "failed to create request")
+		return nil, errors.Wrap(err, "failed to create request")
 	}
 	resp, err := sc.c.Do(r)
 	if err != nil {
-		return errors.Wrap(err, "failed to perform request")
+		return nil, errors.Wrap(err, "failed to perform request")
 	}
 
+	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
-		return fmt.Errorf("non-success status code returned: %s -> %s",
+		return nil, fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
-	return nil
 
+	var ftr = FindTagsResponse{}
+	dec := json.NewDecoder(resp.Body)
+	if err := dec.Decode(&ftr); err != nil {
+		return nil, errors.Wrap(err, "failed to decode json response body")
+	}
+
+	return ftr, nil
 }
