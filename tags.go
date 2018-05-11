@@ -14,11 +14,11 @@ type FindTagsResponse []FindTagsItem
 
 type FindTagsItem struct {
 	UUID       string
-	CheckName  string
-	MetricName string
+	CheckName  string `json:"check_name"`
+	MetricName string `json:"metric_name"`
 	Category   string
 	Type       string
-	AccountID  int32
+	AccountID  int32 `json:"account_id"`
 }
 
 // FindTags - Find metrics that are associated with tags
