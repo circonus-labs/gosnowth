@@ -2,8 +2,8 @@ package gosnowth
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
+	"net/url"
 	"path"
 	"strings"
 	"time"
@@ -17,8 +17,10 @@ type RollupValues struct {
 func (rv *RollupValues) UnmarshalJSON(b []byte) error {
 	tt := []interface{}{&rv.Timestamp, &rv.Value}
 	json.Unmarshal(b, &tt)
-	if len(tt) != 2 { // error not enough fields
-		return errors.New("invalid payload")
+	if len(tt) < 2 { // error not enough fields
+		return fmt.Errorf("rollup value should contain two entries, %d given in payload", len(tt))
+	} else if len(tt) > 2 { // error too many fields
+		return fmt.Errorf("rollup value should contain two entries, %d given in payload", len(tt))
 	}
 	return nil
 }
@@ -32,13 +34,14 @@ func (sc *SnowthClient) ReadRollupValues(
 		end_ts   = end.Unix() - end.Unix()%int64(rollup/time.Second) + int64(rollup/time.Second)
 	)
 
+	urlencodedTags := url.QueryEscape(strings.Join(tags, ","))
+
 	var (
 		r   = []RollupValues{}
 		err = sc.do(node, "GET", fmt.Sprintf(
 			"%s?stream_tags=%s&start_ts=%d&end_ts=%d&rollup_span=%ds",
-			path.Join("/rollup", id, metric),
-			strings.Join(tags, ","), start_ts, end_ts, int(rollup/time.Second)),
-			nil, &r, decodeJSONFromResponse)
+			path.Join("/rollup", id, metric), urlencodedTags, start_ts, end_ts,
+			int(rollup/time.Second)), nil, &r, decodeJSONFromResponse)
 	)
 	return r, err
 }
