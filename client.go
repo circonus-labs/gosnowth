@@ -321,21 +321,17 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 // do - helper to perform the request for the client
 func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	body io.Reader, respValue interface{},
-	decodeFunc func(interface{}, *http.Response) error) error {
+	decodeFunc func(interface{}, io.Reader) error) error {
 
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
 	}
 	resp, err := sc.c.Do(r)
-	defer func() {
-		if resp.Body != nil {
-			resp.Body.Close()
-		}
-	}()
 	if err != nil {
 		return errors.Wrap(err, "failed to perform request")
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
@@ -344,7 +340,7 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	}
 
 	if respValue != nil {
-		if err := decodeFunc(respValue, resp); err != nil {
+		if err := decodeFunc(respValue, resp.Body); err != nil {
 			return errors.Wrap(err, "failed to decode")
 		}
 	}
