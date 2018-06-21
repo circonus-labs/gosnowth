@@ -23,14 +23,6 @@ func (norc *noOpReadCloser) Close() error {
 	return nil
 }
 
-func TestCloseBody(t *testing.T) {
-	norc := &noOpReadCloser{bytes.NewBufferString("hi"), false}
-	closeBody(&http.Response{
-		Body: norc,
-	})
-	assert.True(t, norc.WasClosed, "Should have been closed")
-}
-
 func TestResolveURL(t *testing.T) {
 	base, _ := url.Parse("http://localhost:1234")
 	result := resolveURL(base, "/a/resource/path")
@@ -85,7 +77,7 @@ func TestDecodeJSONFromResponse(t *testing.T) {
 	}
 
 	decoded := make(map[string]int)
-	err := decodeJSONFromResponse(&decoded, resp)
+	err := decodeJSONFromResponse(&decoded, resp.Body)
 	if err != nil {
 		t.Error("error encountered from decode function: ", err)
 	}
@@ -106,7 +98,7 @@ func TestDecodeXMLFromResponse(t *testing.T) {
 	}
 	decoded := &data{}
 
-	err := decodeXMLFromResponse(decoded, resp)
+	err := decodeXMLFromResponse(decoded, resp.Body)
 	if err != nil {
 		t.Error("error encountered from decode function: ", err)
 	}

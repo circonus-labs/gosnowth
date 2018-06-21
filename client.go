@@ -321,7 +321,7 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 // do - helper to perform the request for the client
 func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	body io.Reader, respValue interface{},
-	decodeFunc func(interface{}, *http.Response) error) error {
+	decodeFunc func(interface{}, io.Reader) error) error {
 
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
@@ -331,22 +331,21 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	if err != nil {
 		return errors.Wrap(err, "failed to perform request")
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
 		return fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
 
 	if respValue != nil {
-		if err := decodeFunc(respValue, resp); err != nil {
+		if err := decodeFunc(respValue, resp.Body); err != nil {
 			return errors.Wrap(err, "failed to decode")
 		}
 	}
 
 	return nil
-
 }
 
 // getURL - helper to resolve a reference against a particular node
