@@ -328,15 +328,14 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 		return errors.Wrap(err, "failed to create request")
 	}
 	resp, err := sc.c.Do(r)
-	if err != nil {
-		return errors.Wrap(err, "failed to perform request")
-	}
-
 	defer func() {
 		if resp.Body != nil {
 			resp.Body.Close()
 		}
 	}()
+	if err != nil {
+		return errors.Wrap(err, "failed to perform request")
+	}
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
