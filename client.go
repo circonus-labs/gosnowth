@@ -171,29 +171,29 @@ func (sc *SnowthClient) SetLog(log Logger) {
 	sc.log = log
 }
 
-// LogInfo writes a log entry at the information level.
-func (sc *SnowthClient) LogInfo(format string, args ...interface{}) {
+// LogInfof writes a log entry at the information level.
+func (sc *SnowthClient) LogInfof(format string, args ...interface{}) {
 	if sc.log != nil {
 		sc.log.Infof(format, args...)
 	}
 }
 
-// LogWarn writes a log entry at the warning level.
-func (sc *SnowthClient) LogWarn(format string, args ...interface{}) {
+// LogWarnf writes a log entry at the warning level.
+func (sc *SnowthClient) LogWarnf(format string, args ...interface{}) {
 	if sc.log != nil {
 		sc.log.Warnf(format, args...)
 	}
 }
 
-// LogError writes a log entry at the error level.
-func (sc *SnowthClient) LogError(format string, args ...interface{}) {
+// LogErrorf writes a log entry at the error level.
+func (sc *SnowthClient) LogErrorf(format string, args ...interface{}) {
 	if sc.log != nil {
 		sc.log.Errorf(format, args...)
 	}
 }
 
-// LogDebug writes a log entry at the debug level.
-func (sc *SnowthClient) LogDebug(format string, args ...interface{}) {
+// LogDebugf writes a log entry at the debug level.
+func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 	if sc.log != nil {
 		sc.log.Debugf(format, args...)
 	}
@@ -210,19 +210,19 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 		state, err := sc.GetNodeState(node)
 		if err != nil {
 			// error means we failed, node is not active
-			sc.LogWarn("unable to get the state of the node: %s",
+			sc.LogWarnf("unable to get the state of the node: %s",
 				err.Error())
 			return false
 		}
 
-		sc.LogDebug("retrieved state of node: %s -> %s",
+		sc.LogDebugf("retrieved state of node: %s -> %s",
 			node.GetURL().Host, state.Identity)
 		id = state.Identity
 	}
 
 	gossip, err := sc.GetGossipInfo(node)
 	if err != nil {
-		sc.LogWarn("unable to get the gossip info of the node: %s",
+		sc.LogWarnf("unable to get the gossip info of the node: %s",
 			err.Error())
 		return false
 	}
@@ -236,7 +236,7 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 	}
 
 	if age > 10.0 {
-		sc.LogWarn("gossip age expired: %s -> %d", node.GetURL().Host, age)
+		sc.LogWarnf("gossip age expired: %s -> %d", node.GetURL().Host, age)
 		return false
 	}
 
@@ -249,24 +249,24 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 func (sc *SnowthClient) watchAndUpdate() {
 	for {
 		<-time.After(sc.watchInterval)
-		sc.LogDebug("firing watch and update")
+		sc.LogDebugf("firing watch and update")
 		for _, node := range sc.ListInactiveNodes() {
-			sc.LogDebug("checking node for inactive -> active: %s",
+			sc.LogDebugf("checking node for inactive -> active: %s",
 				node.GetURL().Host)
 			if sc.isNodeActive(node) {
 				// move to active
-				sc.LogDebug("active, moving to active list: %s",
+				sc.LogDebugf("active, moving to active list: %s",
 					node.GetURL().Host)
 				sc.ActivateNodes(node)
 			}
 		}
 
 		for _, node := range sc.ListActiveNodes() {
-			sc.LogDebug("checking node for active -> inactive: %s",
+			sc.LogDebugf("checking node for active -> inactive: %s",
 				node.GetURL().Host)
 			if !sc.isNodeActive(node) {
 				// move to active
-				sc.LogWarn("inactive, moving to inactive list: %s",
+				sc.LogWarnf("inactive, moving to inactive list: %s",
 					node.GetURL().Host)
 				sc.DeactivateNodes(node)
 			}
@@ -422,15 +422,15 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 		return errors.Wrap(err, "failed to create request")
 	}
 
-	sc.LogDebug("snowth request: %+v", r)
+	sc.LogDebugf("snowth request: %+v", r)
 	var start = time.Now()
 	resp, err := sc.c.Do(r)
 	if err != nil {
 		return errors.Wrap(err, "failed to perform request")
 	}
 
-	sc.LogDebug("snowth response: %+v", resp)
-	sc.LogDebug("snowth latency: %+v", time.Since(start))
+	sc.LogDebugf("snowth response: %+v", resp)
+	sc.LogDebugf("snowth latency: %+v", time.Since(start))
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)

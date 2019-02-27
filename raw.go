@@ -28,7 +28,7 @@ func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 		r.Header.Add("Content-Type", FlatbufferContentType)
 	}
 
-	sc.LogDebug("Snowth Request: %+v", r)
+	sc.LogDebugf("Snowth Request: %+v", r)
 	var start = time.Now()
 	resp, err := sc.c.Do(r)
 	if err != nil {
@@ -36,12 +36,12 @@ func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 	}
 
 	defer resp.Body.Close()
-	sc.LogDebug("Snowth Response: %+v", resp)
-	sc.LogDebug("Snowth Response Latency: %+v", time.Now().Sub(start))
+	sc.LogDebugf("Snowth Response: %+v", resp)
+	sc.LogDebugf("Snowth Response Latency: %+v", time.Now().Sub(start))
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
-		sc.LogWarn("status code not 200: %+v", resp)
+		sc.LogWarnf("status code not 200: %+v", resp)
 		return fmt.Errorf("non-success status code returned: %s -> %s",
 			resp.Status, string(body))
 	}
