@@ -1,13 +1,14 @@
-package example
+package main
 
 import (
 	"log"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/circonus-labs/circonusllhist"
 	"github.com/circonus-labs/gosnowth"
-	"github.com/satori/go.uuid"
 )
 
 // ExampleSubmitText - this example shows how you
@@ -24,10 +25,11 @@ func ExampleSubmitText() {
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
+
 	// write text data
 	for _, node := range client.ListActiveNodes() {
 		// create a new metric ID, a UUIDv4
-		guid, _ := uuid.NewV4()
+		guid := uuid.New()
 		// WriteText takes in a node and variadic of
 		// gosnowth.TextData entries
 		err := client.WriteText(
@@ -57,10 +59,11 @@ func ExampleSubmitNNT() {
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
+
 	// write nnt data to node
 	for _, node := range client.ListActiveNodes() {
 		// create a new UUID for our NNT metric
-		guid, _ := uuid.NewV4()
+		guid := uuid.New()
 		err := client.WriteNNT(
 			node,
 			gosnowth.NNTData{
@@ -110,7 +113,7 @@ func ExampleSubmitHistogram() {
 
 	// write histogram data
 	for _, node := range client.ListActiveNodes() {
-		guid, _ := uuid.NewV4()
+		guid := uuid.New()
 		err := client.WriteHistogram(
 			node,
 			gosnowth.HistogramData{

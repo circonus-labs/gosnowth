@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/xml"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDataLocationXMLDeserialization(t *testing.T) {
@@ -17,5 +15,7 @@ func TestDataLocationXMLDeserialization(t *testing.T) {
 	}
 	t.Log(dl)
 
-	assert.Equal(t, 2, len(dl.Nodes), "number of nodes wrong")
+	if len(dl.Nodes) != 2 {
+		t.Errorf("Expected number of nodes: 2, got: %v", len(dl.Nodes))
+	}
 }

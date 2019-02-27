@@ -6,8 +6,6 @@ import (
 	"encoding/xml"
 	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTopologyJSONDeserialization(t *testing.T) {
@@ -20,7 +18,9 @@ func TestTopologyJSONDeserialization(t *testing.T) {
 	}
 	t.Log(topo)
 
-	assert.Equal(t, 4, len(topo), "should be 4 elements")
+	if len(topo) != 4 {
+		t.Error("should be 4 elements")
+	}
 }
 
 func TestTopologyXMLDeserialization(t *testing.T) {
@@ -32,7 +32,9 @@ func TestTopologyXMLDeserialization(t *testing.T) {
 	}
 	t.Log(topo)
 
-	assert.Equal(t, 4, len(topo.Nodes), "should be 4 elements")
+	if len(topo.Nodes) != 4 {
+		t.Error("should be 4 elements")
+	}
 }
 
 func TestTopologyXMLSerialization(t *testing.T) {
@@ -80,5 +82,7 @@ func TestTopologyXMLSerialization(t *testing.T) {
 	}
 	t.Log(buf.String())
 
-	assert.Equal(t, 4, strings.Count(buf.String(), "id="), "should have 4 nodes")
+	if strings.Count(buf.String(), "id=") != 4 {
+		t.Error("should have 4 nodes")
+	}
 }

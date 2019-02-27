@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestGossipDeserialization(t *testing.T) {
@@ -18,7 +16,19 @@ func TestGossipDeserialization(t *testing.T) {
 	}
 	t.Log(gossip)
 
-	assert.Equal(t, 4, len(*gossip), "should have 4 entries")
-	assert.Equal(t, 1409082055.744880, []GossipDetail(*gossip)[0].Time, "time should be")
-	assert.Equal(t, 0.0, []GossipDetail(*gossip)[0].Age, "age should be")
+	if len(*gossip) != 4 {
+		t.Error("Should have 4 entries")
+	}
+
+	res := []GossipDetail(*gossip)[0].Time
+	exp := float64(1409082055.744880)
+	if res != exp {
+		t.Errorf("Expected time: %v, got: %v", exp, res)
+	}
+
+	resA := []GossipDetail(*gossip)[0].Age
+	expA := float64(0.0)
+	if resA != expA {
+		t.Errorf("Expected age: %v, got: %v", exp, res)
+	}
 }
