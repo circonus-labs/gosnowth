@@ -1,3 +1,5 @@
+.DS_Store
+.vscode
 *.exe
 *.dll
 *.so
@@ -6,6 +8,4 @@
 *.out
 go.mod
 go.sum
-
 vendor/
-.vscode

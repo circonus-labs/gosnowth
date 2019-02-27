@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -93,6 +94,11 @@ type SnowthClient struct {
 	// If log output is desired, a value matching the Logger interface can be
 	// assigned.  If this is nil, no log output will be attempted.
 	log Logger
+
+	// A middleware function can be assigned that modifies the request before
+	// it is used by SnowthClient to connect with IRONdb. Tracing headers or
+	// other context information can be added by this function.
+	request func(r *http.Request) error
 }
 
 // NewSnowthClient - given a variadic addrs parameter, the client will
@@ -166,6 +172,14 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 	return sc, nil
 }
 
+// SetRequestFunc sets an optional middleware function that is used to modify
+// the HTTP request before it is used by SnowthClient to connect with IRONdb.
+// Tracing headers or other context information provided by the user of this
+// library can be added by this function.
+func (sc *SnowthClient) SetRequestFunc(f func(r *http.Request) error) {
+	sc.request = f
+}
+
 // SetLog assigns a logger to the snowth client.
 func (sc *SnowthClient) SetLog(log Logger) {
 	sc.log = log
@@ -204,7 +218,7 @@ func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 // information as well as the gossip age of the node.  If the age is
 // larger than 10 we will not consider this node active.
 func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
-	var id = node.identifier
+	id := node.identifier
 	if id == "" {
 		// go get state to figure out identity
 		state, err := sc.GetNodeState(node)
@@ -420,6 +434,16 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
+	}
+
+	if sc.request != nil {
+		if err := sc.request(r); err != nil {
+			return errors.Wrap(err, "unable to process request")
+		}
+
+		if r == nil {
+			return errors.New("invalid request after processing")
+		}
 	}
 
 	sc.LogDebugf("snowth request: %+v", r)
