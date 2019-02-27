@@ -1,12 +1,13 @@
-package example
+package main
 
 import (
 	"log"
 	"strconv"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/circonus-labs/gosnowth"
-	uuid "github.com/satori/go.uuid"
 )
 
 // ExampleReadNNT - this example shows how you are
@@ -15,16 +16,15 @@ import (
 // at http://localhost:8112 and http://localhost:8113
 func ExampleReadNNT() {
 	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(
-		true,
+	client, err := gosnowth.NewSnowthClient(true,
 		"http://localhost:8112",
-		"http://localhost:8113",
-	)
+		"http://localhost:8113")
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
+
 	// write text data in order to read back the data
-	guid, _ := uuid.NewV4()
+	guid := uuid.New()
 	for _, node := range client.ListActiveNodes() {
 		// create a new metric ID, a UUIDv4
 		// WriteText takes in a node and variadic of
@@ -80,8 +80,7 @@ func ExampleReadText() {
 	}
 	// write text data in order to read back the data
 	for _, node := range client.ListActiveNodes() {
-		guid, _ := uuid.NewV4()
-
+		guid := uuid.New()
 		err := client.WriteText(
 			node,
 			gosnowth.TextData{

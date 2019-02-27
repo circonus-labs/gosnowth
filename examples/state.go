@@ -1,4 +1,4 @@
-package example
+package main
 
 import (
 	"fmt"
@@ -56,7 +56,7 @@ func ExampleGetNodeGossip() {
 	}
 }
 
-// ExampleGetNodeTopology - this example shows how you can get
+// ExampleGetTopology - this example shows how you can get
 // the snowth node's topology details from a particular node.  In this
 // example you need a snowth instance running at
 // http://localhost:8112 and http://localhost:8113
@@ -81,7 +81,7 @@ func ExampleGetTopology() {
 	}
 }
 
-// ExampleGetNodeTopoRing - this example shows how you can get
+// ExampleGetTopoRing - this example shows how you can get
 // the snowth node's toporing details from a particular node.  In this
 // example you need a snowth instance running at
 // http://localhost:8112 and http://localhost:8113

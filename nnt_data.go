@@ -152,7 +152,7 @@ type NNTData struct {
 	Parts            Parts  `json:"parts"`
 }
 
-// NNTBaseData - representation of NNT Base Data for data
+// NNTPartsData - representation of NNT Base Data for data
 // submission and retrieval
 type NNTPartsData struct {
 	Count            int64 `json:"count"`

@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTopoRingJSONDeserialization(t *testing.T) {
@@ -17,8 +15,11 @@ func TestTopoRingJSONDeserialization(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to decode node stats, %s\n", err.Error())
 	}
+
 	t.Log(toporing)
-	assert.Equal(t, 9, len(toporing), "should be 9 elements")
+	if len(toporing) != 9 {
+		t.Error("should be 9 elements")
+	}
 }
 
 func TestTopoRingXMLDeserialization(t *testing.T) {
@@ -28,6 +29,9 @@ func TestTopoRingXMLDeserialization(t *testing.T) {
 	if err != nil {
 		t.Errorf("failed to decode node stats, %s\n", err.Error())
 	}
+
 	t.Log(toporing)
-	assert.Equal(t, 9, len(toporing.VirtualNodes), "should be 9 elements")
+	if len(toporing.VirtualNodes) != 9 {
+		t.Error("should be 9 elements")
+	}
 }
