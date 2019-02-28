@@ -10,8 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// WriteNNT - Write NNT data to a node, data should be a slice of NNTData
-// and node is the node to write the data to
+// WriteNNT writes NNT data to a node.
 func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) (err error) {
 	buf := new(bytes.Buffer)
 	enc := json.NewEncoder(buf)
@@ -22,6 +21,7 @@ func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) (err error) 
 	return
 }
 
+// ReadNNTAllValues reads all NNT data form a node.
 func (sc *SnowthClient) ReadNNTAllValues(
 	node *SnowthNode, start, end time.Time, period int64,
 	id, metric string) ([]NNTAllValue, error) {
@@ -37,10 +37,12 @@ func (sc *SnowthClient) ReadNNTAllValues(
 	return nntvr.Data, err
 }
 
+// NNTAllValueResponse values represent NNT data responses from IRONdb.
 type NNTAllValueResponse struct {
 	Data []NNTAllValue
 }
 
+// UnmarshalJSON decodes a JSON format byte slice into an NNTAllValueResponse.
 func (nntvr *NNTAllValueResponse) UnmarshalJSON(b []byte) error {
 	nntvr.Data = []NNTAllValue{}
 	var values = [][]interface{}{}
@@ -71,13 +73,14 @@ func (nntvr *NNTAllValueResponse) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// NNTAllValue values represent NNT data.
 type NNTAllValue struct {
 	Time              time.Time `json:"-"`
 	Count             int64     `json:"count"`
 	Value             int64     `json:"value"`
 	StdDev            int64     `json:"stddev"`
-	Derivitive        int64     `json:"derivative"`
-	DerivitiveStdDev  int64     `json:"derivative_stddev"`
+	Derivative        int64     `json:"derivative"`
+	DerivativeStdDev  int64     `json:"derivative_stddev"`
 	Counter           int64     `json:"counter"`
 	CounterStdDev     int64     `json:"counter_stddev"`
 	Derivative2       int64     `json:"derivative2"`
@@ -86,7 +89,7 @@ type NNTAllValue struct {
 	Counter2StdDev    int64     `json:"counter2_stddev"`
 }
 
-// ReadNNTValues - Read NNT data from a node
+// ReadNNTValues reads NNT data from a node.
 func (sc *SnowthClient) ReadNNTValues(
 	node *SnowthNode, start, end time.Time, period int64,
 	t, id, metric string) ([]NNTValue, error) {
@@ -102,10 +105,12 @@ func (sc *SnowthClient) ReadNNTValues(
 	return nntvr.Data, err
 }
 
+// NNTValueResponse values represent responses containing NNT data.
 type NNTValueResponse struct {
 	Data []NNTValue
 }
 
+// UnmarshalJSON decodes a JSON format byte slice into an NNTValueResponse.
 func (nntvr *NNTValueResponse) UnmarshalJSON(b []byte) error {
 	nntvr.Data = []NNTValue{}
 	var values = [][]int64{}
@@ -123,21 +128,19 @@ func (nntvr *NNTValueResponse) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// NNTValue values represent individual NNT data values.
 type NNTValue struct {
 	Time  time.Time
 	Value int64
 }
 
-// ReadNNT - Read NNT data from a node
+// ReadNNT reads NNT data from a node.
 func (sc *SnowthClient) ReadNNT(data []NNTData, node *SnowthNode) error {
 
 	return nil
 }
 
-type ReadNNTData struct {
-}
-
-// NNTData - representation of NNT Data for data submission and retrieval
+// NNTData values represent NNT data.
 type NNTData struct {
 	Count            int64  `json:"count"`
 	Value            int64  `json:"value"`
@@ -152,8 +155,7 @@ type NNTData struct {
 	Parts            Parts  `json:"parts"`
 }
 
-// NNTPartsData - representation of NNT Base Data for data
-// submission and retrieval
+// NNTPartsData values represent NNT base data parts.
 type NNTPartsData struct {
 	Count            int64 `json:"count"`
 	Value            int64 `json:"value"`
@@ -164,13 +166,13 @@ type NNTPartsData struct {
 	CounterStdDev    int64 `json:"counter_stddev"`
 }
 
-// Parts - NNTData submission Parts that compose the NNT Rollup
+// Parts values contain the NNTData submission parts of an NNT rollup.
 type Parts struct {
 	Period int64
 	Data   []NNTPartsData
 }
 
-// MarshalJSON - cusom marshaller for the parts tuple structure
+// MarshalJSON marshals a Parts value into a JSON format byte slice.
 func (p *Parts) MarshalJSON() ([]byte, error) {
 	tuple := []interface{}{}
 	tuple = append(tuple, p.Period, p.Data)
