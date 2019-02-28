@@ -21,7 +21,7 @@ const dataLocationXMLTestData = `<nodes n="2">
 
 func TestDataLocationXMLDeserialization(t *testing.T) {
 	dec := xml.NewDecoder(bytes.NewBufferString(dataLocationXMLTestData))
-	dl := new(DataLocation)
+	dl := new(Topology)
 	err := dec.Decode(dl)
 	if err != nil {
 		t.Errorf("failed to decode node stats, %s\n", err.Error())

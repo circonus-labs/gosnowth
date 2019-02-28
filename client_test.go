@@ -109,8 +109,6 @@ func TestSnowthClientDiscoverNodes(t *testing.T) {
 			w.Write([]byte(topologyXMLTestData))
 			return
 		}
-
-		fmt.Println(r.RequestURI)
 	}))
 
 	defer ms.Close()
@@ -175,8 +173,6 @@ func TestSnowthClientLog(t *testing.T) {
 			w.Write([]byte(topologyXMLTestData))
 			return
 		}
-
-		fmt.Println(r.RequestURI)
 	}))
 
 	defer ms.Close()

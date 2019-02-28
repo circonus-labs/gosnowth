@@ -3,6 +3,9 @@ package gosnowth
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"testing"
 )
 
@@ -84,5 +87,46 @@ func TestGossipDeserialization(t *testing.T) {
 	expA := float64(0.0)
 	if resA != expA {
 		t.Errorf("Expected age: %v, got: %v", exp, res)
+	}
+}
+
+func TestGetGossipInfo(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/gossip/json" {
+			w.Write([]byte(gossipTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+	res, err := sc.GetGossipInfo(node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res == nil || len(*res) != 4 {
+		t.Fatalf("Expected result length: 4, got: %v", len(*res))
+	}
+
+	if (*res)[0].ID != "1f846f26-0cfd-4df5-b4f1-e0930604e577" {
+		t.Errorf("Expected ID: 1f846f26-0cfd-4df5-b4f1-e0930604e577, got: %v",
+			(*res)[0].ID)
 	}
 }

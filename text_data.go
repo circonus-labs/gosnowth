@@ -10,8 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// WriteText - Write Text data to a node, data should be a slice of TextData
-// and node is the node to write the data to
+// WriteText writes text data to an IRONdb node.
 func (sc *SnowthClient) WriteText(node *SnowthNode, data ...TextData) (err error) {
 	var (
 		buf = new(bytes.Buffer)
@@ -20,12 +19,13 @@ func (sc *SnowthClient) WriteText(node *SnowthNode, data ...TextData) (err error
 	if err := enc.Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode TextData for write")
 	}
+
 	err = sc.do(node, "POST", "/write/text", buf, nil, nil)
 	return
 }
 
-func (sc *SnowthClient) ReadTextValues(
-	node *SnowthNode, start, end time.Time,
+// ReadTextValues reads text data values from an IRONdb node.
+func (sc *SnowthClient) ReadTextValues(node *SnowthNode, start, end time.Time,
 	id, metric string) ([]TextValue, error) {
 	var (
 		tvr = new(TextValueResponse)
@@ -38,10 +38,12 @@ func (sc *SnowthClient) ReadTextValues(
 	return tvr.Data, err
 }
 
+// TextValueResponse values represent text data responses.
 type TextValueResponse struct {
 	Data []TextValue
 }
 
+// UnmarshalJSON decodes a JSON format byte slice into a TextValueResponse.
 func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 	tvr.Data = []TextValue{}
 	var values = [][]interface{}{}
@@ -62,12 +64,13 @@ func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+// TextValue values represent text data read from IRONdb.
 type TextValue struct {
 	Time  time.Time
 	Value string
 }
 
-// TextData - representation of Text Data for data submission and retrieval
+// TextData values represent text data to be written to IRONdb.
 type TextData struct {
 	Metric string `json:"metric"`
 	ID     string `json:"id"`
