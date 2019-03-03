@@ -151,8 +151,12 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 		numActiveNodes++
 	}
 
-	if numActiveNodes == 0 || nErr.HasError() {
-		return nil, errors.Wrap(nErr, "no snowth nodes could be activated")
+	if numActiveNodes == 0 {
+		if nErr.HasError() {
+			return nil, errors.Wrap(nErr, "no snowth nodes could be activated")
+		}
+
+		return nil, errors.New("no snowth nodes could be activated")
 	}
 
 	if discover {
