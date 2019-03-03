@@ -1,107 +1,85 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/circonus-labs/gosnowth"
 )
 
-// ExampleGetNodeState - this example shows how you can get
-// the snowth node's state from a particular node.  In this
-// example you need a snowth instance running at
-// http://localhost:8112 and http://localhost:8113
+// ExampleGetNodeState demonstrates how to get the snowth node's state from
+// a particular node.
 func ExampleGetNodeState() {
-	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(
-		true,
-		"http://localhost:8112",
-	)
+	// Create a new client.
+	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
 
-	// get the node state from the node
+	// Get the node state.
 	for _, node := range client.ListActiveNodes() {
 		state, err := client.GetNodeState(node)
 		if err != nil {
-			log.Fatalf("failed to get state: %v", err)
+			log.Printf("failed to get state: %v", err)
 		}
-		fmt.Println(state)
+
+		log.Println(state)
 	}
 }
 
-// ExampleGetNodeGossip - this example shows how you can get
-// the snowth node's gossip details from a particular node.  In this
-// example you need a snowth instance running at
-// http://localhost:8112 and http://localhost:8113
+// ExampleGetNodeGossip demontrates how to get gossip details from a node.
 func ExampleGetNodeGossip() {
-	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(
-		true,
-		"http://localhost:8112",
-		"http://localhost:8113",
-	)
+	// Create a new client.
+	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
 
-	// get the gossip data from the node
+	// Get the gossip data from the node.
 	for _, node := range client.ListActiveNodes() {
 		gossip, err := client.GetGossipInfo(node)
 		if err != nil {
 			log.Fatalf("failed to get gossip: %v", err)
 		}
-		fmt.Println(gossip)
+
+		log.Println(gossip)
 	}
 }
 
-// ExampleGetTopology - this example shows how you can get
-// the snowth node's topology details from a particular node.  In this
-// example you need a snowth instance running at
-// http://localhost:8112 and http://localhost:8113
+// ExampleGetTopology demonstrates how to get topology details from a node.
 func ExampleGetTopology() {
-	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(
-		true,
-		"http://localhost:8112",
-		"http://localhost:8113",
-	)
+	// Create a new client.
+	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
 
-	// get the topology from the node
+	// Get the topology from the node.
 	for _, node := range client.ListActiveNodes() {
 		topology, err := client.GetTopologyInfo(node)
 		if err != nil {
 			log.Fatalf("failed to get topology: %v", err)
 		}
-		fmt.Println(topology)
+
+		log.Println(topology)
 	}
 }
 
-// ExampleGetTopoRing - this example shows how you can get
-// the snowth node's toporing details from a particular node.  In this
-// example you need a snowth instance running at
-// http://localhost:8112 and http://localhost:8113
+// ExampleGetTopoRing demonstrates how to get topology ring details from a
+// node.
 func ExampleGetTopoRing() {
-	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(
-		true,
-		"http://localhost:8112",
-		"http://localhost:8113",
-	)
+	// Create a new client.
+	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
 
-	// get the toporing from the node
+	// Get the topology ring data from the node.
 	for _, node := range client.ListActiveNodes() {
-		toporing, err := client.GetTopoRingInfo(node.GetCurrentTopology(), node)
+		tr, err := client.GetTopoRingInfo(node.GetCurrentTopology(), node)
 		if err != nil {
-			log.Fatalf("failed to get toporing: %v", err)
+			log.Printf("failed to get topology ring: %v", err)
 		}
-		fmt.Println(toporing)
+
+		log.Println(tr)
 	}
 }

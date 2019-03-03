@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSnowthNode(t *testing.T) {
@@ -92,7 +93,7 @@ func TestSnowthClientRequest(t *testing.T) {
 	}
 }
 
-func TestSnowthClientDiscoverNodes(t *testing.T) {
+func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
@@ -134,6 +135,26 @@ func TestSnowthClientDiscoverNodes(t *testing.T) {
 
 	if res[0].AccountID != 1 {
 		t.Errorf("Expected account ID: 1, got: %v", res[0].AccountID)
+	}
+
+	sc.watchInterval = 100 * time.Millisecond
+	cancel := sc.WatchAndUpdate()
+	defer cancel()
+	sc.AddNodes(node)
+	sc.ActivateNodes(node)
+	sc.activeNodesMu.Lock()
+	rb := len(sc.activeNodes) == 5
+	sc.activeNodesMu.Unlock()
+	if !rb {
+		t.Errorf("Expected node to be active")
+	}
+
+	time.Sleep(200 * time.Millisecond)
+	sc.inactiveNodesMu.Lock()
+	rb = len(sc.inactiveNodes) == 1
+	sc.inactiveNodesMu.Unlock()
+	if rb {
+		t.Errorf("Expected node to be inactive")
 	}
 }
 

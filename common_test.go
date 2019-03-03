@@ -16,8 +16,8 @@ type noOpReadCloser struct {
 	WasClosed bool
 }
 
-func (norc *noOpReadCloser) Close() error {
-	norc.WasClosed = true
+func (n *noOpReadCloser) Close() error {
+	n.WasClosed = true
 	return nil
 }
 
@@ -50,37 +50,7 @@ func TestMultiError(t *testing.T) {
 	}
 }
 
-func TestMoveNode(t *testing.T) {
-	urlA, _ := url.Parse("http://localhost:1")
-	urlB, _ := url.Parse("http://localhost:2")
-
-	from := []*SnowthNode{
-		&SnowthNode{
-			identifier: "a",
-			url:        urlA,
-		},
-		&SnowthNode{
-			identifier: "b",
-			url:        urlB,
-		},
-	}
-	to := []*SnowthNode{}
-
-	moveNode(&from, &to, &SnowthNode{
-		identifier: "a",
-		url:        urlA,
-	})
-
-	if len(to) != 1 {
-		t.Error("Length of to should be 1")
-	}
-
-	if len(from) != 1 {
-		t.Error("Length of from should be 1")
-	}
-}
-
-func TestDecodeJSONFromResponse(t *testing.T) {
+func TestDecodeJSON(t *testing.T) {
 	resp := &http.Response{
 		Body: &noOpReadCloser{
 			bytes.NewBufferString(`{
@@ -90,35 +60,36 @@ func TestDecodeJSONFromResponse(t *testing.T) {
 			false},
 	}
 
-	decoded := make(map[string]int)
-	err := decodeJSONFromResponse(&decoded, resp.Body)
+	v := make(map[string]int)
+	err := decodeJSON(resp.Body, &v)
 	if err != nil {
 		t.Error("error encountered from decode function: ", err)
 	}
 
-	if decoded["something"] != 1 {
+	if v["something"] != 1 {
 		t.Error("something should be 1")
 	}
 
-	if decoded["something_else"] != 2 {
+	if v["something_else"] != 2 {
 		t.Error("something_else should be 2")
 	}
 }
 
-func TestDecodeXMLFromResponse(t *testing.T) {
+func TestDecodeXML(t *testing.T) {
 	resp := &http.Response{
 		Body: &noOpReadCloser{
 			bytes.NewBufferString(`<data><something>1</something><somethingelse>2</somethingelse></data>`),
 			false},
 	}
+
 	type data struct {
 		XMLName       xml.Name `xml:"data"`
 		Something     int      `xml:"something"`
 		SomethingElse int      `xml:"somethingelse"`
 	}
-	decoded := &data{}
 
-	err := decodeXMLFromResponse(decoded, resp.Body)
+	decoded := &data{}
+	err := decodeXML(resp.Body, decoded)
 	if err != nil {
 		t.Error("error encountered from decode function: ", err)
 	}
@@ -148,8 +119,8 @@ func TestEncodeXML(t *testing.T) {
 	if err != nil {
 		t.Error("error encountered encoding: ", err)
 	}
-	b, _ := ioutil.ReadAll(reader)
 
+	b, _ := ioutil.ReadAll(reader)
 	if !strings.Contains(string(b), "somethingelse") {
 		t.Error("Should contain somethingelse")
 	}
