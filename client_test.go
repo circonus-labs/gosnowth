@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -138,8 +139,9 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	}
 
 	sc.watchInterval = 100 * time.Millisecond
-	cancel := sc.WatchAndUpdate()
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+	sc.WatchAndUpdate(ctx)
 	sc.AddNodes(node)
 	sc.ActivateNodes(node)
 	sc.activeNodesMu.Lock()
@@ -149,7 +151,26 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 		t.Errorf("Expected node to be active")
 	}
 
-	time.Sleep(200 * time.Millisecond)
+	time.Sleep(150 * time.Millisecond)
+	sc.inactiveNodesMu.Lock()
+	rb = len(sc.inactiveNodes) == 1
+	sc.inactiveNodesMu.Unlock()
+	if rb {
+		t.Errorf("Expected node to be inactive")
+	}
+
+	cancel()
+	canc := sc.WatchAndUpdate(nil)
+	defer canc()
+	sc.ActivateNodes(node)
+	sc.activeNodesMu.Lock()
+	rb = len(sc.activeNodes) == 5
+	sc.activeNodesMu.Unlock()
+	if !rb {
+		t.Errorf("Expected node to be active")
+	}
+
+	time.Sleep(150 * time.Millisecond)
 	sc.inactiveNodesMu.Lock()
 	rb = len(sc.inactiveNodes) == 1
 	sc.inactiveNodesMu.Unlock()

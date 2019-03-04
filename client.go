@@ -2,6 +2,7 @@
 package gosnowth
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -258,20 +259,30 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 }
 
 // WatchAndUpdate watches gossip data for all nodes, and move the nodes to
-// the active or inactive pools as required.  It returns the function to cancel
-// the operatio if needed.
-func (sc *SnowthClient) WatchAndUpdate() func() {
+// the active or inactive pools as required.  It returns a function to cancel
+// the operation if needed. It accepts a context value as an argument which
+// will also cancel the operation if the context is cancelled or expired. If
+// context cancellation is not needed, nil can be passed as the argument.
+func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) func() {
 	dch := make(chan struct{})
 	start := time.Now()
 	go func() {
 		done := false
 		for !done {
+			if ctx != nil {
+				select {
+				case <-ctx.Done():
+					done = true
+					break
+				}
+			}
+
 			select {
 			case <-dch:
 				done = true
 				break
 			default:
-				if time.Since(start) > sc.watchInterval {
+				if !done && time.Since(start) > sc.watchInterval {
 					sc.LogDebugf("firing watch and update")
 					for _, node := range sc.ListInactiveNodes() {
 						sc.LogDebugf("checking node for inactive -> active: %s",
