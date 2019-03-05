@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 )
@@ -43,7 +46,7 @@ const topologyTestData = `[
 	}
 ]`
 
-const topologyXMLTestData = `<nodes n="2">
+const topologyXMLTestData = `<nodes n="4">
 	<node id="1f846f26-0cfd-4df5-b4f1-e0930604e577"
 		address="10.8.20.1"
 		port="8112"
@@ -137,5 +140,72 @@ func TestTopologyXMLSerialization(t *testing.T) {
 
 	if strings.Count(buf.String(), "id=") != 4 {
 		t.Error("should have 4 nodes")
+	}
+}
+
+func TestTopology(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI,
+			"/topology/xml") {
+			w.Write([]byte(topologyXMLTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI,
+			"/topology/test") {
+			w.WriteHeader(200)
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI,
+			"/activate/test") {
+			w.WriteHeader(200)
+			return
+		}
+
+		w.WriteHeader(500)
+		return
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+	res, err := sc.GetTopologyInfo(node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.NumberNodes != 4 {
+		t.Fatalf("Expected nodes length: 4, got: %v", res.NumberNodes)
+	}
+
+	exp := "1f846f26-0cfd-4df5-b4f1-e0930604e577"
+	if res.Nodes[0].ID != exp {
+		t.Errorf("Expected node ID: %v, got: %v", exp, res.Nodes[0].ID)
+	}
+
+	err = sc.LoadTopology("test", res, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = sc.ActivateTopology("test", node)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

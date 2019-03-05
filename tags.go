@@ -27,6 +27,6 @@ func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32,
 	}
 
 	r := []FindTagsItem{}
-	err := sc.do(node, "GET", u, nil, &r, decodeJSONFromResponse)
+	err := sc.do(node, "GET", u, nil, &r, decodeJSON)
 	return r, err
 }

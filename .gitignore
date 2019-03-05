@@ -1,11 +1,9 @@
 .DS_Store
-.vscode
 *.exe
 *.dll
 *.so
 *.dylib
 *.test
 *.out
-go.mod
-go.sum
+.vscode/
 vendor/

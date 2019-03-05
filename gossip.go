@@ -27,6 +27,6 @@ func (sc *SnowthClient) GetGossipInfo(
 	node *SnowthNode) (gossip *Gossip, err error) {
 	gossip = new(Gossip)
 	err = sc.do(node, "GET", "/gossip/json", nil, gossip,
-		decodeJSONFromResponse)
+		decodeJSON)
 	return
 }

@@ -1,12 +1,14 @@
 package gosnowth
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestSnowthNode(t *testing.T) {
@@ -92,7 +94,7 @@ func TestSnowthClientRequest(t *testing.T) {
 	}
 }
 
-func TestSnowthClientDiscoverNodes(t *testing.T) {
+func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
@@ -109,6 +111,15 @@ func TestSnowthClientDiscoverNodes(t *testing.T) {
 			w.Write([]byte(topologyXMLTestData))
 			return
 		}
+
+		if r.RequestURI == "/gossip/json" {
+			if r.Header.Get("ALT") != "" {
+				w.Write([]byte(gossipTestAltData))
+			}
+
+			w.Write([]byte(gossipTestData))
+			return
+		}
 	}))
 
 	defer ms.Close()
@@ -122,7 +133,13 @@ func TestSnowthClientDiscoverNodes(t *testing.T) {
 		t.Fatal("Invalid test URL")
 	}
 
-	node := &SnowthNode{url: u}
+	node := &SnowthNode{
+		url:        u,
+		identifier: "1f846f26-0cfd-4df5-b4f1-e0930604e577",
+		currentTopology: "0123456789abcdef0123456789abcdef0123456789abcdef" +
+			"0123456789abcdef",
+	}
+
 	res, err := sc.FindTags(node, 1, "test", "1", "1")
 	if err != nil {
 		t.Fatal(err)
@@ -134,6 +151,32 @@ func TestSnowthClientDiscoverNodes(t *testing.T) {
 
 	if res[0].AccountID != 1 {
 		t.Errorf("Expected account ID: 1, got: %v", res[0].AccountID)
+	}
+
+	sc.watchInterval = 100 * time.Millisecond
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	sc.WatchAndUpdate(ctx)
+	sc.AddNodes(node)
+	sc.ActivateNodes(node)
+	if !sc.isNodeActive(node) {
+		t.Errorf("Expected node to be active")
+	}
+
+	sc.SetRequestFunc(func(r *http.Request) error {
+		r.Header.Set("ALT", "true")
+		return nil
+	})
+
+	time.Sleep(150 * time.Millisecond)
+	if sc.isNodeActive(node) {
+		t.Errorf("Expected node to be inactive")
+	}
+
+	sc.SetRequestFunc(nil)
+	time.Sleep(150 * time.Millisecond)
+	if !sc.isNodeActive(node) {
+		t.Errorf("Expected node to be active")
 	}
 }
 

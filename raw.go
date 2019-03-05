@@ -14,8 +14,7 @@ import (
 // FlatbufferContentType is the content type header for flatbuffer data.
 const FlatbufferContentType = "application/x-circonus-metric-list-flatbuffer"
 
-// WriteRaw - Write Raw data to a node, data should be a io.Reader
-// and node is the node to write the data to
+// WriteRaw writes raw IRONdb data to a node.
 func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 	fb bool, dataPoints uint64) error {
 	r, err := http.NewRequest("POST", sc.getURL(node, "/raw"), data)
@@ -38,7 +37,6 @@ func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 	defer resp.Body.Close()
 	sc.LogDebugf("Snowth Response: %+v", resp)
 	sc.LogDebugf("Snowth Response Latency: %+v", time.Now().Sub(start))
-
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
 		sc.LogWarnf("status code not 200: %+v", resp)

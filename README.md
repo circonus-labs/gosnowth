@@ -1,32 +1,32 @@
 # gosnowth
 
-The Go Snowth Client.  This codebase contains client code for accessing Snowth
-APIs.  IRONdb consists of a multitude of Snowth Nodes which can be queried
-directly through an exposed HTTP API documented in the IRONdb API documentation:
+## An IRONdb client package for Go programs
 
-https://github.com/circonus/irondb-docs/blob/master/api.md
+This codebase contains client code for accessing Snowth APIs.  IRONdb is deployed as a cluster of database nodes which can be queried directly through an exposed HTTP API.  For reference, see the the [IRONdb API Documentation](https://github.com/circonus/irondb-docs/blob/master/api.md).
 
-Each of the documented APIs are being implemented as methods of the SnowthClient
-structure defined in this repository.  In order to see the documentation of each
-of the methods, you can use the `godoc` tool to autogenerate the documentation
-shown below:
+Each of the documented interfaces are implemented as methods of the SnowthClient
+structure defined in this repository.  Documentation for this package is available through the `go doc` tool using the following command:
 
-```bash
-godoc github.com/circonus-labs/gosnowth # plaintext
-godoc -html github.com/circonus-labs/gosnowth # html output
+``` bash
+go doc github.com/circonus-labs/gosnowth
 ```
 
 ## Testing
 
-In order to test this package, run the go unit tests:
+The following command will run the unit tests for this package:
 
-```bash
-go test github.com/circonus-labs/gosnowth # run package unit tests
+``` bash
+go test -cover github.com/circonus-labs/gosnowth
 ```
 
 ## Using
 
-In order to use this package, you can follow the examples in the `cmd/example`
-sub-package which shows how you would instantiate a new SnowthClient, as well
-as how to use the SnowthClient to operate on SnowthNodes.
+Examples of using this package are provided in the in the `/examples` sub-package which shows how to instantiate a new SnowthClient, as well as how to use the SnowthClient to perform operations on IRONdb nodes.
 
+To run the examples use the following command:
+
+``` bash
+go run github.com/circonus-labs/gosnowth/examples <host:port> ...
+```
+
+Where `<host:port> ...` is a list of one or more space separated IRONdb nodes.

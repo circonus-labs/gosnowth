@@ -5,14 +5,14 @@ import (
 	"strings"
 )
 
-// GetNodeState - Get the node state from the client.
+// GetNodeState retrieves the state of an IRONdb node.
 func (sc *SnowthClient) GetNodeState(node *SnowthNode) (state *NodeState, err error) {
 	state = new(NodeState)
-	err = sc.do(node, "GET", "/state", nil, state, decodeJSONFromResponse)
+	err = sc.do(node, "GET", "/state", nil, state, decodeJSON)
 	return
 }
 
-// NodeState - the structure of the /state api call
+// NodeState values represent the state of an IRONdb node.
 type NodeState struct {
 	Identity      string   `json:"identity"`
 	Current       string   `json:"current"`
@@ -46,27 +46,28 @@ type NodeState struct {
 	Application string `json:"application"`
 }
 
-// Rollup - the structure that defines the rollup (nnt,text,histogram) from api
+// Rollup values represent node state rollups.
 type Rollup struct {
 	RollupEntries
 	RollupList []uint32      `json:"rollups"`
 	Aggregate  RollupDetails `json:"aggregate"`
 }
 
-// UnmarshalJSON - we need a custom unmarshal so that we can have the
-// dynamic rollup key/value pairs
+// UnmarshalJSON populates a rollup value from a JSON format byte slice.
 func (r *Rollup) UnmarshalJSON(b []byte) error {
 	m := make(map[string]interface{})
 	err := json.Unmarshal(b, &m)
 	if err != nil {
 		return err
 	}
+
 	if rollups, ok := m["rollups"].([]interface{}); ok {
 		for _, v := range rollups {
 			r.RollupList = append(r.RollupList, uint32(v.(float64)))
 			delete(m, "rollup")
 		}
 	}
+
 	if aggregate, ok := m["aggregate"].(RollupDetails); ok {
 		r.Aggregate = aggregate
 		delete(m, "aggregate")
@@ -86,10 +87,10 @@ func (r *Rollup) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// RollupEntries - this is the dynamic map of string to rollups in the state api
+// RollupEntries values contain node state rollup information.
 type RollupEntries map[string]RollupDetails
 
-// RollupDetails - the details included in the rollup
+// RollupDetails values represent node state rollup information.
 type RollupDetails struct {
 	FilesSystem   FileSystemDetails `json:"fs"`
 	PutCalls      uint64            `json:"put.calls"`
@@ -101,14 +102,14 @@ type RollupDetails struct {
 	ExtendCalls   uint64            `json:"extend.calls"`
 }
 
-// FileSystemDetails - details about the filesystem from the state api call
+// FileSystemDetails values represent details about a nodes file system.
 type FileSystemDetails struct {
 	ID      uint64  `json:"id"`
 	TotalMB float64 `json:"totalMb"`
 	FreeMB  float64 `json:"availMb"`
 }
 
-// Features - these are the features supported by the node
+// Features values represent features supported by the node.
 type Features struct {
 	TextStore               bool `json:"text:store"`
 	HistogramStore          bool `json:"histogram:store"`
@@ -118,7 +119,7 @@ type Features struct {
 	FeatureFlags            bool `json:"features"`
 }
 
-// UnmarshalJSON - conversion from the string 1/0 representation to bool
+// UnmarshalJSON populates a features value from a JSON format byte slice.
 func (f *Features) UnmarshalJSON(b []byte) error {
 	f.TextStore = false
 	f.HistogramStore = false
@@ -139,33 +140,40 @@ func (f *Features) UnmarshalJSON(b []byte) error {
 			if v == "1" {
 				f.TextStore = true
 			}
+
 			break
 		case "histogram:store":
 			if v == "1" {
 				f.HistogramStore = true
 			}
+
 			break
 		case "nnt:second_order":
 			if v == "1" {
 				f.NNTSecondOrder = true
 			}
+
 			break
 		case "histogram:dynamic_rollups":
 			if v == "1" {
 				f.HistogramDynamicRollups = true
 			}
+
 			break
 		case "nnt:store":
 			if v == "1" {
 				f.NNTStore = true
 			}
+
 			break
 		case "features":
 			if v == "1" {
 				f.FeatureFlags = true
 			}
+
 			break
 		}
 	}
+
 	return nil
 }

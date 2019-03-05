@@ -10,95 +10,79 @@ import (
 	"github.com/circonus-labs/gosnowth"
 )
 
-// ExampleReadNNT - this example shows how you are
-// able to read NNT values from a given snowth node.
-// In this example you need snowth nodes running
-// at http://localhost:8112 and http://localhost:8113
+// ExampleReadNNT demonstrates how to read NNT values from a given snowth node.
 func ExampleReadNNT() {
-	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(true,
-		"http://localhost:8112",
-		"http://localhost:8113")
+	// Create a new client.
+	client, err := gosnowth.NewSnowthClient(false, SnowthServers...)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
 
-	// write text data in order to read back the data
-	guid := uuid.New()
+	// Write text data in order to read back the data.
+	id := uuid.New().String()
 	for _, node := range client.ListActiveNodes() {
-		// create a new metric ID, a UUIDv4
-		// WriteText takes in a node and variadic of
-		// gosnowth.TextData entries
-		err := client.WriteNNT(node,
-			gosnowth.NNTData{
-				Metric: "test-metric", ID: guid.String(),
-				Offset: (time.Now().Unix() / 60) * 60,
-				Count:  5, Value: 100,
-				Parts: gosnowth.Parts{
-					Period: 60,
-					Data: []gosnowth.NNTPartsData{
-						gosnowth.NNTPartsData{Count: 1, Value: 100},
-						gosnowth.NNTPartsData{Count: 1, Value: 100},
-						gosnowth.NNTPartsData{Count: 1, Value: 100},
-						gosnowth.NNTPartsData{Count: 1, Value: 100},
-						gosnowth.NNTPartsData{Count: 1, Value: 100},
-					}},
-			})
-
-		if err != nil {
+		// WriteNNT takes in a node and variadic of NNTPartsData entries.
+		if err := client.WriteNNT(node, gosnowth.NNTData{
+			Metric: "test-metric",
+			ID:     id,
+			Offset: (time.Now().Unix() / 60) * 60,
+			Count:  5, Value: 100,
+			Parts: gosnowth.Parts{
+				Period: 60,
+				Data: []gosnowth.NNTPartsData{
+					gosnowth.NNTPartsData{Count: 1, Value: 100},
+					gosnowth.NNTPartsData{Count: 1, Value: 100},
+					gosnowth.NNTPartsData{Count: 1, Value: 100},
+					gosnowth.NNTPartsData{Count: 1, Value: 100},
+					gosnowth.NNTPartsData{Count: 1, Value: 100},
+				}},
+		}); err != nil {
 			log.Fatalf("failed to write text data: %v", err)
 		}
 
 		data, err := client.ReadNNTValues(node,
-			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second), 60,
-			"count", guid.String(), "test-metric")
-
+			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second),
+			60, "count", id, "test-metric")
 		if err != nil {
 			log.Fatalf("failed to read nnt data: %v", err)
 		}
+
 		log.Printf("%+v\n", data)
 		data1, err := client.ReadNNTAllValues(node,
-			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second), 60,
-			guid.String(), "test-metric")
+			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second),
+			60, id, "test-metric")
 		log.Printf("%+v\n", data1)
 	}
 }
 
-// ExampleReadText - this example shows how you are
-// able to read Text values from a given snowth node.
-// In this example you need snowth nodes running
-// at http://localhost:8112 and http://localhost:8113
+// ExampleReadText demonstrates how to read text values from a given snowth
+// node.
 func ExampleReadText() {
-	// create a client, with a seed of nodes
-	client, err := gosnowth.NewSnowthClient(
-		true,
-		"http://localhost:8112",
-		"http://localhost:8113",
-	)
+	// Create a new client.
+	client, err := gosnowth.NewSnowthClient(false, SnowthServers...)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
-	// write text data in order to read back the data
+
+	// Write text data in order to read back the data.
 	for _, node := range client.ListActiveNodes() {
-		guid := uuid.New()
-		err := client.WriteText(
-			node,
-			gosnowth.TextData{
-				Metric: "test-text-metric2", ID: guid.String(),
-				Offset: strconv.FormatInt(time.Now().Unix(), 10),
-				Value:  "a_text_data_value",
-			})
-		if err != nil {
-			log.Fatalf("failed to write text data: %v", err)
+		id := uuid.New().String()
+		if err := client.WriteText(node, gosnowth.TextData{
+			Metric: "test-text-metric2",
+			ID:     id,
+			Offset: strconv.FormatInt(time.Now().Unix(), 10),
+			Value:  "a_text_data_value",
+		}); err != nil {
+			log.Printf("failed to write text data: %v", err)
 		}
 
 		data, err := client.ReadTextValues(node,
 			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second),
-			guid.String(), "test-text-metric2")
-
+			id, "test-text-metric2")
 		if err != nil {
-			log.Fatalf("failed to read TEXT data: %v", err)
+			log.Printf("failed to read text data: %v", err)
 		}
+
 		log.Printf("%+v\n", data)
 	}
 }
