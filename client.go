@@ -80,14 +80,13 @@ type httpClient interface {
 // from the nodes.
 //		6.) Lua Extensions APIs
 type SnowthClient struct {
+	sync.RWMutex
 	c httpClient
 
 	// in order to keep track of healthy nodes within the cluster,
 	// we have two lists of SnowthNode types, active and inactive.
-	activeNodesMu   *sync.RWMutex
-	activeNodes     []*SnowthNode
-	inactiveNodesMu *sync.RWMutex
-	inactiveNodes   []*SnowthNode
+	activeNodes   []*SnowthNode
+	inactiveNodes []*SnowthNode
 
 	// watchInterval is the duration between checks to tell if a node is active
 	// or inactive.
@@ -114,12 +113,10 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 	}
 
 	sc := &SnowthClient{
-		c:               client,
-		activeNodesMu:   new(sync.RWMutex),
-		activeNodes:     []*SnowthNode{},
-		inactiveNodesMu: new(sync.RWMutex),
-		inactiveNodes:   []*SnowthNode{},
-		watchInterval:   5 * time.Second,
+		c:             client,
+		activeNodes:   []*SnowthNode{},
+		inactiveNodes: []*SnowthNode{},
+		watchInterval: 5 * time.Second,
 	}
 
 	// For each of the addrs we need to parse the connection string,
@@ -178,11 +175,15 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 // Tracing headers or other context information provided by the user of this
 // library can be added by this function.
 func (sc *SnowthClient) SetRequestFunc(f func(r *http.Request) error) {
+	sc.Lock()
+	defer sc.Unlock()
 	sc.request = f
 }
 
 // SetLog assigns a logger to the snowth client.
 func (sc *SnowthClient) SetLog(log Logger) {
+	sc.Lock()
+	defer sc.Unlock()
 	sc.log = log
 }
 
@@ -263,22 +264,13 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 // the operation if needed. It accepts a context value as an argument which
 // will also cancel the operation if the context is cancelled or expired. If
 // context cancellation is not needed, nil can be passed as the argument.
-func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) func() {
-	dch := make(chan struct{})
+func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 	start := time.Now()
 	go func() {
 		done := false
 		for !done {
-			if ctx != nil {
-				select {
-				case <-ctx.Done():
-					done = true
-					break
-				}
-			}
-
 			select {
-			case <-dch:
+			case <-ctx.Done():
 				done = true
 				break
 			default:
@@ -311,11 +303,6 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) func() {
 			}
 		}
 	}()
-
-	return func() {
-		dch <- struct{}{}
-		close(dch)
-	}
 }
 
 // discoverNodes attempts to discover peer nodes related to the topology.
@@ -353,8 +340,8 @@ func (sc *SnowthClient) discoverNodes() error {
 // populateNodeInfo populates an existing node with details from the topology.
 // If a node doesn't exist, it will be added to the list of active nodes.
 func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
+	sc.Lock()
 	found := false
-	sc.activeNodesMu.Lock()
 	for i := 0; i < len(sc.activeNodes); i++ {
 		if sc.activeNodes[i].identifier == topology.ID {
 			found = true
@@ -369,8 +356,6 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 		}
 	}
 
-	sc.activeNodesMu.Unlock()
-	sc.inactiveNodesMu.Lock()
 	for i := 0; i < len(sc.inactiveNodes); i++ {
 		found = true
 		if sc.inactiveNodes[i].identifier == topology.ID {
@@ -385,7 +370,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 		}
 	}
 
-	sc.inactiveNodesMu.Unlock()
+	sc.Unlock()
 	if !found {
 		newNode := &SnowthNode{
 			identifier: topology.ID,
@@ -403,10 +388,8 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 
 // ActivateNodes makes provided nodes active.
 func (sc *SnowthClient) ActivateNodes(nodes ...*SnowthNode) {
-	sc.activeNodesMu.Lock()
-	defer sc.activeNodesMu.Unlock()
-	sc.inactiveNodesMu.Lock()
-	defer sc.inactiveNodesMu.Unlock()
+	sc.Lock()
+	defer sc.Unlock()
 	in := []*SnowthNode{}
 	match := false
 	for _, iv := range sc.inactiveNodes {
@@ -444,10 +427,8 @@ func (sc *SnowthClient) ActivateNodes(nodes ...*SnowthNode) {
 
 // DeactivateNodes makes provided nodes inactive.
 func (sc *SnowthClient) DeactivateNodes(nodes ...*SnowthNode) {
-	sc.activeNodesMu.Lock()
-	defer sc.activeNodesMu.Unlock()
-	sc.inactiveNodesMu.Lock()
-	defer sc.inactiveNodesMu.Unlock()
+	sc.Lock()
+	defer sc.Unlock()
 	an := []*SnowthNode{}
 	match := false
 	for _, av := range sc.activeNodes {
@@ -485,8 +466,8 @@ func (sc *SnowthClient) DeactivateNodes(nodes ...*SnowthNode) {
 
 // AddNodes adds node values to the inactive node list.
 func (sc *SnowthClient) AddNodes(nodes ...*SnowthNode) {
-	sc.inactiveNodesMu.Lock()
-	defer sc.inactiveNodesMu.Unlock()
+	sc.Lock()
+	defer sc.Unlock()
 	in := []*SnowthNode{}
 	match := false
 	for _, v := range nodes {
@@ -508,8 +489,8 @@ func (sc *SnowthClient) AddNodes(nodes ...*SnowthNode) {
 
 // ListInactiveNodes lists all of the currently inactive nodes.
 func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
-	sc.inactiveNodesMu.RLock()
-	defer sc.inactiveNodesMu.RUnlock()
+	sc.RLock()
+	defer sc.RUnlock()
 	result := []*SnowthNode{}
 	for _, url := range sc.inactiveNodes {
 		result = append(result, url)
@@ -520,8 +501,8 @@ func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
 
 // ListActiveNodes lists all of the currently active nodes.
 func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
-	sc.activeNodesMu.RLock()
-	defer sc.activeNodesMu.RUnlock()
+	sc.RLock()
+	defer sc.RUnlock()
 	result := []*SnowthNode{}
 	for _, url := range sc.activeNodes {
 		result = append(result, url)
@@ -540,8 +521,11 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	}
 
 	r.Close = true
-	if sc.request != nil {
-		if err := sc.request(r); err != nil {
+	sc.RLock()
+	rf := sc.request
+	sc.RUnlock()
+	if rf != nil {
+		if err := rf(r); err != nil {
 			return errors.Wrap(err, "unable to process request")
 		}
 

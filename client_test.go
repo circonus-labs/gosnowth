@@ -111,6 +111,15 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 			w.Write([]byte(topologyXMLTestData))
 			return
 		}
+
+		if r.RequestURI == "/gossip/json" {
+			if r.Header.Get("ALT") != "" {
+				w.Write([]byte(gossipTestAltData))
+			}
+
+			w.Write([]byte(gossipTestData))
+			return
+		}
 	}))
 
 	defer ms.Close()
@@ -124,7 +133,13 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 		t.Fatal("Invalid test URL")
 	}
 
-	node := &SnowthNode{url: u}
+	node := &SnowthNode{
+		url:        u,
+		identifier: "1f846f26-0cfd-4df5-b4f1-e0930604e577",
+		currentTopology: "0123456789abcdef0123456789abcdef0123456789abcdef" +
+			"0123456789abcdef",
+	}
+
 	res, err := sc.FindTags(node, 1, "test", "1", "1")
 	if err != nil {
 		t.Fatal(err)
@@ -144,38 +159,24 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	sc.WatchAndUpdate(ctx)
 	sc.AddNodes(node)
 	sc.ActivateNodes(node)
-	sc.activeNodesMu.Lock()
-	rb := len(sc.activeNodes) == 5
-	sc.activeNodesMu.Unlock()
-	if !rb {
+	if !sc.isNodeActive(node) {
 		t.Errorf("Expected node to be active")
 	}
 
+	sc.SetRequestFunc(func(r *http.Request) error {
+		r.Header.Set("ALT", "true")
+		return nil
+	})
+
 	time.Sleep(150 * time.Millisecond)
-	sc.inactiveNodesMu.Lock()
-	rb = len(sc.inactiveNodes) == 1
-	sc.inactiveNodesMu.Unlock()
-	if rb {
+	if sc.isNodeActive(node) {
 		t.Errorf("Expected node to be inactive")
 	}
 
-	cancel()
-	canc := sc.WatchAndUpdate(nil)
-	defer canc()
-	sc.ActivateNodes(node)
-	sc.activeNodesMu.Lock()
-	rb = len(sc.activeNodes) == 5
-	sc.activeNodesMu.Unlock()
-	if !rb {
+	sc.SetRequestFunc(nil)
+	time.Sleep(150 * time.Millisecond)
+	if !sc.isNodeActive(node) {
 		t.Errorf("Expected node to be active")
-	}
-
-	time.Sleep(150 * time.Millisecond)
-	sc.inactiveNodesMu.Lock()
-	rb = len(sc.inactiveNodes) == 1
-	sc.inactiveNodesMu.Unlock()
-	if rb {
-		t.Errorf("Expected node to be inactive")
 	}
 }
 
