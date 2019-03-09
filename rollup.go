@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/url"
@@ -31,6 +32,14 @@ func (rv *RollupValues) UnmarshalJSON(b []byte) error {
 func (sc *SnowthClient) ReadRollupValues(
 	node *SnowthNode, id, metric string, tags []string, rollup time.Duration,
 	start, end time.Time) ([]RollupValues, error) {
+	return sc.ReadRollupValuesContext(context.Background(), node, id, metric,
+		tags, rollup, start, end)
+}
+
+// ReadRollupValuesContext is the context aware version of ReadRollupValues.
+func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
+	node *SnowthNode, id, metric string, tags []string, rollup time.Duration,
+	start, end time.Time) ([]RollupValues, error) {
 	startTS := start.Unix() - start.Unix()%int64(rollup/time.Second)
 	endTS := end.Unix() - end.Unix()%int64(rollup/time.Second) +
 		int64(rollup/time.Second)
@@ -43,7 +52,7 @@ func (sc *SnowthClient) ReadRollupValues(
 	}
 
 	r := []RollupValues{}
-	err := sc.do(node, "GET",
+	err := sc.do(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds",
 			path.Join("/rollup", id,
 				url.QueryEscape(metricBuilder.String())),

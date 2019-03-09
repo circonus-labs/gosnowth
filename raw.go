@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -17,17 +18,42 @@ const FlatbufferContentType = "application/x-circonus-metric-list-flatbuffer"
 // WriteRaw writes raw IRONdb data to a node.
 func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 	fb bool, dataPoints uint64) error {
+	return sc.WriteRawContext(context.Background(), node, data, fb, dataPoints)
+}
+
+// WriteRawContext is the context aware version of WriteRaw.
+func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
+	data io.Reader, fb bool, dataPoints uint64) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	r, err := http.NewRequest("POST", sc.getURL(node, "/raw"), data)
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
 	}
 
+	r.Close = true
 	r.Header.Add("X-Snowth-Datapoints", strconv.FormatUint(dataPoints, 10))
 	if fb { // is flatbuffer?
 		r.Header.Add("Content-Type", FlatbufferContentType)
 	}
 
-	sc.LogDebugf("Snowth Request: %+v", r)
+	r = r.WithContext(ctx)
+	sc.RLock()
+	rf := sc.request
+	sc.RUnlock()
+	if rf != nil {
+		if err := rf(r); err != nil {
+			return errors.Wrap(err, "unable to process request")
+		}
+
+		if r == nil {
+			return errors.New("invalid request after processing")
+		}
+	}
+
+	sc.LogDebugf("snowth Request: %+v", r)
 	var start = time.Now()
 	resp, err := sc.c.Do(r)
 	if err != nil {
@@ -35,13 +61,21 @@ func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 	}
 
 	defer resp.Body.Close()
-	sc.LogDebugf("Snowth Response: %+v", resp)
-	sc.LogDebugf("Snowth Response Latency: %+v", time.Now().Sub(start))
+	sc.LogDebugf("snowth response: %+v", resp)
+	sc.LogDebugf("snowth latency: %+v", time.Since(start))
+	select {
+	case <-ctx.Done():
+		return errors.Wrap(ctx.Err(), "context terminated")
+	default:
+		break
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
-		sc.LogWarnf("status code not 200: %+v", resp)
-		return fmt.Errorf("non-success status code returned: %s -> %s",
-			resp.Status, string(body))
+		sc.LogWarnf("error returned from IRONdb: [%d] %s",
+			resp.StatusCode, string(body))
+		return fmt.Errorf("error returned from IRONdb: [%d] %s",
+			resp.StatusCode, string(body))
 	}
 
 	return nil

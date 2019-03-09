@@ -1,14 +1,21 @@
 package gosnowth
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 )
 
 // GetNodeState retrieves the state of an IRONdb node.
-func (sc *SnowthClient) GetNodeState(node *SnowthNode) (state *NodeState, err error) {
+func (sc *SnowthClient) GetNodeState(node *SnowthNode) (*NodeState, error) {
+	return sc.GetNodeStateContext(context.Background(), node)
+}
+
+// GetNodeStateContext is the context aware version of GetNodeState.
+func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
+	node *SnowthNode) (state *NodeState, err error) {
 	state = new(NodeState)
-	err = sc.do(node, "GET", "/state", nil, state, decodeJSON)
+	err = sc.do(ctx, node, "GET", "/state", nil, state, decodeJSON)
 	return
 }
 
@@ -114,7 +121,7 @@ type Features struct {
 	TextStore               bool `json:"text:store"`
 	HistogramStore          bool `json:"histogram:store"`
 	NNTSecondOrder          bool `json:"nnt:second_order"`
-	HistogramDynamicRollups bool `json:"hisogram:dynamic_rollups"`
+	HistogramDynamicRollups bool `json:"histogram:dynamic_rollups"`
 	NNTStore                bool `json:"nnt:store"`
 	FeatureFlags            bool `json:"features"`
 }

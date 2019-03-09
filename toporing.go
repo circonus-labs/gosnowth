@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"encoding/xml"
 	"path"
 )
@@ -23,8 +24,14 @@ type TopoRingDetail struct {
 // GetTopoRingInfo retrieves topology ring information from a node.
 func (sc *SnowthClient) GetTopoRingInfo(hash string,
 	node *SnowthNode) (*TopoRing, error) {
+	return sc.GetTopoRingInfoContext(context.Background(), hash, node)
+}
+
+// GetTopoRingInfoContext is the context aware version of GetTopoRingInfo.
+func (sc *SnowthClient) GetTopoRingInfoContext(ctx context.Context,
+	hash string, node *SnowthNode) (*TopoRing, error) {
 	tr := new(TopoRing)
-	err := sc.do(node, "GET", path.Join("/toporing/xml", hash),
+	err := sc.do(ctx, node, "GET", path.Join("/toporing/xml", hash),
 		nil, tr, decodeXML)
 	return tr, err
 }

@@ -2,10 +2,12 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -170,5 +172,26 @@ func TestGetGossipInfo(t *testing.T) {
 	if (*res)[0].ID != "1f846f26-0cfd-4df5-b4f1-e0930604e577" {
 		t.Errorf("Expected ID: 1f846f26-0cfd-4df5-b4f1-e0930604e577, got: %v",
 			(*res)[0].ID)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	res, err = sc.GetGossipInfoContext(ctx, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res == nil || len(*res) != 4 {
+		t.Fatalf("Expected result length: 4, got: %v", len(*res))
+	}
+
+	if (*res)[0].ID != "1f846f26-0cfd-4df5-b4f1-e0930604e577" {
+		t.Errorf("Expected ID: 1f846f26-0cfd-4df5-b4f1-e0930604e577, got: %v",
+			(*res)[0].ID)
+	}
+
+	cancel()
+	res, err = sc.GetGossipInfoContext(ctx, node)
+	if err == nil || !strings.Contains(err.Error(), "context") {
+		t.Error("Expected context error.", err)
 	}
 }

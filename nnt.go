@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"path"
 	"strconv"
@@ -140,24 +141,34 @@ func (p *Parts) MarshalJSON() ([]byte, error) {
 }
 
 // WriteNNT writes NNT data to a node.
-func (sc *SnowthClient) WriteNNT(node *SnowthNode,
-	data ...NNTData) (err error) {
+func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) error {
+	return sc.WriteNNTContext(context.Background(), node, data...)
+}
+
+// WriteNNTContext is the context aware version of WriteNNT.
+func (sc *SnowthClient) WriteNNTContext(ctx context.Context, node *SnowthNode,
+	data ...NNTData) error {
 	buf := new(bytes.Buffer)
-	enc := json.NewEncoder(buf)
-	if err := enc.Encode(data); err != nil {
+	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode NNTData for write")
 	}
 
-	err = sc.do(node, "POST", "/write/nnt", buf, nil, nil)
-	return
+	return sc.do(ctx, node, "POST", "/write/nnt", buf, nil, nil)
 }
 
 // ReadNNTValues reads NNT data from a node.
-func (sc *SnowthClient) ReadNNTValues(
+func (sc *SnowthClient) ReadNNTValues(node *SnowthNode, start, end time.Time,
+	period int64, t, id, metric string) ([]NNTValue, error) {
+	return sc.ReadNNTValuesContext(context.Background(), node, start, end,
+		period, t, id, metric)
+}
+
+// ReadNNTValuesContext is the context aware version of ReadNNTValues.
+func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 	node *SnowthNode, start, end time.Time, period int64,
 	t, id, metric string) ([]NNTValue, error) {
 	nv := new(NNTValueResponse)
-	err := sc.do(node, "GET", path.Join("/read",
+	err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
 		strconv.FormatInt(period, 10), id, t, metric),
@@ -166,11 +177,19 @@ func (sc *SnowthClient) ReadNNTValues(
 }
 
 // ReadNNTAllValues reads all NNT data from a node.
-func (sc *SnowthClient) ReadNNTAllValues(
+func (sc *SnowthClient) ReadNNTAllValues(node *SnowthNode,
+	start, end time.Time, period int64,
+	id, metric string) ([]NNTAllValue, error) {
+	return sc.ReadNNTAllValuesContext(context.Background(), node, start, end,
+		period, id, metric)
+}
+
+// ReadNNTAllValuesContext is the context aware version of ReadNNTAllValues.
+func (sc *SnowthClient) ReadNNTAllValuesContext(ctx context.Context,
 	node *SnowthNode, start, end time.Time, period int64,
 	id, metric string) ([]NNTAllValue, error) {
 	nv := new(NNTAllValueResponse)
-	err := sc.do(node, "GET", path.Join("/read",
+	err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
 		strconv.FormatInt(period, 10), id, "all", metric),
