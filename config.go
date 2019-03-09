@@ -30,9 +30,11 @@ type Config struct {
 }
 
 // NewConfig creates and initializes a new SnowthClient configuration value.
-func NewConfig() *Config {
+func NewConfig(servers ...string) *Config {
 	return &Config{
 		DialTimeout:   time.Duration(500 * time.Millisecond),
+		Discover:      false,
+		Servers:       servers,
 		Timeout:       time.Duration(10 * time.Second),
 		WatchInterval: time.Duration(30 * time.Second),
 	}

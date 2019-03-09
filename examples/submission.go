@@ -14,9 +14,8 @@ import (
 // ExampleSubmitText demonstrates how to submit a text metric to a node.
 func ExampleSubmitText() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -39,9 +38,8 @@ func ExampleSubmitText() {
 // ExampleSubmitNNT demonstrates how to submit an NNT metric to a node.
 func ExampleSubmitNNT() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -73,9 +71,8 @@ func ExampleSubmitNNT() {
 // ExampleSubmitHistogram demonstrates how to submit histogram data to a node.
 func ExampleSubmitHistogram() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}

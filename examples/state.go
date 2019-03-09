@@ -10,9 +10,8 @@ import (
 // a particular node.
 func ExampleGetNodeState() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -31,9 +30,8 @@ func ExampleGetNodeState() {
 // ExampleGetNodeGossip demontrates how to get gossip details from a node.
 func ExampleGetNodeGossip() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -52,9 +50,8 @@ func ExampleGetNodeGossip() {
 // ExampleGetTopology demonstrates how to get topology details from a node.
 func ExampleGetTopology() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -74,9 +71,8 @@ func ExampleGetTopology() {
 // node.
 func ExampleGetTopoRing() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig().
-		WithDiscover(true).
-		WithServers(SnowthServers...))
+	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
+		WithDiscover(true))
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
