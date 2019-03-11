@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"encoding/json"
+	"net/url"
 	"time"
 
 	"github.com/pkg/errors"
@@ -31,13 +32,21 @@ type Config struct {
 
 // NewConfig creates and initializes a new SnowthClient configuration value.
 func NewConfig(servers ...string) *Config {
-	return &Config{
+	c := &Config{
 		DialTimeout:   time.Duration(500 * time.Millisecond),
 		Discover:      false,
-		Servers:       servers,
+		Servers:       []string{},
 		Timeout:       time.Duration(10 * time.Second),
 		WatchInterval: time.Duration(30 * time.Second),
 	}
+
+	for _, svr := range servers {
+		if _, err := url.Parse(svr); err == nil {
+			c.Servers = append(c.Servers, svr)
+		}
+	}
+
+	return c
 }
 
 // MarshalJSON encodes a Config value into a JSON format byte slice.
@@ -66,17 +75,21 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into the Config value.
 func (c *Config) UnmarshalJSON(b []byte) error {
 	m := map[string]interface{}{}
-	var err error
-	if err = json.Unmarshal(b, &m); err != nil {
-		errors.Wrap(err, "unable to unmarshal JSON data")
-		return err
+	if err := json.Unmarshal(b, &m); err != nil {
+		return errors.Wrap(err, "unable to unmarshal JSON data")
 	}
 
 	if v, ok := m["dial_timeout"].(string); ok {
-		c.DialTimeout, err = time.ParseDuration(v)
+		d, err := time.ParseDuration(v)
 		if err != nil {
 			return errors.Wrap(err, "unable to parse dial timeout")
 		}
+
+		if d < 0 || d > time.Minute {
+			return errors.New("invalid dial timeout value")
+		}
+
+		c.DialTimeout = d
 	}
 
 	if v, ok := m["discover"].(bool); ok {
@@ -84,23 +97,37 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 	}
 
 	if v, ok := m["timeout"].(string); ok {
-		c.Timeout, err = time.ParseDuration(v)
+		d, err := time.ParseDuration(v)
 		if err != nil {
 			return errors.Wrap(err, "unable to parse timeout")
 		}
+
+		if d < 0 || d > (5*time.Minute) {
+			return errors.New("invalid timeout value")
+		}
+
+		c.Timeout = d
 	}
 
 	if v, ok := m["watch_interval"].(string); ok {
-		c.WatchInterval, err = time.ParseDuration(v)
+		d, err := time.ParseDuration(v)
 		if err != nil {
 			return errors.Wrap(err, "unable to parse watch interval")
 		}
+
+		if d < 0 || d > (24*time.Hour) {
+			return errors.New("invalid watch interval value")
+		}
+
+		c.WatchInterval = d
 	}
 
 	if v, ok := m["servers"].([]interface{}); ok {
 		for _, vv := range v {
-			if vs, ok := vv.(string); ok {
-				c.Servers = append(c.Servers, vs)
+			if svr, ok := vv.(string); ok {
+				if _, err := url.Parse(svr); err == nil {
+					c.Servers = append(c.Servers, svr)
+				}
 			}
 		}
 	}
@@ -111,7 +138,10 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 // WithDialTimeout sets a new dial timeout and returns a pointer to the updated
 // configuration value.
 func (c *Config) WithDialTimeout(t time.Duration) *Config {
-	c.DialTimeout = t
+	if t >= 0 && t < time.Minute {
+		c.DialTimeout = t
+	}
+
 	return c
 }
 
@@ -125,20 +155,32 @@ func (c *Config) WithDiscover(d bool) *Config {
 // WithTimeout sets a new timeout duration and returns a pointer to the updated
 // configuration value.
 func (c *Config) WithTimeout(t time.Duration) *Config {
-	c.Timeout = t
+	if t >= 0 && t < (5*time.Minute) {
+		c.Timeout = t
+	}
+
 	return c
 }
 
 // WithServers assigns a new list of servers and returns a pointer to the
 // updated configuration value.
-func (c *Config) WithServers(addrs ...string) *Config {
-	c.Servers = addrs
+func (c *Config) WithServers(servers ...string) *Config {
+	c.Servers = []string{}
+	for _, svr := range servers {
+		if _, err := url.Parse(svr); err == nil {
+			c.Servers = append(c.Servers, svr)
+		}
+	}
+
 	return c
 }
 
 // WithWatchInterval sets a new interval for watch and update functionality and
 // returns a pointer to the updated configuration value.
 func (c *Config) WithWatchInterval(i time.Duration) *Config {
-	c.WatchInterval = i
+	if i >= 0 && i <= (time.Hour*24) {
+		c.WatchInterval = i
+	}
+
 	return c
 }

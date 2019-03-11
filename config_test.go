@@ -2,12 +2,13 @@ package gosnowth
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 )
 
 func TestNewConfig(t *testing.T) {
-	cfg := NewConfig().
+	cfg := NewConfig("test1", "test2").
 		WithDialTimeout(time.Second).
 		WithDiscover(true).
 		WithServers("test1", "test2").
@@ -65,5 +66,60 @@ func TestConfigMarshalJSON(t *testing.T) {
 
 	if string(r) != s {
 		t.Errorf("Expected JSON string: %v, got: %v", s, string(r))
+	}
+
+	s = `{"dial_timeout":"100s","discover":true,` +
+		`"servers":["localhost:8112"],"timeout":"1s","watch_interval":"5s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"invalid dial timeout value") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"aa","discover":true,` +
+		`"servers":["localhost:8112"],"timeout":"1s","watch_interval":"5s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"unable to parse dial timeout") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,` +
+		`"servers":["localhost:8112"],"timeout":"38h","watch_interval":"5s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"invalid timeout value") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,` +
+		`"servers":["localhost:8112"],"timeout":"aa","watch_interval":"5s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"unable to parse timeout") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,` +
+		`"servers":["localhost:8112"],"timeout":"10s","watch_interval":"500h"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"invalid watch interval value") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,` +
+		`"servers":["localhost:8112"],"timeout":"10s","watch_interval":"aa"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"unable to parse watch interval") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{$$$}`
+	err = c.UnmarshalJSON([]byte(s))
+	if err == nil || !strings.Contains(err.Error(),
+		"unable to unmarshal JSON data") {
+		t.Error("Expected error not returned.")
 	}
 }
