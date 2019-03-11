@@ -108,18 +108,25 @@ type SnowthClient struct {
 // The discover parameter, when true, will allow the client to discover new
 // nodes from the topology.
 func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
-	cfg := NewConfig()
-	cfg.Discover = discover
-	cfg.Servers = addrs
+	cfg, err := NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.SetDiscover(discover)
+	if err := cfg.SetServers(addrs...); err != nil {
+		return nil, err
+	}
+
 	return NewClient(cfg)
 }
 
 // NewClient creates and performs initial setup of a new SnowthClient.
 func NewClient(cfg *Config) (*SnowthClient, error) {
 	client := &http.Client{
-		Timeout: cfg.Timeout,
+		Timeout: cfg.Timeout(),
 		Transport: &http.Transport{
-			Dial: (&net.Dialer{Timeout: cfg.DialTimeout}).Dial,
+			Dial: (&net.Dialer{Timeout: cfg.DialTimeout()}).Dial,
 		},
 	}
 
@@ -127,7 +134,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		c:             client,
 		activeNodes:   []*SnowthNode{},
 		inactiveNodes: []*SnowthNode{},
-		watchInterval: cfg.WatchInterval,
+		watchInterval: cfg.WatchInterval(),
 	}
 
 	// For each of the addrs we need to parse the connection string,
@@ -136,7 +143,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 	// node.  Finally we will add the node and activate it.
 	numActiveNodes := 0
 	nErr := newMultiError()
-	for _, addr := range cfg.Servers {
+	for _, addr := range cfg.Servers() {
 		url, err := url.Parse(addr)
 		if err != nil {
 			// This node had an error, put on inactive list.
@@ -168,7 +175,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		return nil, errors.New("no snowth nodes could be activated")
 	}
 
-	if cfg.Discover {
+	if cfg.Discover() {
 		// For robustness, we will perform a discovery of associated nodes
 		// this works by pulling the topology information for given nodes
 		// and adding nodes discovered within the topology into the client.

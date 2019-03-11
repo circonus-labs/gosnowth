@@ -13,8 +13,13 @@ import (
 // ExampleReadNNT demonstrates how to read NNT values from a given snowth node.
 func ExampleReadNNT() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
-		WithDiscover(true))
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -60,8 +65,13 @@ func ExampleReadNNT() {
 // node.
 func ExampleReadText() {
 	// Create a new client.
-	client, err := gosnowth.NewClient(gosnowth.NewConfig(SnowthServers...).
-		WithDiscover(true))
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}

@@ -8,53 +8,77 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
-	cfg := NewConfig("test1", "test2").
-		WithDialTimeout(time.Second).
-		WithDiscover(true).
-		WithServers("test1", "test2").
-		WithTimeout(time.Second).
-		WithWatchInterval(time.Second)
-	if cfg.DialTimeout != time.Second {
+	if _, err := NewConfig(":invalid"); err == nil {
+		t.Fatal("Expected invalid server error")
+	}
+
+	cfg, err := NewConfig("test1", "test2")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if err := cfg.SetDialTimeout(time.Second); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg.SetDiscover(true)
+	if err := cfg.SetServers("test1", "test2"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := cfg.SetTimeout(time.Second); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := cfg.SetWatchInterval(time.Second); err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg.DialTimeout() != time.Second {
 		t.Errorf("Expected dial timeout: %v, got: %v",
-			time.Second, cfg.DialTimeout)
+			time.Second, cfg.DialTimeout())
 	}
 
-	if cfg.Discover != true {
+	if cfg.Discover() != true {
 		t.Errorf("Expected discover value: %v, got: %v",
-			true, cfg.Discover)
+			true, cfg.Discover())
 	}
 
-	if len(cfg.Servers) != 2 {
+	if len(cfg.Servers()) != 2 {
 		t.Fatalf("Expected servers length: %v, got: %v",
-			2, len(cfg.Servers))
+			2, len(cfg.Servers()))
 	}
 
-	if cfg.Servers[0] != "test1" {
+	if cfg.Servers()[0] != "test1" {
 		t.Errorf("Expected server value: %v, got: %v",
-			"test1", cfg.Servers[0])
+			"test1", cfg.Servers()[0])
 	}
 
-	if cfg.Servers[1] != "test2" {
+	if cfg.Servers()[1] != "test2" {
 		t.Errorf("Expected server value: %v, got: %v",
-			"test2", cfg.Servers[1])
+			"test2", cfg.Servers()[1])
 	}
 
-	if cfg.Timeout != time.Second {
+	if cfg.Timeout() != time.Second {
 		t.Errorf("Expected timeout: %v, got: %v",
-			time.Second, cfg.Timeout)
+			time.Second, cfg.Timeout())
 	}
 
-	if cfg.WatchInterval != time.Second {
+	if cfg.WatchInterval() != time.Second {
 		t.Errorf("Expected watch interval: %v, got: %v",
-			time.Second, cfg.WatchInterval)
+			time.Second, cfg.WatchInterval())
 	}
 }
 
 func TestConfigMarshalJSON(t *testing.T) {
-	s := `{"dial_timeout":"100ms","discover":true,` +
-		`"servers":["localhost:8112"],"timeout":"1s","watch_interval":"5s"}`
-	c := NewConfig()
-	err := json.Unmarshal([]byte(s), c)
+	s := `{"dial_timeout":"100ms","discover":true,"timeout":"1s",` +
+		`"watch_interval":"5s","servers":["localhost:8112"]}`
+	c, err := NewConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = json.Unmarshal([]byte(s), c)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,6 +137,14 @@ func TestConfigMarshalJSON(t *testing.T) {
 	err = json.Unmarshal([]byte(s), c)
 	if err == nil || !strings.Contains(err.Error(),
 		"unable to parse watch interval") {
+		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,` +
+		`"servers":[":invalid"],"timeout":"10s","watch_interval":"30s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"invalid server address") {
 		t.Error("Expected error not returned.")
 	}
 
