@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"encoding/xml"
 	"path"
 
@@ -28,8 +29,14 @@ type TopologyNode struct {
 
 // GetTopologyInfo retrieves topology information from a node.
 func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (*Topology, error) {
+	return sc.GetTopologyInfoContext(context.Background(), node)
+}
+
+// GetTopologyInfoContext is the context aware version of GetTopologyInfo.
+func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
+	node *SnowthNode) (*Topology, error) {
 	t := new(Topology)
-	err := sc.do(node, "GET",
+	err := sc.do(ctx, node, "GET",
 		path.Join("/topology/xml", node.GetCurrentTopology()),
 		nil, t, decodeXML)
 	return t, err
@@ -38,15 +45,29 @@ func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (*Topology, error) {
 // LoadTopology loads a new topology on a node without activating it.
 func (sc *SnowthClient) LoadTopology(hash string, t *Topology,
 	node *SnowthNode) error {
+	return sc.LoadTopologyContext(context.Background(), hash, t, node)
+}
+
+// LoadTopologyContext is the context aware version of LoadTopology.
+func (sc *SnowthClient) LoadTopologyContext(ctx context.Context, hash string,
+	t *Topology, node *SnowthNode) error {
 	b, err := encodeXML(t)
 	if err != nil {
 		return errors.Wrap(err, "failed to encode request data")
 	}
 
-	return sc.do(node, "POST", path.Join("/topology", hash), b, nil, nil)
+	return sc.do(ctx, node, "POST", path.Join("/topology", hash), b, nil, nil)
 }
 
-// ActivateTopology activates a new topology on the node. THIS IS DANGEROUS.
+// ActivateTopology activates a new topology on the node.
+// WARNING THIS IS DANGEROUS.
 func (sc *SnowthClient) ActivateTopology(hash string, node *SnowthNode) error {
-	return sc.do(node, "GET", path.Join("/activate", hash), nil, nil, nil)
+	return sc.ActivateTopologyContext(context.Background(), hash, node)
+}
+
+// ActivateTopologyContext is the context aware version of ActivateTopology.
+// WARNING THIS IS DANGEROUS.
+func (sc *SnowthClient) ActivateTopologyContext(ctx context.Context,
+	hash string, node *SnowthNode) error {
+	return sc.do(ctx, node, "GET", path.Join("/activate", hash), nil, nil, nil)
 }

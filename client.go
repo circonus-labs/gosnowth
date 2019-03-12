@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -107,16 +108,33 @@ type SnowthClient struct {
 // The discover parameter, when true, will allow the client to discover new
 // nodes from the topology.
 func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
-	timeout := time.Duration(10 * time.Second)
+	cfg, err := NewConfig()
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.SetDiscover(discover)
+	if err := cfg.SetServers(addrs...); err != nil {
+		return nil, err
+	}
+
+	return NewClient(cfg)
+}
+
+// NewClient creates and performs initial setup of a new SnowthClient.
+func NewClient(cfg *Config) (*SnowthClient, error) {
 	client := &http.Client{
-		Timeout: timeout,
+		Timeout: cfg.Timeout(),
+		Transport: &http.Transport{
+			Dial: (&net.Dialer{Timeout: cfg.DialTimeout()}).Dial,
+		},
 	}
 
 	sc := &SnowthClient{
 		c:             client,
 		activeNodes:   []*SnowthNode{},
 		inactiveNodes: []*SnowthNode{},
-		watchInterval: 5 * time.Second,
+		watchInterval: cfg.WatchInterval(),
 	}
 
 	// For each of the addrs we need to parse the connection string,
@@ -125,7 +143,7 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 	// node.  Finally we will add the node and activate it.
 	numActiveNodes := 0
 	nErr := newMultiError()
-	for _, addr := range addrs {
+	for _, addr := range cfg.Servers() {
 		url, err := url.Parse(addr)
 		if err != nil {
 			// This node had an error, put on inactive list.
@@ -157,7 +175,7 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 		return nil, errors.New("no snowth nodes could be activated")
 	}
 
-	if discover {
+	if cfg.Discover() {
 		// For robustness, we will perform a discovery of associated nodes
 		// this works by pulling the topology information for given nodes
 		// and adding nodes discovered within the topology into the client.
@@ -268,7 +286,7 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 	start := time.Now()
 	go func() {
 		done := false
-		for !done {
+		for !done && sc.watchInterval > 0 {
 			select {
 			case <-ctx.Done():
 				done = true
@@ -350,6 +368,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 				Host: fmt.Sprintf("%s:%d", topology.Address,
 					topology.APIPort),
 			}
+
 			sc.activeNodes[i].url = &url
 			sc.activeNodes[i].currentTopology = hash
 			continue
@@ -364,6 +383,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 				Host: fmt.Sprintf("%s:%d", topology.Address,
 					topology.APIPort),
 			}
+
 			sc.inactiveNodes[i].url = &url
 			sc.inactiveNodes[i].currentTopology = hash
 			continue
@@ -381,6 +401,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 			},
 			currentTopology: hash,
 		}
+
 		sc.AddNodes(newNode)
 		sc.ActivateNodes(newNode)
 	}
@@ -512,15 +533,20 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 }
 
 // do sends a request to IRONdb.
-func (sc *SnowthClient) do(node *SnowthNode, method, url string,
-	body io.Reader, respValue interface{},
+func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
+	method, url string, body io.Reader, respValue interface{},
 	decodeFunc func(io.Reader, interface{}) error) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
 		return errors.Wrap(err, "failed to create request")
 	}
 
 	r.Close = true
+	r = r.WithContext(ctx)
 	sc.RLock()
 	rf := sc.request
 	sc.RUnlock()
@@ -544,15 +570,24 @@ func (sc *SnowthClient) do(node *SnowthNode, method, url string,
 	defer resp.Body.Close()
 	sc.LogDebugf("snowth response: %+v", resp)
 	sc.LogDebugf("snowth latency: %+v", time.Since(start))
+	select {
+	case <-ctx.Done():
+		return errors.Wrap(ctx.Err(), "context terminated")
+	default:
+		break
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := ioutil.ReadAll(resp.Body)
-		return fmt.Errorf("non-success status code returned: %s -> %s",
-			resp.Status, string(body))
+		sc.LogWarnf("error returned from IRONdb: [%d] %s",
+			resp.StatusCode, string(body))
+		return fmt.Errorf("error returned from IRONdb: [%d] %s",
+			resp.StatusCode, string(body))
 	}
 
 	if respValue != nil {
 		if err := decodeFunc(resp.Body, respValue); err != nil {
-			return errors.Wrap(err, "failed to decode")
+			return errors.Wrap(err, "unable to decode IRONdb response")
 		}
 	}
 

@@ -14,7 +14,13 @@ import (
 // ExampleSubmitText demonstrates how to submit a text metric to a node.
 func ExampleSubmitText() {
 	// Create a new client.
-	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -29,7 +35,7 @@ func ExampleSubmitText() {
 			Offset: strconv.FormatInt(time.Now().Unix(), 10),
 			Value:  "a_text_data_value",
 		}); err != nil {
-			log.Printf("failed to write text data: %v", err)
+			log.Fatalf("failed to write text data: %v", err)
 		}
 	}
 }
@@ -37,7 +43,13 @@ func ExampleSubmitText() {
 // ExampleSubmitNNT demonstrates how to submit an NNT metric to a node.
 func ExampleSubmitNNT() {
 	// Create a new client.
-	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -61,7 +73,7 @@ func ExampleSubmitNNT() {
 				},
 			},
 		}); err != nil {
-			log.Printf("failed to write nnt data: %v", err)
+			log.Fatalf("failed to write nnt data: %v", err)
 		}
 	}
 }
@@ -69,7 +81,13 @@ func ExampleSubmitNNT() {
 // ExampleSubmitHistogram demonstrates how to submit histogram data to a node.
 func ExampleSubmitHistogram() {
 	// Create a new client.
-	client, err := gosnowth.NewSnowthClient(true, SnowthServers...)
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -87,13 +105,15 @@ func ExampleSubmitHistogram() {
 	for _, node := range client.ListActiveNodes() {
 		id := uuid.New().String()
 		if err := client.WriteHistogram(node, gosnowth.HistogramData{
-			Metric:    "test-text-metric2",
+			AccountID: 1,
+			Metric:    "test-hist-metric",
 			ID:        id,
+			CheckName: "test",
 			Offset:    time.Now().Unix(),
 			Histogram: hist,
 			Period:    60,
 		}); err != nil {
-			log.Printf("failed to write histogram data: %v", err)
+			log.Fatalf("failed to write histogram data: %v", err)
 		}
 	}
 }

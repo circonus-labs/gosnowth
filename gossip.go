@@ -1,5 +1,7 @@
 package gosnowth
 
+import "context"
+
 // Gossip values contain gossip information from a node. This structure includes
 // information on how the nodes are communicating with each other, and if any
 // nodes are behind with each other with regards to data replication.
@@ -25,8 +27,13 @@ type GossipLatency map[string]string
 // as topology state, current and next topology.
 func (sc *SnowthClient) GetGossipInfo(
 	node *SnowthNode) (gossip *Gossip, err error) {
+	return sc.GetGossipInfoContext(context.Background(), node)
+}
+
+// GetGossipInfoContext is the context aware version of GetGossipInfo.
+func (sc *SnowthClient) GetGossipInfoContext(ctx context.Context,
+	node *SnowthNode) (gossip *Gossip, err error) {
 	gossip = new(Gossip)
-	err = sc.do(node, "GET", "/gossip/json", nil, gossip,
-		decodeJSON)
+	err = sc.do(ctx, node, "GET", "/gossip/json", nil, gossip, decodeJSON)
 	return
 }

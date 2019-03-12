@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"path"
 	"strconv"
@@ -43,8 +44,16 @@ type TextValue struct {
 // ReadTextValues reads text data values from an IRONdb node.
 func (sc *SnowthClient) ReadTextValues(node *SnowthNode, start, end time.Time,
 	id, metric string) ([]TextValue, error) {
+	return sc.ReadTextValuesContext(context.Background(), node, start, end,
+		id, metric)
+}
+
+// ReadTextValuesContext is the context aware version of ReadTextValues.
+func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
+	node *SnowthNode, start, end time.Time,
+	id, metric string) ([]TextValue, error) {
 	tvr := new(TextValueResponse)
-	err := sc.do(node, "GET", path.Join("/read",
+	err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10), id, metric), nil, tvr, decodeJSON)
 	if tvr == nil {
@@ -64,10 +73,16 @@ type TextData struct {
 
 // WriteText writes text data to an IRONdb node.
 func (sc *SnowthClient) WriteText(node *SnowthNode, data ...TextData) error {
+	return sc.WriteTextContext(context.Background(), node, data...)
+}
+
+// WriteTextContext is the context aware version of WriteText.
+func (sc *SnowthClient) WriteTextContext(ctx context.Context, node *SnowthNode,
+	data ...TextData) error {
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode TextData for write")
 	}
 
-	return sc.do(node, "POST", "/write/text", buf, nil, nil)
+	return sc.do(ctx, node, "POST", "/write/text", buf, nil, nil)
 }

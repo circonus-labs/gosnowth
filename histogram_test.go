@@ -11,9 +11,11 @@ import (
 
 const histTestData = `[
 	{
-		"offset": 1408724400,
-		"id": "ae0f7f90-2a6b-481c-9cf5-21a31837020e",
+		"account_id": 1,
 		"metric": "example1",
+		"id": "ae0f7f90-2a6b-481c-9cf5-21a31837020e",
+		"check_name": "test",
+		"offset": 1408724400,
 		"period": 60,
 		"histogram": "AAA="
 	}

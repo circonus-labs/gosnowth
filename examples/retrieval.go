@@ -13,7 +13,13 @@ import (
 // ExampleReadNNT demonstrates how to read NNT values from a given snowth node.
 func ExampleReadNNT() {
 	// Create a new client.
-	client, err := gosnowth.NewSnowthClient(false, SnowthServers...)
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -59,7 +65,13 @@ func ExampleReadNNT() {
 // node.
 func ExampleReadText() {
 	// Create a new client.
-	client, err := gosnowth.NewSnowthClient(false, SnowthServers...)
+	cfg, err := gosnowth.NewConfig(SnowthServers...)
+	if err != nil {
+		log.Fatalf("failed to create snowth configuration: %v", err)
+	}
+
+	cfg.SetDiscover(true)
+	client, err := gosnowth.NewClient(cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -73,14 +85,14 @@ func ExampleReadText() {
 			Offset: strconv.FormatInt(time.Now().Unix(), 10),
 			Value:  "a_text_data_value",
 		}); err != nil {
-			log.Printf("failed to write text data: %v", err)
+			log.Fatalf("failed to write text data: %v", err)
 		}
 
 		data, err := client.ReadTextValues(node,
 			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second),
 			id, "test-text-metric2")
 		if err != nil {
-			log.Printf("failed to read text data: %v", err)
+			log.Fatalf("failed to read text data: %v", err)
 		}
 
 		log.Printf("%+v\n", data)
