@@ -315,6 +315,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 							sc.DeactivateNodes(node)
 						}
 					}
+
+					start = time.Now()
 				} else {
 					runtime.Gosched()
 				}
