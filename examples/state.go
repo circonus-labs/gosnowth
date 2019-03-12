@@ -25,7 +25,7 @@ func ExampleGetNodeState() {
 	for _, node := range client.ListActiveNodes() {
 		state, err := client.GetNodeState(node)
 		if err != nil {
-			log.Printf("failed to get state: %v", err)
+			log.Fatalf("failed to get state: %v", err)
 		}
 
 		log.Println(state)
@@ -101,7 +101,7 @@ func ExampleGetTopoRing() {
 	for _, node := range client.ListActiveNodes() {
 		tr, err := client.GetTopoRingInfo(node.GetCurrentTopology(), node)
 		if err != nil {
-			log.Printf("failed to get topology ring: %v", err)
+			log.Fatalf("failed to get topology ring: %v", err)
 		}
 
 		log.Println(tr)

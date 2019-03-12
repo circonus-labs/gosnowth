@@ -11,8 +11,10 @@ import (
 
 // HistogramData values represent histogram data records in IRONdb.
 type HistogramData struct {
+	AccountID int64                     `json:"account_id"`
 	Metric    string                    `json:"metric"`
 	ID        string                    `json:"id"`
+	CheckName string                    `json:"check_name"`
 	Offset    int64                     `json:"offset"`
 	Period    int64                     `json:"period"`
 	Histogram *circonusllhist.Histogram `json:"histogram"`

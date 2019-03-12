@@ -35,7 +35,7 @@ func ExampleSubmitText() {
 			Offset: strconv.FormatInt(time.Now().Unix(), 10),
 			Value:  "a_text_data_value",
 		}); err != nil {
-			log.Printf("failed to write text data: %v", err)
+			log.Fatalf("failed to write text data: %v", err)
 		}
 	}
 }
@@ -73,7 +73,7 @@ func ExampleSubmitNNT() {
 				},
 			},
 		}); err != nil {
-			log.Printf("failed to write nnt data: %v", err)
+			log.Fatalf("failed to write nnt data: %v", err)
 		}
 	}
 }
@@ -105,13 +105,15 @@ func ExampleSubmitHistogram() {
 	for _, node := range client.ListActiveNodes() {
 		id := uuid.New().String()
 		if err := client.WriteHistogram(node, gosnowth.HistogramData{
-			Metric:    "test-text-metric2",
+			AccountID: 1,
+			Metric:    "test-hist-metric",
 			ID:        id,
+			CheckName: "test",
 			Offset:    time.Now().Unix(),
 			Histogram: hist,
 			Period:    60,
 		}); err != nil {
-			log.Printf("failed to write histogram data: %v", err)
+			log.Fatalf("failed to write histogram data: %v", err)
 		}
 	}
 }

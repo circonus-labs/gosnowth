@@ -85,14 +85,14 @@ func ExampleReadText() {
 			Offset: strconv.FormatInt(time.Now().Unix(), 10),
 			Value:  "a_text_data_value",
 		}); err != nil {
-			log.Printf("failed to write text data: %v", err)
+			log.Fatalf("failed to write text data: %v", err)
 		}
 
 		data, err := client.ReadTextValues(node,
 			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second),
 			id, "test-text-metric2")
 		if err != nil {
-			log.Printf("failed to read text data: %v", err)
+			log.Fatalf("failed to read text data: %v", err)
 		}
 
 		log.Printf("%+v\n", data)
