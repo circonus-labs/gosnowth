@@ -178,6 +178,9 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	if !sc.isNodeActive(node) {
 		t.Errorf("Expected node to be active")
 	}
+
+	cancel()
+	time.Sleep(50 * time.Millisecond)
 }
 
 type mockLog struct {
