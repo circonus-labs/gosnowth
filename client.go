@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"runtime"
 	"sync"
 	"time"
 
@@ -283,40 +282,39 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 // will also cancel the operation if the context is cancelled or expired. If
 // context cancellation is not needed, nil can be passed as the argument.
 func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
-	start := time.Now()
+	if sc.watchInterval <= time.Duration(0) {
+		return
+	}
+
 	go func() {
-		done := false
-		for !done && sc.watchInterval > 0 {
+		tick := time.NewTicker(sc.watchInterval)
+		defer tick.Stop()
+		for {
 			select {
 			case <-ctx.Done():
-				done = true
-				break
-			default:
-				if !done && time.Since(start) > sc.watchInterval {
-					sc.LogDebugf("firing watch and update")
-					for _, node := range sc.ListInactiveNodes() {
-						sc.LogDebugf("checking node for inactive -> active: %s",
+				return
+			case <-tick.C:
+				sc.LogDebugf("firing watch and update")
+				for _, node := range sc.ListInactiveNodes() {
+					sc.LogDebugf("checking node for inactive -> active: %s",
+						node.GetURL().Host)
+					if sc.isNodeActive(node) {
+						// Move to active.
+						sc.LogDebugf("active, moving to active list: %s",
 							node.GetURL().Host)
-						if sc.isNodeActive(node) {
-							// Move to active.
-							sc.LogDebugf("active, moving to active list: %s",
-								node.GetURL().Host)
-							sc.ActivateNodes(node)
-						}
+						sc.ActivateNodes(node)
 					}
+				}
 
-					for _, node := range sc.ListActiveNodes() {
-						sc.LogDebugf("checking node for active -> inactive: %s",
+				for _, node := range sc.ListActiveNodes() {
+					sc.LogDebugf("checking node for active -> inactive: %s",
+						node.GetURL().Host)
+					if !sc.isNodeActive(node) {
+						// Move to inactive.
+						sc.LogWarnf("inactive, moving to inactive list: %s",
 							node.GetURL().Host)
-						if !sc.isNodeActive(node) {
-							// Move to inactive.
-							sc.LogWarnf("inactive, moving to inactive list: %s",
-								node.GetURL().Host)
-							sc.DeactivateNodes(node)
-						}
+						sc.DeactivateNodes(node)
 					}
-				} else {
-					runtime.Gosched()
 				}
 			}
 		}
