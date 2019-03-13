@@ -181,6 +181,8 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 
 	cancel()
 	time.Sleep(50 * time.Millisecond)
+	sc.watchInterval = 0
+	sc.WatchAndUpdate(ctx)
 }
 
 type mockLog struct {

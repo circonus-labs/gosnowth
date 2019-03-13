@@ -9,7 +9,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"runtime"
 	"sync"
 	"time"
 
@@ -283,14 +282,17 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 // will also cancel the operation if the context is cancelled or expired. If
 // context cancellation is not needed, nil can be passed as the argument.
 func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
+	if sc.watchInterval <= time.Duration(0) {
+		return
+	}
+
 	go func() {
 		tick := time.NewTicker(sc.watchInterval)
-		done := false
-		for !done && sc.watchInterval > 0 {
+		defer tick.Stop()
+		for {
 			select {
 			case <-ctx.Done():
-				done = true
-				break
+				return
 			case <-tick.C:
 				sc.LogDebugf("firing watch and update")
 				for _, node := range sc.ListInactiveNodes() {
@@ -314,12 +316,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.DeactivateNodes(node)
 					}
 				}
-			default:
-				runtime.Gosched()
 			}
 		}
-
-		tick.Stop()
 	}()
 }
 
