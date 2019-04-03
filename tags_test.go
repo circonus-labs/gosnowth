@@ -12,6 +12,10 @@ const tagsTestData = `[
 	{
 		"uuid": "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
 		"check_name": "test",
+		"check_tags": [
+			"test:test",
+			"__check_id:1"
+		],
 		"metric_name": "test",
 		"category": "reconnoiter",
 		"type": "numeric,histogram",
@@ -62,6 +66,14 @@ func TestFindTags(t *testing.T) {
 		t.Errorf("Expected metric name: test, got: %v", res[0].MetricName)
 	}
 
+	if len(res[0].CheckTags) != 2 {
+		t.Fatalf("Expected tags length: 2, got: %v", len(res[0].CheckTags))
+	}
+
+	if res[0].CheckTags[0] != "test:test" {
+		t.Errorf("Expected check tag: test:test, got: %v", res[0].CheckTags[0])
+	}
+
 	res, err = sc.FindTags(node, 1, "test", "", "")
 	if err != nil {
 		t.Fatal(err)
@@ -77,5 +89,13 @@ func TestFindTags(t *testing.T) {
 
 	if res[0].MetricName != "test" {
 		t.Errorf("Expected metric name: test, got: %v", res[0].MetricName)
+	}
+
+	if len(res[0].CheckTags) != 2 {
+		t.Fatalf("Expected tags length: 2, got: %v", len(res[0].CheckTags))
+	}
+
+	if res[0].CheckTags[0] != "test:test" {
+		t.Errorf("Expected check tag: test:test, got: %v", res[0].CheckTags[0])
 	}
 }
