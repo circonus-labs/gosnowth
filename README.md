@@ -30,3 +30,8 @@ go run github.com/circonus-labs/gosnowth/examples <host:port> ...
 ```
 
 Where `<host:port> ...` is a list of one or more space separated IRONdb nodes.
+
+## IRONdb Clients
+
+[Here](docs/SnowthClients.md) is a comparison of functionality between gosnowth and
+some other IRONdb client libraries.
