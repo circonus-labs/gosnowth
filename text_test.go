@@ -27,6 +27,11 @@ func TestReadTextValues(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI,
 			"/read/1/2/3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d/test") {
 			w.Write([]byte(textTestData))
@@ -69,6 +74,11 @@ func TestWriteText(t *testing.T) {
 		r *http.Request) {
 		if r.RequestURI == "/state" {
 			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
 			return
 		}
 

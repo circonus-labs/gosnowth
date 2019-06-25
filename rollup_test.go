@@ -70,6 +70,11 @@ func TestReadRollupValues(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		u := "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
 			"online%7CST%5Btest%3Atest%5D?start_ts=1529509020" +
 			"&end_ts=1529509201&rollup_span=1s"

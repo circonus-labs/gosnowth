@@ -131,6 +131,11 @@ func TestNNTReadWrite(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		u := "/read/1529509020/1529509200/1/" +
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/count/test"
 		if strings.HasPrefix(r.RequestURI, u) {

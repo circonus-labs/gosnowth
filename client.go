@@ -33,6 +33,7 @@ type SnowthNode struct {
 	url             *url.URL
 	identifier      string
 	currentTopology string
+	semVer          string
 }
 
 // GetURL returns the *url.URL for a given SnowthNode. This is useful if you
@@ -40,6 +41,12 @@ type SnowthNode struct {
 // proxy for a snowth node.
 func (sn *SnowthNode) GetURL() *url.URL {
 	return sn.url
+}
+
+// SemVer returns a string containing the semantic version of IRONdb the node
+// is currently running.
+func (sn *SnowthNode) SemVer() string {
+	return sn.semVer
 }
 
 // GetCurrentTopology return the hash string representation of the
@@ -96,10 +103,15 @@ type SnowthClient struct {
 	// assigned.  If this is nil, no log output will be attempted.
 	log Logger
 
-	// A middleware function can be assigned that modifies the request before
-	// it is used by SnowthClient to connect with IRONdb. Tracing headers or
-	// other context information can be added by this function.
+	// request is an assignable middleware function which modifies the request
+	// before it is used by SnowthClient to connect with IRONdb. Tracing headers
+	// or other context information can be added by this function.
 	request func(r *http.Request) error
+
+	// watch is an assignable middleware function which can plugin functionality
+	// to activate or deactivate snowth cluster nodes during the watch and
+	// update process, using custom logic.
+	watch func(n *SnowthNode)
 }
 
 // NewSnowthClient initializes a new SnowthClient value, constructing all the
@@ -150,17 +162,18 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 			continue
 		}
 
-		// Call get state to populate the id of this node.
+		// Call get stats to populate the id of this node.
 		node := &SnowthNode{url: url}
-		state, err := sc.GetNodeState(node)
+		stats, err := sc.GetStats(node)
 		if err != nil {
 			// This node had an error, put on inactive list.
-			nErr.Add(errors.Wrap(err, "unable to get state of node"))
+			nErr.Add(errors.Wrap(err, "unable to get status of node"))
 			continue
 		}
 
-		node.identifier = state.Identity
-		node.currentTopology = state.Current
+		node.identifier = stats.Identity()
+		node.currentTopology = stats.CurrentTopology()
+		node.semVer = stats.SemVer()
 		sc.AddNodes(node)
 		sc.ActivateNodes(node)
 		numActiveNodes++
@@ -195,6 +208,22 @@ func (sc *SnowthClient) SetRequestFunc(f func(r *http.Request) error) {
 	sc.Lock()
 	defer sc.Unlock()
 	sc.request = f
+}
+
+// SetWatchFunc sets an optional middleware function that can be used to
+// inspect and activate or deactivate IRONdb cluster nodes during the watch and
+// update process.
+func (sc *SnowthClient) SetWatchFunc(f func(n *SnowthNode)) {
+	sc.Lock()
+	defer sc.Unlock()
+	sc.watch = f
+}
+
+// SetWatchInterval sets the interval at which the watch process executes.
+func (sc *SnowthClient) SetWatchInterval(d time.Duration) {
+	sc.Lock()
+	defer sc.Unlock()
+	sc.watchInterval = d
 }
 
 // SetLog assigns a logger to the snowth client.
@@ -237,10 +266,9 @@ func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 // age of the node. If the age is larger than 10 the node is considered
 // inactive.
 func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
-	id := node.identifier
-	if id == "" {
+	if node.identifier == "" || node.semVer == "" {
 		// go get state to figure out identity
-		state, err := sc.GetNodeState(node)
+		stats, err := sc.GetStats(node)
 		if err != nil {
 			// error means we failed, node is not active
 			sc.LogWarnf("unable to get the state of the node: %s",
@@ -248,9 +276,10 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 			return false
 		}
 
+		node.identifier = stats.Identity()
+		node.semVer = stats.SemVer()
 		sc.LogDebugf("retrieved state of node: %s -> %s",
-			node.GetURL().Host, state.Identity)
-		id = state.Identity
+			node.GetURL().Host, node.identifier)
 	}
 
 	gossip, err := sc.GetGossipInfo(node)
@@ -262,7 +291,7 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 
 	age := float64(100)
 	for _, entry := range []GossipDetail(*gossip) {
-		if entry.ID == id {
+		if entry.ID == node.identifier {
 			age = entry.Age
 			break
 		}
@@ -282,6 +311,8 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 // will also cancel the operation if the context is cancelled or expired. If
 // context cancellation is not needed, nil can be passed as the argument.
 func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
+	sc.RLock()
+	defer sc.RUnlock()
 	if sc.watchInterval <= time.Duration(0) {
 		return
 	}
@@ -295,6 +326,9 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				return
 			case <-tick.C:
 				sc.LogDebugf("firing watch and update")
+				sc.RLock()
+				wf := sc.watch
+				sc.RUnlock()
 				for _, node := range sc.ListInactiveNodes() {
 					sc.LogDebugf("checking node for inactive -> active: %s",
 						node.GetURL().Host)
@@ -303,6 +337,10 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.LogDebugf("active, moving to active list: %s",
 							node.GetURL().Host)
 						sc.ActivateNodes(node)
+					}
+
+					if wf != nil {
+						wf(node)
 					}
 				}
 
@@ -314,6 +352,10 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.LogWarnf("inactive, moving to inactive list: %s",
 							node.GetURL().Host)
 						sc.DeactivateNodes(node)
+					}
+
+					if wf != nil {
+						wf(node)
 					}
 				}
 			}

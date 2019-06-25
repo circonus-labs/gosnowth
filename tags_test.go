@@ -31,6 +31,11 @@ func TestFindTags(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			w.Write([]byte(tagsTestData))
 			return

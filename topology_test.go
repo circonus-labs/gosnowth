@@ -151,6 +151,11 @@ func TestTopology(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/xml") {
 			w.Write([]byte(topologyXMLTestData))

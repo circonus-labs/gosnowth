@@ -53,6 +53,11 @@ func TestSnowthClientRequest(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			if r.Header.Get("X-Test-Header") != "test" {
 				t.Error("Expected X-Test-Header:test")
@@ -102,6 +107,11 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			w.Write([]byte(tagsTestData))
 			return
@@ -134,10 +144,9 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	}
 
 	node := &SnowthNode{
-		url:        u,
-		identifier: "1f846f26-0cfd-4df5-b4f1-e0930604e577",
-		currentTopology: "0123456789abcdef0123456789abcdef0123456789abcdef" +
-			"0123456789abcdef",
+		url:             u,
+		identifier:      "bb6f7162-4828-11df-bab8-6bac200dcc2a",
+		currentTopology: "294cbd39999c2270964029691e8bc5e231a867d525ccba62181dc8988ff218dc",
 	}
 
 	res, err := sc.FindTags(node, 1, "test", "1", "1")
@@ -212,6 +221,11 @@ func TestSnowthClientLog(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			w.Write([]byte(tagsTestData))
 			return
@@ -253,5 +267,57 @@ func TestSnowthClientLog(t *testing.T) {
 	exp = "WARN test 1"
 	if ml.last != exp {
 		t.Errorf("Expected log entry: %v, got: %v", exp, ml.last)
+	}
+}
+
+func TestSnowthClientSetWatch(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
+			if r.Header.Get("X-Test-Header") != "test" {
+				t.Error("Expected X-Test-Header:test")
+			}
+
+			w.Write([]byte(tagsTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	sc.SetWatchInterval(100 * time.Millisecond)
+	sc.SetWatchFunc(func(n *SnowthNode) {
+		exp := "0.1.1570000000"
+		if n.SemVer() == exp {
+			sc.DeactivateNodes(n)
+		} else {
+			t.Errorf("Expected version: %v, got: %v", exp, n.SemVer())
+		}
+	})
+
+	nodes := sc.ListActiveNodes()
+	if len(nodes) < 1 {
+		t.Errorf("Expected length nodes > 1, got: %d", len(nodes))
+	}
+
+	sc.WatchAndUpdate(context.Background())
+	time.Sleep(150 * time.Millisecond)
+	nodes = sc.ListActiveNodes()
+	if len(nodes) > 0 {
+		t.Fatalf("Expected length nodes: 0, got: %d", len(nodes))
 	}
 }

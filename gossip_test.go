@@ -22,7 +22,7 @@ const gossipTestData = `[
 		"latency": {
 			"765ac4cc-1929-4642-9ef1-d194d08f9538": "0",
 			"8c2fc7b8-c569-402d-a393-db433fb267aa": "0",
-			"07fa2237-5744-4c28-a622-a99cfc1ac87e": "0"
+			"bb6f7162-4828-11df-bab8-6bac200dcc2a": "0"
 		}
 	},
 	{
@@ -35,7 +35,7 @@ const gossipTestData = `[
 		"latency": {
 			"1f846f26-0cfd-4df5-b4f1-e0930604e577": "0",
 			"8c2fc7b8-c569-402d-a393-db433fb267aa": "0",
-			"07fa2237-5744-4c28-a622-a99cfc1ac87e": "0"
+			"bb6f7162-4828-11df-bab8-6bac200dcc2a": "0"
 		}
 	},
 	{
@@ -48,11 +48,11 @@ const gossipTestData = `[
 		"latency": {
 			"765ac4cc-1929-4642-9ef1-d194d08f9538": "0",
 			"1f846f26-0cfd-4df5-b4f1-e0930604e577": "0",
-			"07fa2237-5744-4c28-a622-a99cfc1ac87e": "0"
+			"bb6f7162-4828-11df-bab8-6bac200dcc2a": "0"
 		}
 	},
 	{
-		"id": "07fa2237-5744-4c28-a622-a99cfc1ac87e",
+		"id": "bb6f7162-4828-11df-bab8-6bac200dcc2a",
 		"gossip_time": "1409082055.744880",
 		"gossip_age": "0.000000",
 		"topo_current": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -76,8 +76,7 @@ const gossipTestAltData = `[
 		"topo_state": "n/a",
 		"latency": {
 			"1f846f26-0cfd-4df5-b4f1-e0930604e577": "0",
-			"8c2fc7b8-c569-402d-a393-db433fb267aa": "0",
-			"07fa2237-5744-4c28-a622-a99cfc1ac87e": "0"
+			"8c2fc7b8-c569-402d-a393-db433fb267aa": "0"
 		}
 	},
 	{
@@ -89,12 +88,11 @@ const gossipTestAltData = `[
 		"topo_state": "n/a",
 		"latency": {
 			"765ac4cc-1929-4642-9ef1-d194d08f9538": "0",
-			"1f846f26-0cfd-4df5-b4f1-e0930604e577": "0",
-			"07fa2237-5744-4c28-a622-a99cfc1ac87e": "0"
+			"1f846f26-0cfd-4df5-b4f1-e0930604e577": "0"
 		}
 	},
 	{
-		"id": "07fa2237-5744-4c28-a622-a99cfc1ac87e",
+		"id": "1f846f26-0cfd-4df5-b4f1-e0930604e577",
 		"gossip_time": "1409082055.744880",
 		"gossip_age": "0.000000",
 		"topo_current": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
@@ -102,8 +100,7 @@ const gossipTestAltData = `[
 		"topo_state": "n/a",
 		"latency": {
 			"765ac4cc-1929-4642-9ef1-d194d08f9538": "0",
-			"8c2fc7b8-c569-402d-a393-db433fb267aa": "0",
-			"1f846f26-0cfd-4df5-b4f1-e0930604e577": "0"
+			"8c2fc7b8-c569-402d-a393-db433fb267aa": "0"
 		}
 	}
 ]`
@@ -139,6 +136,11 @@ func TestGetGossipInfo(t *testing.T) {
 		r *http.Request) {
 		if r.RequestURI == "/state" {
 			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
 			return
 		}
 
