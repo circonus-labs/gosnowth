@@ -144,10 +144,9 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	}
 
 	node := &SnowthNode{
-		url:        u,
-		identifier: "1f846f26-0cfd-4df5-b4f1-e0930604e577",
-		currentTopology: "0123456789abcdef0123456789abcdef0123456789abcdef" +
-			"0123456789abcdef",
+		url:             u,
+		identifier:      "bb6f7162-4828-11df-bab8-6bac200dcc2a",
+		currentTopology: "294cbd39999c2270964029691e8bc5e231a867d525ccba62181dc8988ff218dc",
 	}
 
 	res, err := sc.FindTags(node, 1, "test", "1", "1")

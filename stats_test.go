@@ -15,11 +15,11 @@ const statsTestData = `{
 	},
 	"identity": {
 		"_type": "s",
-		"_value": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+		"_value": "bb6f7162-4828-11df-bab8-6bac200dcc2a"
 	},
 	"version": {
 		"_type": "s",
-		"_value": "test"
+		"_value": "v52bcc96a9a1a41acd96352b9b63e59cba2b6a8a9\/65ab82cb7281e76e96b2fedafdc6594d50437d91"
 	},
 	"topology": {
 		"next": {
@@ -28,7 +28,7 @@ const statsTestData = `{
 		},
 		"current": {
 			"_type": "s",
-			"_value": "test"
+			"_value": "294cbd39999c2270964029691e8bc5e231a867d525ccba62181dc8988ff218dc"
 		}
 	},
 	"semver": {
@@ -73,23 +73,23 @@ func TestGetStats(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exp := "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+	exp := "bb6f7162-4828-11df-bab8-6bac200dcc2a"
 	if res.Identity() != exp {
-		t.Fatalf("Expected identity: %v, got: %v", exp, res.Identity())
+		t.Errorf("Expected identity: %v, got: %v", exp, res.Identity())
 	}
 
 	exp = "0.1.1570000000"
 	if res.SemVer() != exp {
-		t.Fatalf("Expected version: %v, got: %v", exp, res.SemVer())
+		t.Errorf("Expected version: %v, got: %v", exp, res.SemVer())
 	}
 
-	exp = "test"
+	exp = "294cbd39999c2270964029691e8bc5e231a867d525ccba62181dc8988ff218dc"
 	if res.CurrentTopology() != exp {
-		t.Fatalf("Expected current: %v, got: %v", exp, res.CurrentTopology())
+		t.Errorf("Expected current: %v, got: %v", exp, res.CurrentTopology())
 	}
 
 	exp = "-"
 	if res.NextTopology() != exp {
-		t.Fatalf("Expected next: %v, got: %v", exp, res.NextTopology())
+		t.Errorf("Expected next: %v, got: %v", exp, res.NextTopology())
 	}
 }
