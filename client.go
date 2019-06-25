@@ -311,6 +311,8 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 // will also cancel the operation if the context is cancelled or expired. If
 // context cancellation is not needed, nil can be passed as the argument.
 func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
+	sc.RLock()
+	defer sc.RUnlock()
 	if sc.watchInterval <= time.Duration(0) {
 		return
 	}
@@ -324,6 +326,9 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				return
 			case <-tick.C:
 				sc.LogDebugf("firing watch and update")
+				sc.RLock()
+				wf := sc.watch
+				sc.RUnlock()
 				for _, node := range sc.ListInactiveNodes() {
 					sc.LogDebugf("checking node for inactive -> active: %s",
 						node.GetURL().Host)
@@ -334,8 +339,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.ActivateNodes(node)
 					}
 
-					if sc.watch != nil {
-						sc.watch(node)
+					if wf != nil {
+						wf(node)
 					}
 				}
 
@@ -349,8 +354,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.DeactivateNodes(node)
 					}
 
-					if sc.watch != nil {
-						sc.watch(node)
+					if wf != nil {
+						wf(node)
 					}
 				}
 			}
