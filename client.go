@@ -103,10 +103,15 @@ type SnowthClient struct {
 	// assigned.  If this is nil, no log output will be attempted.
 	log Logger
 
-	// A middleware function can be assigned that modifies the request before
-	// it is used by SnowthClient to connect with IRONdb. Tracing headers or
-	// other context information can be added by this function.
+	// request is an assignable middleware function which modifies the request
+	// before it is used by SnowthClient to connect with IRONdb. Tracing headers
+	// or other context information can be added by this function.
 	request func(r *http.Request) error
+
+	// watch is an assignable middleware function which can plugin functionality
+	// to activate or deactivate snowth cluster nodes during the watch and
+	// update process, using custom logic.
+	watch func(n *SnowthNode)
 }
 
 // NewSnowthClient initializes a new SnowthClient value, constructing all the
@@ -203,6 +208,22 @@ func (sc *SnowthClient) SetRequestFunc(f func(r *http.Request) error) {
 	sc.Lock()
 	defer sc.Unlock()
 	sc.request = f
+}
+
+// SetWatchFunc sets an optional middleware function that can be used to
+// inspect and activate or deactivate IRONdb cluster nodes during the watch and
+// update process.
+func (sc *SnowthClient) SetWatchFunc(f func(n *SnowthNode)) {
+	sc.Lock()
+	defer sc.Unlock()
+	sc.watch = f
+}
+
+// SetWatchInterval sets the interval at which the watch process executes.
+func (sc *SnowthClient) SetWatchInterval(d time.Duration) {
+	sc.Lock()
+	defer sc.Unlock()
+	sc.watchInterval = d
 }
 
 // SetLog assigns a logger to the snowth client.
@@ -312,6 +333,10 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 							node.GetURL().Host)
 						sc.ActivateNodes(node)
 					}
+
+					if sc.watch != nil {
+						sc.watch(node)
+					}
 				}
 
 				for _, node := range sc.ListActiveNodes() {
@@ -322,6 +347,10 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.LogWarnf("inactive, moving to inactive list: %s",
 							node.GetURL().Host)
 						sc.DeactivateNodes(node)
+					}
+
+					if sc.watch != nil {
+						sc.watch(node)
 					}
 				}
 			}
