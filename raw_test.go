@@ -19,6 +19,11 @@ func TestWriteRaw(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/raw") {
 			b, err := ioutil.ReadAll(r.Body)
 			if err != nil {

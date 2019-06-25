@@ -44,6 +44,11 @@ func TestLocateMetric(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI,
 			"/locate/xml/1f846f26-0cfd-4df5-b4f1-e0930604e577/test") {
 			w.Write([]byte(locateXMLTestData))

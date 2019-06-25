@@ -33,6 +33,7 @@ type SnowthNode struct {
 	url             *url.URL
 	identifier      string
 	currentTopology string
+	semVer          string
 }
 
 // GetURL returns the *url.URL for a given SnowthNode. This is useful if you
@@ -40,6 +41,12 @@ type SnowthNode struct {
 // proxy for a snowth node.
 func (sn *SnowthNode) GetURL() *url.URL {
 	return sn.url
+}
+
+// SemVer returns a string containing the semantic version of IRONdb the node
+// is currently running.
+func (sn *SnowthNode) SemVer() string {
+	return sn.semVer
 }
 
 // GetCurrentTopology return the hash string representation of the
@@ -150,17 +157,18 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 			continue
 		}
 
-		// Call get state to populate the id of this node.
+		// Call get stats to populate the id of this node.
 		node := &SnowthNode{url: url}
-		state, err := sc.GetNodeState(node)
+		stats, err := sc.GetStats(node)
 		if err != nil {
 			// This node had an error, put on inactive list.
-			nErr.Add(errors.Wrap(err, "unable to get state of node"))
+			nErr.Add(errors.Wrap(err, "unable to get status of node"))
 			continue
 		}
 
-		node.identifier = state.Identity
-		node.currentTopology = state.Current
+		node.identifier = stats.Identity()
+		node.currentTopology = stats.CurrentTopology()
+		node.semVer = stats.SemVer()
 		sc.AddNodes(node)
 		sc.ActivateNodes(node)
 		numActiveNodes++
@@ -237,10 +245,9 @@ func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 // age of the node. If the age is larger than 10 the node is considered
 // inactive.
 func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
-	id := node.identifier
-	if id == "" {
+	if node.identifier == "" || node.semVer == "" {
 		// go get state to figure out identity
-		state, err := sc.GetNodeState(node)
+		stats, err := sc.GetStats(node)
 		if err != nil {
 			// error means we failed, node is not active
 			sc.LogWarnf("unable to get the state of the node: %s",
@@ -248,9 +255,10 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 			return false
 		}
 
+		node.identifier = stats.Identity()
+		node.semVer = stats.SemVer()
 		sc.LogDebugf("retrieved state of node: %s -> %s",
-			node.GetURL().Host, state.Identity)
-		id = state.Identity
+			node.GetURL().Host, node.identifier)
 	}
 
 	gossip, err := sc.GetGossipInfo(node)
@@ -262,7 +270,7 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 
 	age := float64(100)
 	for _, entry := range []GossipDetail(*gossip) {
-		if entry.ID == id {
+		if entry.ID == node.identifier {
 			age = entry.Age
 			break
 		}

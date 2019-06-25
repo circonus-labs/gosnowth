@@ -29,6 +29,11 @@ func TestWriteHistogram(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if r.RequestURI == "/histogram/write" {
 			rb := []HistogramData{}
 			if err := json.NewDecoder(r.Body).Decode(&rb); err != nil {

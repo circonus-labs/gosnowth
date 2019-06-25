@@ -142,6 +142,11 @@ func TestGetGossipInfo(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if r.RequestURI == "/gossip/json" {
 			w.Write([]byte(gossipTestData))
 			return

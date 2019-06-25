@@ -53,6 +53,11 @@ func TestSnowthClientRequest(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			if r.Header.Get("X-Test-Header") != "test" {
 				t.Error("Expected X-Test-Header:test")
@@ -99,6 +104,11 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 		r *http.Request) {
 		if r.RequestURI == "/state" {
 			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -209,6 +219,11 @@ func TestSnowthClientLog(t *testing.T) {
 		r *http.Request) {
 		if r.RequestURI == "/state" {
 			w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
 			return
 		}
 

@@ -124,6 +124,11 @@ func TestGetTopoRingInfo(t *testing.T) {
 			return
 		}
 
+		if r.RequestURI == "/stats.json" {
+			w.Write([]byte(statsTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI,
 			"/toporing/xml/test") {
 			w.Write([]byte(topoRingXMLTestData))
