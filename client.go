@@ -326,6 +326,9 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				return
 			case <-tick.C:
 				sc.LogDebugf("firing watch and update")
+				sc.RLock()
+				wf := sc.watch
+				sc.RUnlock()
 				for _, node := range sc.ListInactiveNodes() {
 					sc.LogDebugf("checking node for inactive -> active: %s",
 						node.GetURL().Host)
@@ -336,12 +339,9 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.ActivateNodes(node)
 					}
 
-					sc.RLock()
-					if sc.watch != nil {
-						sc.watch(node)
+					if wf != nil {
+						wf(node)
 					}
-
-					sc.RUnlock()
 				}
 
 				for _, node := range sc.ListActiveNodes() {
@@ -354,12 +354,9 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.DeactivateNodes(node)
 					}
 
-					sc.RLock()
-					if sc.watch != nil {
-						sc.watch(node)
+					if wf != nil {
+						wf(node)
 					}
-
-					sc.RUnlock()
 				}
 			}
 		}
