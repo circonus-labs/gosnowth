@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+### Added
+
+- A new field has been added to the FindTagsItem structure returned by calls to
+SnowthClient.FindTags(). The field is called Activity (JSON: `activity`), and
+contains the activity data returned by the IRONdb find tags API.
+
 ## [v1.2.0] - 2019-06-25
 
 ### Added
