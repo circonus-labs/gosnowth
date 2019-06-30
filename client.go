@@ -312,13 +312,14 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 // context cancellation is not needed, nil can be passed as the argument.
 func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 	sc.RLock()
-	defer sc.RUnlock()
-	if sc.watchInterval <= time.Duration(0) {
+	wi := sc.watchInterval
+	sc.RUnlock()
+	if wi <= time.Duration(0) {
 		return
 	}
 
 	go func() {
-		tick := time.NewTicker(sc.watchInterval)
+		tick := time.NewTicker(wi)
 		defer tick.Stop()
 		for {
 			select {
