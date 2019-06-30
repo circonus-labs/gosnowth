@@ -19,6 +19,16 @@ const tagsTestData = `[
 		"metric_name": "test",
 		"category": "reconnoiter",
 		"type": "numeric,histogram",
+		"activity": [
+			[
+				1555610400,
+				1556588400
+			],
+			[
+				1556625600,
+				1561848300
+			]
+		],
 		"account_id": 1
 	}
 ]`
@@ -79,6 +89,20 @@ func TestFindTags(t *testing.T) {
 		t.Errorf("Expected check tag: test:test, got: %v", res[0].CheckTags[0])
 	}
 
+	if len(res[0].Activity) != 2 {
+		t.Fatalf("Expected activity length: 2, got %v", len(res[0].Activity))
+	}
+
+	if len(res[0].Activity[1]) != 2 {
+		t.Fatalf("Expected activity[1] length: 2, got %v",
+			len(res[0].Activity[1]))
+	}
+
+	if res[0].Activity[1][1] != 1561848300 {
+		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
+			res[0].Activity[1][1])
+	}
+
 	res, err = sc.FindTags(node, 1, "test", "", "")
 	if err != nil {
 		t.Fatal(err)
@@ -102,5 +126,19 @@ func TestFindTags(t *testing.T) {
 
 	if res[0].CheckTags[0] != "test:test" {
 		t.Errorf("Expected check tag: test:test, got: %v", res[0].CheckTags[0])
+	}
+
+	if len(res[0].Activity) != 2 {
+		t.Fatalf("Expected activity length: 2, got %v", len(res[0].Activity))
+	}
+
+	if len(res[0].Activity[1]) != 2 {
+		t.Fatalf("Expected activity[1] length: 2, got %v",
+			len(res[0].Activity[1]))
+	}
+
+	if res[0].Activity[1][1] != 1561848300 {
+		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
+			res[0].Activity[1][1])
 	}
 }
