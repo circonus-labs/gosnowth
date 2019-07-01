@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.2.1] - 2019-07-01
+
 ### Added
 
 - A new field has been added to the FindTagsItem structure returned by calls to
