@@ -2,6 +2,8 @@ package gosnowth
 
 import (
 	"context"
+
+	"github.com/pkg/errors"
 )
 
 // GetStats retrieves the metrics about the status of an IRONdb node.
@@ -11,10 +13,18 @@ func (sc *SnowthClient) GetStats(node *SnowthNode) (*Stats, error) {
 
 // GetStatsContext is the context aware version of GetStats.
 func (sc *SnowthClient) GetStatsContext(ctx context.Context,
-	node *SnowthNode) (state *Stats, err error) {
-	state = new(Stats)
-	err = sc.do(ctx, node, "GET", "/stats.json", nil, state, decodeJSON)
-	return
+	node *SnowthNode) (*Stats, error) {
+	r := &Stats{}
+	body, _, err := sc.do(ctx, node, "GET", "/stats.json", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }
 
 // Stats values represent a collection of metric data describing the status

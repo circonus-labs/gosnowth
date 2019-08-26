@@ -90,12 +90,16 @@ func TestSnowthClientRequest(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(res) != 1 {
-		t.Fatalf("Expected result length: 1, got: %v", len(res))
+	if res.Count != 1 {
+		t.Fatalf("Expected result count: 1, got: %v", res.Count)
 	}
 
-	if res[0].AccountID != 1 {
-		t.Errorf("Expected account ID: 1, got: %v", res[0].AccountID)
+	if len(res.Items) != 1 {
+		t.Fatalf("Expected result length: 1, got: %v", len(res.Items))
+	}
+
+	if res.Items[0].AccountID != 1 {
+		t.Errorf("Expected account ID: 1, got: %v", res.Items[0].AccountID)
 	}
 }
 
@@ -154,12 +158,16 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(res) != 1 {
-		t.Fatalf("Expected result length: 1, got: %v", len(res))
+	if res.Count != 1 {
+		t.Fatalf("Expected result count: 1, got: %v", res.Count)
 	}
 
-	if res[0].AccountID != 1 {
-		t.Errorf("Expected account ID: 1, got: %v", res[0].AccountID)
+	if len(res.Items) != 1 {
+		t.Fatalf("Expected result length: 1, got: %v", len(res.Items))
+	}
+
+	if res.Items[0].AccountID != 1 {
+		t.Errorf("Expected account ID: 1, got: %v", res.Items[0].AccountID)
 	}
 
 	sc.watchInterval = 100 * time.Millisecond

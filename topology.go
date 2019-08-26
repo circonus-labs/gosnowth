@@ -35,11 +35,18 @@ func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (*Topology, error) {
 // GetTopologyInfoContext is the context aware version of GetTopologyInfo.
 func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	node *SnowthNode) (*Topology, error) {
-	t := new(Topology)
-	err := sc.do(ctx, node, "GET",
-		path.Join("/topology/xml", node.GetCurrentTopology()),
-		nil, t, decodeXML)
-	return t, err
+	r := &Topology{}
+	body, _, err := sc.do(ctx, node, "GET",
+		path.Join("/topology/xml", node.GetCurrentTopology()), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeXML(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }
 
 // LoadTopology loads a new topology on a node without activating it.
@@ -56,7 +63,8 @@ func (sc *SnowthClient) LoadTopologyContext(ctx context.Context, hash string,
 		return errors.Wrap(err, "failed to encode request data")
 	}
 
-	return sc.do(ctx, node, "POST", path.Join("/topology", hash), b, nil, nil)
+	_, _, err = sc.do(ctx, node, "POST", path.Join("/topology", hash), b)
+	return err
 }
 
 // ActivateTopology activates a new topology on the node.
@@ -69,5 +77,6 @@ func (sc *SnowthClient) ActivateTopology(hash string, node *SnowthNode) error {
 // WARNING THIS IS DANGEROUS.
 func (sc *SnowthClient) ActivateTopologyContext(ctx context.Context,
 	hash string, node *SnowthNode) error {
-	return sc.do(ctx, node, "GET", path.Join("/activate", hash), nil, nil, nil)
+	_, _, err := sc.do(ctx, node, "GET", path.Join("/activate", hash), nil)
+	return err
 }

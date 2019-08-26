@@ -69,38 +69,41 @@ func TestFindTags(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(res) != 1 {
-		t.Fatalf("Expected result length: 1, got: %v", len(res))
+	if res.Count != 1 {
+		t.Fatalf("Expected result count: 1, got: %v", res.Count)
 	}
 
-	if res[0].AccountID != 1 {
-		t.Errorf("Expected account ID: 1, got: %v", res[0].AccountID)
+	if len(res.Items) != 1 {
+		t.Fatalf("Expected result length: 1, got: %v", len(res.Items))
 	}
 
-	if res[0].MetricName != "test" {
-		t.Errorf("Expected metric name: test, got: %v", res[0].MetricName)
+	if res.Items[0].MetricName != "test" {
+		t.Errorf("Expected metric name: test, got: %v", res.Items[0].MetricName)
 	}
 
-	if len(res[0].CheckTags) != 2 {
-		t.Fatalf("Expected tags length: 2, got: %v", len(res[0].CheckTags))
+	if len(res.Items[0].CheckTags) != 2 {
+		t.Fatalf("Expected tags length: 2, got: %v",
+			len(res.Items[0].CheckTags))
 	}
 
-	if res[0].CheckTags[0] != "test:test" {
-		t.Errorf("Expected check tag: test:test, got: %v", res[0].CheckTags[0])
+	if res.Items[0].CheckTags[0] != "test:test" {
+		t.Errorf("Expected check tag: test:test, got: %v",
+			res.Items[0].CheckTags[0])
 	}
 
-	if len(res[0].Activity) != 2 {
-		t.Fatalf("Expected activity length: 2, got %v", len(res[0].Activity))
+	if len(res.Items[0].Activity) != 2 {
+		t.Fatalf("Expected activity length: 2, got %v",
+			len(res.Items[0].Activity))
 	}
 
-	if len(res[0].Activity[1]) != 2 {
+	if len(res.Items[0].Activity[1]) != 2 {
 		t.Fatalf("Expected activity[1] length: 2, got %v",
-			len(res[0].Activity[1]))
+			len(res.Items[0].Activity[1]))
 	}
 
-	if res[0].Activity[1][1] != 1561848300 {
+	if res.Items[0].Activity[1][1] != 1561848300 {
 		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
-			res[0].Activity[1][1])
+			res.Items[0].Activity[1][1])
 	}
 
 	res, err = sc.FindTags(node, 1, "test", "", "")
@@ -108,37 +111,44 @@ func TestFindTags(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(res) != 1 {
-		t.Fatalf("Expected result length: 1, got: %v", len(res))
+	if res.Count != 1 {
+		t.Fatalf("Expected result count: 1, got: %v", res.Count)
 	}
 
-	if res[0].AccountID != 1 {
-		t.Errorf("Expected account ID: 1, got: %v", res[0].AccountID)
+	if len(res.Items) != 1 {
+		t.Fatalf("Expected result length: 1, got: %v", len(res.Items))
 	}
 
-	if res[0].MetricName != "test" {
-		t.Errorf("Expected metric name: test, got: %v", res[0].MetricName)
+	if res.Items[0].AccountID != 1 {
+		t.Errorf("Expected account ID: 1, got: %v", res.Items[0].AccountID)
 	}
 
-	if len(res[0].CheckTags) != 2 {
-		t.Fatalf("Expected tags length: 2, got: %v", len(res[0].CheckTags))
+	if res.Items[0].MetricName != "test" {
+		t.Errorf("Expected metric name: test, got: %v", res.Items[0].MetricName)
 	}
 
-	if res[0].CheckTags[0] != "test:test" {
-		t.Errorf("Expected check tag: test:test, got: %v", res[0].CheckTags[0])
+	if len(res.Items[0].CheckTags) != 2 {
+		t.Fatalf("Expected tags length: 2, got: %v",
+			len(res.Items[0].CheckTags))
 	}
 
-	if len(res[0].Activity) != 2 {
-		t.Fatalf("Expected activity length: 2, got %v", len(res[0].Activity))
+	if res.Items[0].CheckTags[0] != "test:test" {
+		t.Errorf("Expected check tag: test:test, got: %v",
+			res.Items[0].CheckTags[0])
 	}
 
-	if len(res[0].Activity[1]) != 2 {
+	if len(res.Items[0].Activity) != 2 {
+		t.Fatalf("Expected activity length: 2, got %v",
+			len(res.Items[0].Activity))
+	}
+
+	if len(res.Items[0].Activity[1]) != 2 {
 		t.Fatalf("Expected activity[1] length: 2, got %v",
-			len(res[0].Activity[1]))
+			len(res.Items[0].Activity[1]))
 	}
 
-	if res[0].Activity[1][1] != 1561848300 {
+	if res.Items[0].Activity[1][1] != 1561848300 {
 		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
-			res[0].Activity[1][1])
+			res.Items[0].Activity[1][1])
 	}
 }

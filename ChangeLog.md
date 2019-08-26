@@ -6,6 +6,20 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+### Changed
+
+- The signature of the FindTags() and FindTagsContext() methods have changed.
+This is a breaking change to the API. The results are now returned wrapped in
+a *FindTagsResults value. This allows the total results count value returned
+by the IRONdb request to be returned to the gosnowth user. Upgrading to this
+release will require modifying any use of these methods in your code to reflect
+this change.
+- The internal functionality of the client do() method has been modified. It no
+longer attempts to decode the contents of a response within this method. It
+returns the response body data back to the caller to be handled there.
+Additionally, it now also passes response headers back to the caller, so that
+if they contain any needed information, it can now be used.
+
 ## [v1.2.1] - 2019-07-01
 
 ### Added

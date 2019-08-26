@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"strings"
+
+	"github.com/pkg/errors"
 )
 
 // GetNodeState retrieves the state of an IRONdb node.
@@ -13,10 +15,18 @@ func (sc *SnowthClient) GetNodeState(node *SnowthNode) (*NodeState, error) {
 
 // GetNodeStateContext is the context aware version of GetNodeState.
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
-	node *SnowthNode) (state *NodeState, err error) {
-	state = new(NodeState)
-	err = sc.do(ctx, node, "GET", "/state", nil, state, decodeJSON)
-	return
+	node *SnowthNode) (*NodeState, error) {
+	r := &NodeState{}
+	body, _, err := sc.do(ctx, node, "GET", "/state", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }
 
 // NodeState values represent the state of an IRONdb node.

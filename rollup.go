@@ -8,6 +8,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
 // RollupValues values are individual components of a roll up.
@@ -52,11 +54,18 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	}
 
 	r := []RollupValues{}
-	err := sc.do(ctx, node, "GET",
+	body, _, err := sc.do(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds",
 			path.Join("/rollup", id,
 				url.QueryEscape(metricBuilder.String())),
-			startTS, endTS, int(rollup/time.Second)),
-		nil, &r, decodeJSON)
-	return r, err
+			startTS, endTS, int(rollup/time.Second)), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }
