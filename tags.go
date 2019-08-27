@@ -17,8 +17,8 @@ type FindTagsItem struct {
 	MetricName string    `json:"metric_name"`
 	Category   string    `json:"category"`
 	Type       string    `type:"type"`
-	AccountID  int32     `json:"account_id"`
-	Activity   [][]int32 `json:"activity,omitempty"`
+	AccountID  int64     `json:"account_id"`
+	Activity   [][]int64 `json:"activity,omitempty"`
 }
 
 // FindTagsResult values contain the results of a find tags request.
@@ -28,7 +28,7 @@ type FindTagsResult struct {
 }
 
 // FindTags retrieves metrics that are associated with the provided tag query.
-func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32,
+func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int64,
 	query string, start, end string) (*FindTagsResult, error) {
 	return sc.FindTagsContext(context.Background(), node, accountID, query,
 		start, end)
@@ -36,7 +36,7 @@ func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32,
 
 // FindTagsContext is the context aware version of FindTags.
 func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
-	accountID int32, query string, start, end string) (*FindTagsResult, error) {
+	accountID int64, query string, start, end string) (*FindTagsResult, error) {
 	u := fmt.Sprintf("%s?query=%s",
 		sc.getURL(node, fmt.Sprintf("/find/%d/tags", accountID)),
 		url.QueryEscape(query))

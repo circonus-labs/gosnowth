@@ -6,6 +6,22 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.3.2] - 2019-08-26
+
+### Changed
+
+- The integer size of the activity data and account ID data in the FindTagsItem
+structure returned by calls to FindTags() have been changed from `int32` to
+`int64`. As has the type of the account ID parameter in calls to FindTags().
+- The integer size in the rollup values returned by calls to GetNodeState() have
+been changed from `uint32` to `uint64`.
+
+### Fixed
+
+- Bug (severe): It is possible for some types of IRONdb data to deserialize into
+values that overflow the 32-bit variables used to hold them. Created: 2019-07-01
+Fixed: 2019-08-27.
+
 ## [v1.3.1] - 2019-08-26
 
 ### Changed
@@ -83,6 +99,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.3.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.3.2
 [v1.3.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.3.1
 [v1.2.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.2.1
 [v1.2.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.2.0

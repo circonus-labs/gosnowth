@@ -66,7 +66,7 @@ type NodeState struct {
 // Rollup values represent node state rollups.
 type Rollup struct {
 	RollupEntries
-	RollupList []uint32      `json:"rollups"`
+	RollupList []uint64      `json:"rollups"`
 	Aggregate  RollupDetails `json:"aggregate"`
 }
 
@@ -80,7 +80,7 @@ func (r *Rollup) UnmarshalJSON(b []byte) error {
 
 	if rollups, ok := m["rollups"].([]interface{}); ok {
 		for _, v := range rollups {
-			r.RollupList = append(r.RollupList, uint32(v.(float64)))
+			r.RollupList = append(r.RollupList, uint64(v.(float64)))
 			delete(m, "rollup")
 		}
 	}
