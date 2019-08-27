@@ -10,7 +10,7 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 - The signature of the FindTags() and FindTagsContext() methods have changed.
 This is a breaking change to the API. The results are now returned wrapped in
-a *FindTagsResults value. This allows the total results count value returned
+a \*FindTagsResults value. This allows the total results count value returned
 by the IRONdb request to be returned to the gosnowth user. Upgrading to this
 release will require modifying any use of these methods in your code to reflect
 this change.
