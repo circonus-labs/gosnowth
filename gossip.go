@@ -1,6 +1,10 @@
 package gosnowth
 
-import "context"
+import (
+	"context"
+
+	"github.com/pkg/errors"
+)
 
 // Gossip values contain gossip information from a node. This structure includes
 // information on how the nodes are communicating with each other, and if any
@@ -32,8 +36,16 @@ func (sc *SnowthClient) GetGossipInfo(
 
 // GetGossipInfoContext is the context aware version of GetGossipInfo.
 func (sc *SnowthClient) GetGossipInfoContext(ctx context.Context,
-	node *SnowthNode) (gossip *Gossip, err error) {
-	gossip = new(Gossip)
-	err = sc.do(ctx, node, "GET", "/gossip/json", nil, gossip, decodeJSON)
-	return
+	node *SnowthNode) (*Gossip, error) {
+	r := &Gossip{}
+	body, _, err := sc.do(ctx, node, "GET", "/gossip/json", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }

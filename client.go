@@ -2,6 +2,7 @@
 package gosnowth
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -575,15 +576,14 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 
 // do sends a request to IRONdb.
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
-	method, url string, body io.Reader, respValue interface{},
-	decodeFunc func(io.Reader, interface{}) error) error {
+	method, url string, body io.Reader) (io.Reader, http.Header, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
-		return errors.Wrap(err, "failed to create request")
+		return nil, nil, errors.Wrap(err, "failed to create request")
 	}
 
 	r.Close = true
@@ -593,11 +593,11 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	sc.RUnlock()
 	if rf != nil {
 		if err := rf(r); err != nil {
-			return errors.Wrap(err, "unable to process request")
+			return nil, nil, errors.Wrap(err, "unable to process request")
 		}
 
 		if r == nil {
-			return errors.New("invalid request after processing")
+			return nil, nil, errors.New("invalid request after processing")
 		}
 	}
 
@@ -605,34 +605,31 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	var start = time.Now()
 	resp, err := sc.c.Do(r)
 	if err != nil {
-		return errors.Wrap(err, "failed to perform request")
+		return nil, nil, errors.Wrap(err, "failed to perform request")
 	}
 
 	defer resp.Body.Close()
+	res, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "unable to read response body")
+	}
+
 	sc.LogDebugf("snowth response: %+v", resp)
 	sc.LogDebugf("snowth latency: %+v", time.Since(start))
 	select {
 	case <-ctx.Done():
-		return errors.Wrap(ctx.Err(), "context terminated")
+		return nil, nil, errors.Wrap(ctx.Err(), "context terminated")
 	default:
-		break
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(resp.Body)
 		sc.LogWarnf("error returned from IRONdb: [%d] %s",
-			resp.StatusCode, string(body))
-		return fmt.Errorf("error returned from IRONdb: [%d] %s",
-			resp.StatusCode, string(body))
+			resp.StatusCode, string(res))
+		return nil, nil, fmt.Errorf("error returned from IRONdb: [%d] %s",
+			resp.StatusCode, string(res))
 	}
 
-	if respValue != nil {
-		if err := decodeFunc(resp.Body, respValue); err != nil {
-			return errors.Wrap(err, "unable to decode IRONdb response")
-		}
-	}
-
-	return nil
+	return bytes.NewBuffer(res), resp.Header, nil
 }
 
 // getURL resolves the URL with a reference for a particular node.

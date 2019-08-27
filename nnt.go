@@ -153,7 +153,8 @@ func (sc *SnowthClient) WriteNNTContext(ctx context.Context, node *SnowthNode,
 		return errors.Wrap(err, "failed to encode NNTData for write")
 	}
 
-	return sc.do(ctx, node, "POST", "/write/nnt", buf, nil, nil)
+	_, _, err := sc.do(ctx, node, "POST", "/write/nnt", buf)
+	return err
 }
 
 // ReadNNTValues reads NNT data from a node.
@@ -167,13 +168,20 @@ func (sc *SnowthClient) ReadNNTValues(node *SnowthNode, start, end time.Time,
 func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 	node *SnowthNode, start, end time.Time, period int64,
 	t, id, metric string) ([]NNTValue, error) {
-	nv := new(NNTValueResponse)
-	err := sc.do(ctx, node, "GET", path.Join("/read",
+	r := &NNTValueResponse{}
+	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
-		strconv.FormatInt(period, 10), id, t, metric),
-		nil, nv, decodeJSON)
-	return nv.Data, err
+		strconv.FormatInt(period, 10), id, t, metric), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r.Data, nil
 }
 
 // ReadNNTAllValues reads all NNT data from a node.
@@ -188,11 +196,17 @@ func (sc *SnowthClient) ReadNNTAllValues(node *SnowthNode,
 func (sc *SnowthClient) ReadNNTAllValuesContext(ctx context.Context,
 	node *SnowthNode, start, end time.Time, period int64,
 	id, metric string) ([]NNTAllValue, error) {
-	nv := new(NNTAllValueResponse)
-	err := sc.do(ctx, node, "GET", path.Join("/read",
+	r := &NNTAllValueResponse{}
+	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
-		strconv.FormatInt(period, 10), id, "all", metric),
-		nil, nv, decodeJSON)
-	return nv.Data, err
+		strconv.FormatInt(period, 10), id, "all", metric), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+	return r.Data, nil
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/xml"
 	"path"
+
+	"github.com/pkg/errors"
 )
 
 // TopoRing values represent IRONdb topology ring data.
@@ -30,8 +32,16 @@ func (sc *SnowthClient) GetTopoRingInfo(hash string,
 // GetTopoRingInfoContext is the context aware version of GetTopoRingInfo.
 func (sc *SnowthClient) GetTopoRingInfoContext(ctx context.Context,
 	hash string, node *SnowthNode) (*TopoRing, error) {
-	tr := new(TopoRing)
-	err := sc.do(ctx, node, "GET", path.Join("/toporing/xml", hash),
-		nil, tr, decodeXML)
-	return tr, err
+	r := &TopoRing{}
+	body, _, err := sc.do(ctx, node, "GET", path.Join("/toporing/xml", hash),
+		nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeXML(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }

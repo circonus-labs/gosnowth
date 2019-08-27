@@ -35,5 +35,6 @@ func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
 		return errors.Wrap(err, "failed to encode HistogramData for write")
 	}
 
-	return sc.do(ctx, node, "POST", "/histogram/write", buf, nil, nil)
+	_, _, err := sc.do(ctx, node, "POST", "/histogram/write", buf)
+	return err
 }

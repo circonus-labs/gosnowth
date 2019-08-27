@@ -4,6 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/url"
+	"strconv"
+
+	"github.com/pkg/errors"
 )
 
 // FindTagsItem values represent results returned from IRONdb tag queries.
@@ -18,16 +21,22 @@ type FindTagsItem struct {
 	Activity   [][]int32 `json:"activity,omitempty"`
 }
 
+// FindTagsResult values contain the results of a find tags request.
+type FindTagsResult struct {
+	Items []FindTagsItem
+	Count int64
+}
+
 // FindTags retrieves metrics that are associated with the provided tag query.
 func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int32,
-	query string, start, end string) ([]FindTagsItem, error) {
+	query string, start, end string) (*FindTagsResult, error) {
 	return sc.FindTagsContext(context.Background(), node, accountID, query,
 		start, end)
 }
 
 // FindTagsContext is the context aware version of FindTags.
 func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
-	accountID int32, query string, start, end string) ([]FindTagsItem, error) {
+	accountID int32, query string, start, end string) (*FindTagsResult, error) {
 	u := fmt.Sprintf("%s?query=%s",
 		sc.getURL(node, fmt.Sprintf("/find/%d/tags", accountID)),
 		url.QueryEscape(query))
@@ -36,7 +45,26 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
 			url.QueryEscape(start), url.QueryEscape(end))
 	}
 
-	r := []FindTagsItem{}
-	err := sc.do(ctx, node, "GET", u, nil, &r, decodeJSON)
+	r := &FindTagsResult{}
+	body, header, err := sc.do(ctx, node, "GET", u, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r.Items); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	// Return a results count and capture it from the header , if provided.
+	r.Count = int64(len(r.Items))
+	if header != nil {
+		c := header.Get("X-Snowth-Search-Result-Count")
+		if c != "" {
+			if cv, err := strconv.ParseInt(c, 10, 64); err == nil {
+				r.Count = cv
+			}
+		}
+	}
+
 	return r, err
 }

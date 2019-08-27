@@ -52,15 +52,19 @@ func (sc *SnowthClient) ReadTextValues(node *SnowthNode, start, end time.Time,
 func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	node *SnowthNode, start, end time.Time,
 	id, metric string) ([]TextValue, error) {
-	tvr := new(TextValueResponse)
-	err := sc.do(ctx, node, "GET", path.Join("/read",
+	r := TextValueResponse{}
+	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
-		strconv.FormatInt(end.Unix(), 10), id, metric), nil, tvr, decodeJSON)
-	if tvr == nil {
+		strconv.FormatInt(end.Unix(), 10), id, metric), nil)
+	if err != nil {
 		return nil, err
 	}
 
-	return *tvr, err
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }
 
 // TextData values represent text data to be written to IRONdb.
@@ -84,5 +88,6 @@ func (sc *SnowthClient) WriteTextContext(ctx context.Context, node *SnowthNode,
 		return errors.Wrap(err, "failed to encode TextData for write")
 	}
 
-	return sc.do(ctx, node, "POST", "/write/text", buf, nil, nil)
+	_, _, err := sc.do(ctx, node, "POST", "/write/text", buf)
+	return err
 }
