@@ -8,6 +8,9 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ### Added
 
+- Adds the FetchQuery type and the SnowthClient.FetchValues and
+SnowthClient.FetchValuesContext() methods to support fetching data, in the DF4
+format, using the IRONdb /fetch API.
 - New functionality has been added to read histogram data using the SnowthClient
 ReadHistogramValues() and ReadHistogramValuesContext() methods. The new
 HistogramValue type has been added to represent the histogram data returned by

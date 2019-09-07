@@ -25,6 +25,7 @@
 | Data Retrieval APIs | Retrieve Numeric Data | - | Yes (SnowthClient.ReadNNTAllValues & SnowthClient.ReadNNTValues) | Yes (Snowth::Fetcher::NNT) |
 |  | Retrieve Text Data | - | Yes (SnowthClient.ReadTextValues) | Yes (Snowth::Fetcher::Text) |
 |  | Retrieve Histogram Data | - | Yes (SnowthClient.ReadHistogramValues) | Yes (Snowth::Fetcher::Histogram) |
+|  | Perform Fetch API Calls | - | Yes (SnowthClient.FetchValues) | No |
 |  |  |  |  |  |
 | Data Deletion APIs | Delete Numeric for Metric/Check | - | No | No |
 |  | Delete Text for Metric/Check | - | No | No |

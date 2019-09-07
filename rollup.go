@@ -22,13 +22,13 @@ type RollupValue struct {
 // MarshalJSON encodes a RollupValue value into a JSON format byte slice.
 func (rv *RollupValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
-	tn := float64(0)
 	fv, err := strconv.ParseFloat(formatTimestamp(rv.Time), 64)
-	if err == nil {
-		tn = float64(fv)
+	if err != nil {
+		return nil, errors.New("invalid rollup value time: " +
+			formatTimestamp(rv.Time))
 	}
 
-	v = append(v, tn)
+	v = append(v, fv)
 	v = append(v, rv.Value)
 	return json.Marshal(v)
 }
@@ -36,9 +36,13 @@ func (rv *RollupValue) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into a RollupValue value.
 func (rv *RollupValue) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	json.Unmarshal(b, &v)
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
 	if len(v) != 2 {
-		return fmt.Errorf("rollup value should contain two entries: %s",
+		return errors.New("rollup value should contain two entries: " +
 			string(b))
 	}
 
@@ -83,13 +87,13 @@ type RollupAllValue struct {
 // MarshalJSON encodes a RollupValue value into a JSON format byte slice.
 func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
-	tn := float64(0)
 	fv, err := strconv.ParseFloat(formatTimestamp(rv.Time), 64)
-	if err == nil {
-		tn = float64(fv)
+	if err != nil {
+		return nil, errors.New("invalid rollup value time: " +
+			formatTimestamp(rv.Time))
 	}
 
-	v = append(v, tn)
+	v = append(v, fv)
 	v = append(v, map[string]interface{}{
 		"count":              rv.Count,
 		"value":              rv.Value,
@@ -110,9 +114,13 @@ func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into a RollupValue value.
 func (rv *RollupAllValue) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	json.Unmarshal(b, &v)
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
 	if len(v) != 2 {
-		return fmt.Errorf("rollup value should contain two entries: %s",
+		return errors.New("rollup value should contain two entries: " +
 			string(b))
 	}
 

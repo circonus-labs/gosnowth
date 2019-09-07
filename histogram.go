@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/url"
 	"path"
 	"strconv"
@@ -25,13 +24,13 @@ type HistogramValue struct {
 // MarshalJSON encodes a HistogramValue value into a JSON format byte slice.
 func (hv *HistogramValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
-	tn := float64(0)
 	fv, err := strconv.ParseFloat(formatTimestamp(hv.Time), 64)
-	if err == nil {
-		tn = float64(fv)
+	if err != nil {
+		return nil, errors.New("invalid histogram value time: " +
+			formatTimestamp(hv.Time))
 	}
 
-	v = append(v, tn)
+	v = append(v, fv)
 	v = append(v, hv.Period.Seconds())
 	v = append(v, hv.Data)
 	return json.Marshal(v)
@@ -40,9 +39,13 @@ func (hv *HistogramValue) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into a HistogramValue value.
 func (hv *HistogramValue) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	json.Unmarshal(b, &v)
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
 	if len(v) != 3 {
-		return fmt.Errorf("histogram value should contain three entries: %s",
+		return errors.New("histogram value should contain three entries: " +
 			string(b))
 	}
 
