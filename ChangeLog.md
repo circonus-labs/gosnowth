@@ -6,6 +6,38 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+### Added
+
+- New functionality has been added to read histogram data using the SnowthClient
+ReadHistogramValues() and ReadHistogramValuesContext() methods. The new
+HistogramValue type has been added to represent the histogram data returned by
+the new methods.
+- New ReadRollupAllValues() and ReadRollupAllValuesContext() methods have been
+added to SnowthClient. These methods return slices of RollupAllValue values
+representing IRONdb rollup response data in the legacy / type=all format.
+- Adds new SnowthClient methods for listing Lua extensions and calling any Lua
+extension via the IRONdb extension APIs: SnowthClient.GetLuaExtensions() and
+SnowthClient.ExecLuaExtension().
+- Adds specific support for performing CAQL queries using the Lua extension with
+the SnowthClient.GetCAQLQuery() method.
+- Adds support for a Go data structure representation of the DF4 data format.
+This is needed to represent CAQL query results and will also allow for future
+support for IRONdb /fetch API requests.
+
+### Changed
+
+- The RollupValues type has been replaced by the RollupValue and RollupAllValue
+types. These types are better able to represent all possible rollup data formats
+that can be returned by IRONdb. This is an API breaking change that modifies the
+signature of the SnowthClient ReadRollupValues() and ReadRollupValuesContext()
+methods.
+- These new types allow true support for IRONdb formatted timestamps for rollup
+data retrieval methods by changing previous Timestamp integer field to a field
+named Time containing a Go time.Time value. This is translated to/from the
+IRONdb timestamp format during JSON encoding/decoding and the IRONdb timestamp
+can be retrieved (as as string) by calling the Timestamp() method on values of
+the new types.
+
 ## [v1.3.2] - 2019-08-26
 
 ### Changed
@@ -73,7 +105,8 @@ SnowthNode value.
 
 ### Added
 
-- Adds support for new check tags data returned from IRONdb to the SnowthClient.FindTags() methods.
+- Adds support for new check tags data returned from IRONdb to the
+SnowthClient.FindTags() methods.
 
 ## [v1.1.2] - 2019-03-13
 
