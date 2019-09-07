@@ -2,10 +2,10 @@ package gosnowth
 
 // DF4Response values represent time series data in the DF4 format.
 type DF4Response struct {
-	Data [][]interface{} `json:"data,omitempty"`
-	Meta []DF4Meta       `json:"meta,omitempty"`
 	Ver  string          `json:"version,omitempty"`
 	Head DF4Head         `json:"head"`
+	Meta []DF4Meta       `json:"meta,omitempty"`
+	Data [][]interface{} `json:"data,omitempty"`
 }
 
 // DF4Meta values contain information and metadata about the metrics in a DF4

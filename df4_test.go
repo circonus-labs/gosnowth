@@ -8,13 +8,12 @@ import (
 )
 
 const testDF4Response = `{
-	"data": [
-		[
-			1,
-			2,
-			3
-		]
-	],
+	"version": "DF4",
+	"head": {
+		"count": 3,
+		"start": 0,
+		"period": 300
+	},
 	"meta": [
 		{
 			"kind": "numeric",
@@ -25,12 +24,13 @@ const testDF4Response = `{
 			]
 		}
 	],
-	"version": "DF4",
-	"head": {
-		"count": 3,
-		"start": 0,
-		"period": 300
-	}
+	"data": [
+		[
+			1,
+			2,
+			3
+		]
+	]
 }`
 
 func TestDF4ResponseCopy(t *testing.T) {
