@@ -3,7 +3,6 @@ package gosnowth
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -94,10 +93,8 @@ func TestReadHistogramValues(t *testing.T) {
 			return
 		}
 
-		fmt.Println(r.RequestURI)
 		u := "/histogram/1556290800/1556291400/300/" +
-			"ae0f7f90-2a6b-481c-9cf5-21a31837020e/" +
-			"example1%7CST%5Btest%3Atest%5D"
+			"ae0f7f90-2a6b-481c-9cf5-21a31837020e/example1"
 		if strings.HasPrefix(r.RequestURI, u) {
 			w.Write([]byte(histogramTestData))
 			return
@@ -118,7 +115,7 @@ func TestReadHistogramValues(t *testing.T) {
 	node := &SnowthNode{url: u}
 	res, err := sc.ReadHistogramValues(node,
 		"ae0f7f90-2a6b-481c-9cf5-21a31837020e", "example1",
-		[]string{"test:test"}, 300*time.Second, time.Unix(1556290800, 0),
+		300*time.Second, time.Unix(1556290800, 0),
 		time.Unix(1556291200, 0))
 	if err != nil {
 		t.Fatal(err)

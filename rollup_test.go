@@ -144,8 +144,8 @@ func TestReadRollupValues(t *testing.T) {
 		}
 
 		u := "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
-			"online%7CST%5Btest%3Atest%5D?start_ts=1529509020" +
-			"&end_ts=1529509201&rollup_span=1s&type=average"
+			"online?start_ts=1529509020&end_ts=1529509201&rollup_span=1s" +
+			"&type=average"
 		if strings.HasPrefix(r.RequestURI, u) {
 			w.Write([]byte(rollupTestData))
 			return
@@ -165,8 +165,8 @@ func TestReadRollupValues(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.ReadRollupValues(node,
-		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", []string{"test:test"},
-		time.Second, time.Unix(1529509020, 0), time.Unix(1529509200, 0))
+		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", time.Second,
+		time.Unix(1529509020, 0), time.Unix(1529509200, 0))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,8 +194,8 @@ func TestReadRollupAllValues(t *testing.T) {
 		}
 
 		u := "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
-			"online%7CST%5Btest%3Atest%5D?start_ts=1529509020" +
-			"&end_ts=1529509201&rollup_span=1s&type=all"
+			"online?start_ts=1529509020&end_ts=1529509201&rollup_span=1s" +
+			"&type=all"
 		if strings.HasPrefix(r.RequestURI, u) {
 			w.Write([]byte(rollupAllTestData))
 			return
@@ -215,8 +215,8 @@ func TestReadRollupAllValues(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.ReadRollupAllValues(node,
-		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", []string{"test:test"},
-		time.Second, time.Unix(1529509020, 0), time.Unix(1529509200, 0))
+		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", time.Second,
+		time.Unix(1529509020, 0), time.Unix(1529509200, 0))
 	if err != nil {
 		t.Fatal(err)
 	}

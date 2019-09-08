@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -175,33 +174,24 @@ func (rv *RollupAllValue) Timestamp() string {
 
 // ReadRollupValues reads rollup data from a node.
 func (sc *SnowthClient) ReadRollupValues(
-	node *SnowthNode, id, metric string, tags []string, rollup time.Duration,
+	node *SnowthNode, uuid, metric string, period time.Duration,
 	start, end time.Time) ([]RollupValue, error) {
-	return sc.ReadRollupValuesContext(context.Background(), node, id, metric,
-		tags, rollup, start, end)
+	return sc.ReadRollupValuesContext(context.Background(), node, uuid, metric,
+		period, start, end)
 }
 
 // ReadRollupValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
-	node *SnowthNode, id, metric string, tags []string, rollup time.Duration,
+	node *SnowthNode, uuid, metric string, period time.Duration,
 	start, end time.Time) ([]RollupValue, error) {
-	startTS := start.Unix() - start.Unix()%int64(rollup/time.Second)
-	endTS := end.Unix() - end.Unix()%int64(rollup/time.Second) +
-		int64(rollup/time.Second)
-	var metricBuilder strings.Builder
-	metricBuilder.WriteString(metric)
-	if len(tags) > 0 {
-		metricBuilder.WriteString("|ST[")
-		metricBuilder.WriteString(strings.Join(tags, ","))
-		metricBuilder.WriteString("]")
-	}
-
+	startTS := start.Unix() - start.Unix()%int64(period/time.Second)
+	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
+		int64(period/time.Second)
 	r := []RollupValue{}
 	body, _, err := sc.do(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=average",
-			path.Join("/rollup", id,
-				url.QueryEscape(metricBuilder.String())),
-			startTS, endTS, int(rollup/time.Second)), nil)
+			path.Join("/rollup", uuid, url.QueryEscape(metric)),
+			startTS, endTS, int64(period/time.Second)), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -215,33 +205,24 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 
 // ReadRollupAllValues reads rollup data from a node.
 func (sc *SnowthClient) ReadRollupAllValues(
-	node *SnowthNode, id, metric string, tags []string, rollup time.Duration,
+	node *SnowthNode, uuid, metric string, period time.Duration,
 	start, end time.Time) ([]RollupAllValue, error) {
-	return sc.ReadRollupAllValuesContext(context.Background(), node, id, metric,
-		tags, rollup, start, end)
+	return sc.ReadRollupAllValuesContext(context.Background(), node, uuid,
+		metric, period, start, end)
 }
 
 // ReadRollupAllValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
-	node *SnowthNode, id, metric string, tags []string, rollup time.Duration,
+	node *SnowthNode, uuid, metric string, period time.Duration,
 	start, end time.Time) ([]RollupAllValue, error) {
-	startTS := start.Unix() - start.Unix()%int64(rollup/time.Second)
-	endTS := end.Unix() - end.Unix()%int64(rollup/time.Second) +
-		int64(rollup/time.Second)
-	var metricBuilder strings.Builder
-	metricBuilder.WriteString(metric)
-	if len(tags) > 0 {
-		metricBuilder.WriteString("|ST[")
-		metricBuilder.WriteString(strings.Join(tags, ","))
-		metricBuilder.WriteString("]")
-	}
-
+	startTS := start.Unix() - start.Unix()%int64(period/time.Second)
+	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
+		int64(period/time.Second)
 	r := []RollupAllValue{}
 	body, _, err := sc.do(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=all",
-			path.Join("/rollup", id,
-				url.QueryEscape(metricBuilder.String())),
-			startTS, endTS, int(rollup/time.Second)), nil)
+			path.Join("/rollup", uuid, url.QueryEscape(metric)),
+			startTS, endTS, int64(period/time.Second)), nil)
 	if err != nil {
 		return nil, err
 	}

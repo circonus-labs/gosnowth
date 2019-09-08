@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"path"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/circonus-labs/circonusllhist"
@@ -81,35 +80,27 @@ func (hv *HistogramValue) Timestamp() string {
 }
 
 // ReadHistogramValues reads histogram data from a node.
-func (sc *SnowthClient) ReadHistogramValues(
-	node *SnowthNode, id, metric string, tags []string, period time.Duration,
+func (sc *SnowthClient) ReadHistogramValues(node *SnowthNode,
+	uuid, metric string, period time.Duration,
 	start, end time.Time) ([]HistogramValue, error) {
-	return sc.ReadHistogramValuesContext(context.Background(), node, id, metric,
-		tags, period, start, end)
+	return sc.ReadHistogramValuesContext(context.Background(), node, uuid,
+		metric, period, start, end)
 }
 
 // ReadHistogramValuesContext is the context aware version of
 // ReadHistogramValues.
 func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
-	node *SnowthNode, uuid, metric string, tags []string, period time.Duration,
+	node *SnowthNode, uuid, metric string, period time.Duration,
 	start, end time.Time) ([]HistogramValue, error) {
 	startTS := start.Unix() - start.Unix()%int64(period.Seconds())
 	endTS := end.Unix() - end.Unix()%int64(period.Seconds()) +
 		int64(period.Seconds())
-	var metricBuilder strings.Builder
-	metricBuilder.WriteString(metric)
-	if len(tags) > 0 {
-		metricBuilder.WriteString("|ST[")
-		metricBuilder.WriteString(strings.Join(tags, ","))
-		metricBuilder.WriteString("]")
-	}
-
 	r := []HistogramValue{}
 	body, _, err := sc.do(ctx, node, "GET",
 		path.Join("/histogram", strconv.FormatInt(startTS, 10),
 			strconv.FormatInt(endTS, 10),
 			strconv.FormatInt(int64(period.Seconds()), 10), uuid,
-			url.QueryEscape(metricBuilder.String())), nil)
+			url.QueryEscape(metric)), nil)
 	if err != nil {
 		return nil, err
 	}
