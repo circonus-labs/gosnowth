@@ -175,23 +175,35 @@ func (rv *RollupAllValue) Timestamp() string {
 // ReadRollupValues reads rollup data from a node.
 func (sc *SnowthClient) ReadRollupValues(
 	node *SnowthNode, uuid, metric string, period time.Duration,
-	start, end time.Time) ([]RollupValue, error) {
+	start, end time.Time, dataType string) ([]RollupValue, error) {
 	return sc.ReadRollupValuesContext(context.Background(), node, uuid, metric,
-		period, start, end)
+		period, start, end, dataType)
 }
 
 // ReadRollupValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	node *SnowthNode, uuid, metric string, period time.Duration,
-	start, end time.Time) ([]RollupValue, error) {
+	start, end time.Time, dataType string) ([]RollupValue, error) {
+	if dataType == "" {
+		dataType = "average"
+	}
+
+	switch dataType {
+	case "count", "average", "derive", "counter", "average_stddev",
+		"derive_stddev", "counter_stddev", "derive2", "counter2",
+		"derive2_stddev", "counter2_stddev":
+	default:
+		return nil, errors.New("invalid rollup data type: " + dataType)
+	}
+
 	startTS := start.Unix() - start.Unix()%int64(period/time.Second)
 	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
 		int64(period/time.Second)
 	r := []RollupValue{}
 	body, _, err := sc.do(ctx, node, "GET",
-		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=average",
+		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=%s",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
-			startTS, endTS, int64(period/time.Second)), nil)
+			startTS, endTS, int64(period/time.Second), dataType), nil)
 	if err != nil {
 		return nil, err
 	}

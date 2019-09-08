@@ -40,6 +40,8 @@ named Time containing a Go time.Time value. This is translated to/from the
 IRONdb timestamp format during JSON encoding/decoding and the IRONdb timestamp
 can be retrieved (as as string) by calling the Timestamp() method on values of
 the new types.
+- The new methods also support retrieving all types of rollup data. They are no
+longer restricted to only the average type data.
 
 ## [v1.3.2] - 2019-08-26
 
