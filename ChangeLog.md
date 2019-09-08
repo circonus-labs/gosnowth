@@ -34,6 +34,9 @@ types. These types are better able to represent all possible rollup data formats
 that can be returned by IRONdb. This is an API breaking change that modifies the
 signature of the SnowthClient ReadRollupValues() and ReadRollupValuesContext()
 methods.
+- The SnowthClient ReadTextValues() and ReadTextValuesContext() have updated
+signatures to match the parameters of the other data retrieval methods. This is
+an API breaking change for these methods.
 - These new types allow true support for IRONdb formatted timestamps for rollup
 data retrieval methods by changing previous Timestamp integer field to a field
 named Time containing a Go time.Time value. This is translated to/from the

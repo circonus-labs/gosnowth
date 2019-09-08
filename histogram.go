@@ -13,7 +13,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// HistogramValue values are individual data points of a rollup.
+// HistogramValue values are individual data points of a histogram metric.
 type HistogramValue struct {
 	Time   time.Time
 	Period time.Duration

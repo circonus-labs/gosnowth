@@ -15,7 +15,7 @@ const textTestData = `[[1380000000,"hello"],[1380000300,"world"]]`
 func TestTextValue(t *testing.T) {
 	tvr := TextValueResponse{}
 	if err := json.Unmarshal([]byte(textTestData), &tvr); err != nil {
-		t.Error("error unmarshalling: ", err)
+		t.Error("error unmarshaling: ", err)
 	}
 }
 
@@ -54,8 +54,8 @@ func TestReadTextValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.ReadTextValues(node, time.Unix(1, 0), time.Unix(2, 0),
-		"3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d", "test")
+	res, err := sc.ReadTextValues(node, "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
+		"test", time.Unix(1, 0), time.Unix(2, 0))
 	if err != nil {
 		t.Fatal(err)
 	}

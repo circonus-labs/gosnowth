@@ -173,8 +173,8 @@ func (rv *RollupAllValue) Timestamp() string {
 }
 
 // ReadRollupValues reads rollup data from a node.
-func (sc *SnowthClient) ReadRollupValues(
-	node *SnowthNode, uuid, metric string, period time.Duration,
+func (sc *SnowthClient) ReadRollupValues(node *SnowthNode,
+	uuid, metric string, period time.Duration,
 	start, end time.Time, dataType string) ([]RollupValue, error) {
 	return sc.ReadRollupValuesContext(context.Background(), node, uuid, metric,
 		period, start, end, dataType)
