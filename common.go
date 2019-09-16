@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"io"
 	"net/url"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -82,4 +85,55 @@ func decodeXML(r io.Reader, v interface{}) error {
 	}
 
 	return nil
+}
+
+// formatTimestamp returns a string containing a timestamp in the format used
+// by the IRONdb API.
+func formatTimestamp(t time.Time) string {
+	if t.Nanosecond()/1000000 != 0 {
+		return fmt.Sprintf("%d.%03d", t.Unix(), t.Nanosecond()/1000000)
+	}
+
+	return fmt.Sprintf("%d", t.Unix())
+}
+
+// parseTimestamp attempts to parse an IRONdb API timestamp string into a valid
+// time value.
+func parseTimestamp(s string) (time.Time, error) {
+	sp := strings.Split(s, ".")
+	sec, nsec := int64(0), int64(0)
+	var err error
+	if len(sp) > 0 {
+		if sec, err = strconv.ParseInt(sp[0], 10, 64); err != nil {
+			return time.Time{}, fmt.Errorf("unable to parse timestamp %s: %s",
+				s, err.Error())
+		}
+	}
+
+	if len(sp) > 1 {
+		if nsec, err = strconv.ParseInt(sp[1], 10, 64); err != nil {
+			return time.Time{}, fmt.Errorf("unable to parse timestamp %s: %s",
+				s, err.Error())
+		}
+
+		nsec = nsec * 1000000
+	}
+
+	return time.Unix(sec, nsec), nil
+}
+
+// parseDuration attempts to parse an IRONdb API duration string into a valid
+// duration value.
+func parseDuration(s string) (time.Duration, error) {
+	if !strings.HasSuffix(s, "s") {
+		s += "s"
+	}
+
+	d, err := time.ParseDuration(s)
+	if err != nil {
+		return 0, fmt.Errorf("unable to parse duration %s: %s",
+			s, err.Error())
+	}
+
+	return d, nil
 }

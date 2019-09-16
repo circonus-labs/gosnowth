@@ -1,6 +1,6 @@
 # Snowth Client Functionality
 
-| Category | Function | libsnowth | gosnowth (v1.1.3) | perl-snowth |
+| Category | Function | libsnowth | gosnowth | perl-snowth |
 |:---|:---|:---:|:---:|:---:|
 | Client Robustness | Ability to bootstrap nodes from single node | - | Yes (uses topology and gossip) | Yes (polls topology to isolate nodes) |
 |  | Ability to only use "working" nodes in event of failure | - | Yes (uses gossip data to determine health of nodes) | No |
@@ -24,14 +24,15 @@
 |  |  |  |  |  |
 | Data Retrieval APIs | Retrieve Numeric Data | - | Yes (SnowthClient.ReadNNTAllValues & SnowthClient.ReadNNTValues) | Yes (Snowth::Fetcher::NNT) |
 |  | Retrieve Text Data | - | Yes (SnowthClient.ReadTextValues) | Yes (Snowth::Fetcher::Text) |
-|  | Retrieve Histogram Data | - | No | Yes (Snowth::Fetcher::Histogram) |
+|  | Retrieve Histogram Data | - | Yes (SnowthClient.ReadHistogramValues) | Yes (Snowth::Fetcher::Histogram) |
+|  | Perform Fetch API Calls | - | Yes (SnowthClient.FetchValues) | No |
 |  |  |  |  |  |
 | Data Deletion APIs | Delete Numeric for Metric/Check | - | No | No |
 |  | Delete Text for Metric/Check | - | No | No |
 |  | Delete Histogram for Metic/Check | - | No | No |
 |  | Delete all data prior to date | - | No | No |
 |  |  |  |  |  |
-| Lua Extensions API | Get List of Lua Extensions | - | No | No |
-|  | Execute a Lua Extension | - | No | No |
+| Lua Extensions API | Get List of Lua Extensions | - | Yes (SnowthClient.GetLuaExtensions) | No |
+|  | Execute a Lua Extension | - | Yes (SnowthClient.ExecLuaExtension) | No |
 
 \* Only works against the list of bootstrap nodes, until a state response is encountered, unable to target a specific node

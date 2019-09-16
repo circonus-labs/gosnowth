@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 type noOpReadCloser struct {
@@ -123,5 +124,45 @@ func TestEncodeXML(t *testing.T) {
 	b, _ := ioutil.ReadAll(reader)
 	if !strings.Contains(string(b), "somethingelse") {
 		t.Error("Should contain somethingelse")
+	}
+}
+
+func TestFormatTimestamp(t *testing.T) {
+	tm := time.Unix(123456789, int64(time.Millisecond))
+	exp := "123456789.001"
+	res := formatTimestamp(tm)
+	if res != exp {
+		t.Errorf("Expected string: %v, got: %v", exp, res)
+	}
+
+	tm = time.Unix(123456789, 0)
+	exp = "123456789"
+	res = formatTimestamp(tm)
+	if res != exp {
+		t.Errorf("Expected string: %v, got: %v", exp, res)
+	}
+}
+
+func TestParseTimestamp(t *testing.T) {
+	res, err := parseTimestamp("123456789.001")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exp := time.Unix(123456789, int64(time.Millisecond))
+	if !res.Equal(exp) {
+		t.Errorf("Expected time: %v, got: %v", exp, res)
+	}
+}
+
+func TestParseDuration(t *testing.T) {
+	res, err := parseDuration("1")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	exp := time.Second
+	if res != exp {
+		t.Errorf("Expected duration: %v, got: %v", exp, res)
 	}
 }
