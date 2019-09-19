@@ -6,6 +6,13 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.4.1] - 2019-09-19
+
+### Fixed
+
+- Bug (moderate): The encoding used for CAQL queries was causing a parsing error
+when the queries contained spaces. Created: 2019-09-15 Fixed: 2019-09-19.
+
 ## [v1.4.0] - 2019-09-15
 
 ### Added
@@ -142,6 +149,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.4.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.1
 [v1.4.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.0
 [v1.3.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.3.2
 [v1.3.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.3.1
