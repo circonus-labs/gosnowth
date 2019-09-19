@@ -27,7 +27,7 @@ func (sc *SnowthClient) GetCAQLQuery(node *SnowthNode, accountID int64,
 func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context,
 	node *SnowthNode, accountID int64, q *CAQLQuery) (*DF4Response, error) {
 	u := sc.getURL(node, "/extension/lua/public/caql_v1") +
-		"?query=" + url.QueryEscape(q.Query)
+		"?query=" + url.PathEscape(q.Query)
 	if q.Start != 0 {
 		u += fmt.Sprintf("&start=%d", q.Start)
 	}
