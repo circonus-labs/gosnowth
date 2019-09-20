@@ -163,6 +163,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.4.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.2
 [v1.4.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.1
 [v1.4.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.0
 [v1.3.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.3.2
