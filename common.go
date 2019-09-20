@@ -59,6 +59,18 @@ func (me multiError) Error() string {
 	return me.String()
 }
 
+// encodeJSON create a reader of JSON data representing an interface.
+func encodeJSON(v interface{}) (io.Reader, error) {
+	buf := &bytes.Buffer{}
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(v); err != nil {
+		return nil, errors.Wrap(err, "failed to encode JSON")
+	}
+
+	return buf, nil
+}
+
 // decodeJSON decodes JSON from a reader into an interface.
 func decodeJSON(r io.Reader, v interface{}) error {
 	if err := json.NewDecoder(r).Decode(v); err != nil {
