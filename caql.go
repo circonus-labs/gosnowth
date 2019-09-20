@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"strings"
 
 	"github.com/pkg/errors"
 )
@@ -98,8 +100,18 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context,
 		return nil, err
 	}
 
+	bBuf, err := ioutil.ReadAll(qBuf)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read request body buffer")
+	}
+
+	// CAQL extension does not like the JSON in the request body to end with \n.
+	if strings.HasSuffix(string(bBuf), "\n") {
+		bBuf = bBuf[:len(bBuf)-1]
+	}
+
 	r := &DF4Response{}
-	body, _, err := sc.do(ctx, node, "POST", u, qBuf)
+	body, _, err := sc.do(ctx, node, "POST", u, bytes.NewBuffer(bBuf))
 	if err != nil {
 		if body != nil {
 			cErr := &CAQLError{}
