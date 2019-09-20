@@ -12,19 +12,7 @@ import (
 const testCAQLError = `{
 	"locals": [],
 	"method": "caql_v1",
-	"trace": [
-		"[C]:-1:error",
-		"/opt/circonus/lib/amd64/snowth/support/caql_builder.lua:133:lookup_function",
-		".../circonus/lib/amd64/snowth/support/caql_processor_v1.lua:32:node_2_pu",
-		".../circonus/lib/amd64/snowth/support/caql_processor_v1.lua:46:node_recurse",
-		".../circonus/lib/amd64/snowth/support/caql_processor_v1.lua:149:compile",
-		"/opt/circonus/lib/amd64/snowth/support/caql_fetch.lua:110:<unknown>",
-		"[C]:-1:xpcall",
-		"/opt/circonus/lib/amd64/snowth/support/utils_extension.lua:273:<unknown>",
-		"[C]:-1:xpcall",
-		"/opt/circonus/lib/amd64/snowth/support/snowth-init.lua:307:extension_process",
-		".../circonus/lib/amd64/snowth/support/luamtev-extension.lua:118:<unknown>"
-	],
+	"trace": [],
 	"user_error": {
 		"message": "Function not found: histograms"
 	},

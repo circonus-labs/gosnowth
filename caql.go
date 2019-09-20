@@ -10,6 +10,24 @@ import (
 
 // CAQLQuery values represent CAQL queries and associated parameters.
 type CAQLQuery struct {
+	Format               string   `json:"format,omitempty"`
+	Query                string   `json:"q,omitempty"`
+	Period               int64    `json:"period,omitempty"`
+	ID                   int64    `json:"_id,omitempty"`
+	IgnoreDurationLimits bool     `json:"ignore_duration_limits,omitempty"`
+	PrepareResults       string   `json:"prepare_results,omitempty"`
+	AccountID            int64    `json:"account_id,string,omitempty"`
+	Method               string   `json:"method,omitempty"`
+	Start                int64    `json:"start_time,omitempty"`
+	Timeout              int64    `json:"_timeout,omitempty"`
+	MinPrefill           int64    `json:"min_prefill,omitempty"`
+	Debug                byte     `json:"_debug,omitempty"`
+	Expansion            []string `json:"expansion,omitempty"`
+	End                  int64    `json:"end_time,omitempty"`
+}
+
+// CAQLErrorArgs values represent CAQL request arguments returned in an error.
+type CAQLErrorArgs struct {
 	Format               string   `json:"format"`
 	Query                string   `json:"q"`
 	Period               int64    `json:"period"`
@@ -23,7 +41,7 @@ type CAQLQuery struct {
 	MinPrefill           int64    `json:"min_prefill"`
 	Debug                byte     `json:"_debug"`
 	Expansion            []string `json:"expansion"`
-	End                  int64    `json:"end_time,omitempty"`
+	End                  int64    `json:"end_time"`
 }
 
 // CAQLUserError values contain messages describing a CAQL error for a user.
@@ -39,7 +57,7 @@ type CAQLError struct {
 	Trace     []string      `json:"trace"`
 	UserError CAQLUserError `json:"user_error"`
 	Status    string        `json:"status"`
-	Arguments CAQLQuery     `json:"arguments"`
+	Arguments CAQLErrorArgs `json:"arguments"`
 	Success   bool          `json:"success"`
 }
 
