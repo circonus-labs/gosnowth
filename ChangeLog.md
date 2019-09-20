@@ -6,6 +6,20 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.4.2] - 2019-09-20
+
+### Changed
+
+- Changed the signature for the SnowthClient.GetCAQLQuery() methods to use the
+new CAQLQuery type as a parameter. This allows all available parameters to be
+used when executing CAQL queries.
+- Added the CAQLError type which may be returned by the
+SnowthClient.GetCAQLQuery() methods as an error if the error returned from the
+corresponding IRONdb API call can be represented from this type. This allows
+retrieval of extended error information when CAQL query requests fail.
+- The SnowthClient.GetCAQLQuery() methods now send CAQL query requests to IRONdb
+via a POST request. This prevents potential problems with query string encoding.
+
 ## [v1.4.1] - 2019-09-19
 
 ### Fixed

@@ -615,6 +615,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	sc.LogDebugf("snowth response: %+v", resp)
+	sc.LogDebugf("snowth response body: %v", string(res))
 	sc.LogDebugf("snowth latency: %+v", time.Since(start))
 	select {
 	case <-ctx.Done():
@@ -625,8 +626,9 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if resp.StatusCode != http.StatusOK {
 		sc.LogWarnf("error returned from IRONdb: [%d] %s",
 			resp.StatusCode, string(res))
-		return nil, nil, fmt.Errorf("error returned from IRONdb: [%d] %s",
-			resp.StatusCode, string(res))
+		return bytes.NewBuffer(res), resp.Header,
+			fmt.Errorf("error returned from IRONdb: [%d] %s",
+				resp.StatusCode, string(res))
 	}
 
 	return bytes.NewBuffer(res), resp.Header, nil
