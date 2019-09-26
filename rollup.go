@@ -15,7 +15,7 @@ import (
 // RollupValue values are individual data points of a rollup.
 type RollupValue struct {
 	Time  time.Time
-	Value float64
+	Value *float64
 }
 
 // MarshalJSON encodes a RollupValue value into a JSON format byte slice.
@@ -55,7 +55,8 @@ func (rv *RollupValue) UnmarshalJSON(b []byte) error {
 	}
 
 	if fv, ok := v[1].(float64); ok {
-		rv.Value = fv
+		rv.Value = new(float64)
+		*rv.Value = fv
 	}
 
 	return nil
@@ -67,9 +68,9 @@ func (rv *RollupValue) Timestamp() string {
 	return formatTimestamp(rv.Time)
 }
 
-// RollupAllValue values contain all parts of an individual rollup data point.
-type RollupAllValue struct {
-	Time              time.Time
+// RollupAllData values contain the data values of an individual rollup data
+// point.
+type RollupAllData struct {
 	Count             int64
 	Counter           float64
 	Counter2          float64
@@ -83,6 +84,12 @@ type RollupAllValue struct {
 	Value             float64
 }
 
+// RollupAllValue values contain all parts of an individual rollup data point.
+type RollupAllValue struct {
+	Time time.Time
+	Data *RollupAllData
+}
+
 // MarshalJSON encodes a RollupValue value into a JSON format byte slice.
 func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
@@ -93,19 +100,23 @@ func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 	}
 
 	v = append(v, fv)
-	v = append(v, map[string]interface{}{
-		"count":              rv.Count,
-		"value":              rv.Value,
-		"stddev":             rv.Stddev,
-		"derivative":         rv.Derivative,
-		"derivative_stddev":  rv.DerivativeStddev,
-		"counter":            rv.Counter,
-		"counter_stddev":     rv.CounterStddev,
-		"derivative2":        rv.Derivative2,
-		"derivative2_stddev": rv.Derivative2Stddev,
-		"counter2":           rv.Counter2,
-		"counter2_stddev":    rv.Counter2Stddev,
-	})
+	if rv.Data == nil {
+		v = append(v, nil)
+	} else {
+		v = append(v, map[string]interface{}{
+			"count":              rv.Data.Count,
+			"value":              rv.Data.Value,
+			"stddev":             rv.Data.Stddev,
+			"derivative":         rv.Data.Derivative,
+			"derivative_stddev":  rv.Data.DerivativeStddev,
+			"counter":            rv.Data.Counter,
+			"counter_stddev":     rv.Data.CounterStddev,
+			"derivative2":        rv.Data.Derivative2,
+			"derivative2_stddev": rv.Data.Derivative2Stddev,
+			"counter2":           rv.Data.Counter2,
+			"counter2_stddev":    rv.Data.Counter2Stddev,
+		})
+	}
 
 	return json.Marshal(v)
 }
@@ -133,31 +144,32 @@ func (rv *RollupAllValue) UnmarshalJSON(b []byte) error {
 	}
 
 	if m, ok := v[1].(map[string]interface{}); ok {
+		rv.Data = &RollupAllData{}
 		for key, val := range m {
 			if fv := val.(float64); ok {
 				switch key {
 				case "count":
-					rv.Count = int64(fv)
+					rv.Data.Count = int64(fv)
 				case "value":
-					rv.Value = fv
+					rv.Data.Value = fv
 				case "stddev":
-					rv.Stddev = fv
+					rv.Data.Stddev = fv
 				case "derivative":
-					rv.Derivative = fv
+					rv.Data.Derivative = fv
 				case "derivative_stddev":
-					rv.DerivativeStddev = fv
+					rv.Data.DerivativeStddev = fv
 				case "counter":
-					rv.Counter = fv
+					rv.Data.Counter = fv
 				case "counter_stddev":
-					rv.CounterStddev = fv
+					rv.Data.CounterStddev = fv
 				case "derivative2":
-					rv.Derivative2 = fv
+					rv.Data.Derivative2 = fv
 				case "derivative2_stddev":
-					rv.Derivative2Stddev = fv
+					rv.Data.Derivative2Stddev = fv
 				case "counter2":
-					rv.Counter2 = fv
+					rv.Data.Counter2 = fv
 				case "counter2_stddev":
-					rv.Counter2Stddev = fv
+					rv.Data.Counter2Stddev = fv
 				}
 			}
 		}

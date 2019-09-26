@@ -6,6 +6,18 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.4.3] - 2019-09-20
+
+### Changed
+
+- Modified the internal structure of the RollupValue and RollupAllValue data
+types, which are returned by the SnowthClient.ReadRollupValues() and
+SnowthClient.ReadRollupAllValues() methods, to better express results returned
+by IRONdb that contain `null` data values.
+- Modified the internal structure of the TextValue data type, which is returned
+by the SnowthClient.ReadTextValues() methods, to better express results returned
+by IRONdb that contain `null` data values.
+
 ## [v1.4.2] - 2019-09-20
 
 ### Changed

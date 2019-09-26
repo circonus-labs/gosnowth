@@ -79,8 +79,12 @@ func TestRollupValueMarshaling(t *testing.T) {
 		t.Errorf("Expected timestamp: 1, got: %v", v[0].Timestamp())
 	}
 
-	if v[0].Value != 1.0 {
-		t.Errorf("Expected value: 1, got: %v", v[0].Value)
+	if v[0].Value == nil {
+		t.Fatal("Expected value: not nil, got: nil")
+	}
+
+	if *v[0].Value != 1 {
+		t.Errorf("Expected value: 1, got: %v", *v[0].Value)
 	}
 
 	buf := &bytes.Buffer{}
@@ -96,7 +100,25 @@ func TestRollupValueMarshaling(t *testing.T) {
 
 func TestRollupAllValueMarshaling(t *testing.T) {
 	v := []RollupAllValue{}
-	err := json.NewDecoder(bytes.NewBufferString(rollupAllTestData)).Decode(&v)
+	err := json.NewDecoder(bytes.NewBufferString(`[
+		[
+			1529509020,
+			null
+		]
+	]`)).Decode(&v)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if v[0].Timestamp() != "1529509020" {
+		t.Errorf("Expected timestamp: 1529509020, got: %v", v[0].Timestamp())
+	}
+
+	if v[0].Data != nil {
+		t.Fatalf("Expected data: nil, got: %v", *v[0].Data)
+	}
+
+	err = json.NewDecoder(bytes.NewBufferString(rollupAllTestData)).Decode(&v)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,15 +128,19 @@ func TestRollupAllValueMarshaling(t *testing.T) {
 	}
 
 	if v[0].Timestamp() != "1529509020" {
-		t.Errorf("Expected timestamp: 1, got: %v", v[0].Timestamp())
+		t.Errorf("Expected timestamp: 1529509020, got: %v", v[0].Timestamp())
 	}
 
-	if v[0].Value != 0.0 {
-		t.Errorf("Expected value: 0, got: %v", v[0].Value)
+	if v[0].Data == nil {
+		t.Fatal("Expected data: not nil, got: nil")
 	}
 
-	if v[0].Count != 1 {
-		t.Errorf("Expected value: 1, got: %v", v[0].Count)
+	if v[0].Data.Value != 0.0 {
+		t.Errorf("Expected value: 0, got: %v", v[0].Data.Value)
+	}
+
+	if v[0].Data.Count != 1 {
+		t.Errorf("Expected count: 1, got: %v", v[0].Data.Count)
 	}
 
 	buf := &bytes.Buffer{}
@@ -175,8 +201,12 @@ func TestReadRollupValues(t *testing.T) {
 		t.Fatalf("Expected length: 1, got: %v", len(res))
 	}
 
-	if res[0].Value != 1 {
-		t.Errorf("Expected value: 1, got: %v", res[0].Value)
+	if res[0].Value == nil {
+		t.Fatal("Expected value: not nil, got: nil")
+	}
+
+	if *res[0].Value != 1 {
+		t.Errorf("Expected value: 1, got: %v", *res[0].Value)
 	}
 }
 
@@ -225,11 +255,15 @@ func TestReadRollupAllValues(t *testing.T) {
 		t.Fatalf("Expected length: 3, got: %v", len(res))
 	}
 
-	if res[0].Count != 1 {
-		t.Errorf("Expected count: 1, got: %v", res[0].Count)
+	if res[0].Data == nil {
+		t.Fatal("Expected data: not nil, got: nil")
 	}
 
-	if res[0].Value != 0 {
-		t.Errorf("Expected value: 0, got: %v", res[0].Value)
+	if res[0].Data.Count != 1 {
+		t.Errorf("Expected count: 1, got: %v", res[0].Data.Count)
+	}
+
+	if res[0].Data.Value != 0 {
+		t.Errorf("Expected value: 0, got: %v", res[0].Data.Value)
 	}
 }

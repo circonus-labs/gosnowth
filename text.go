@@ -24,9 +24,13 @@ func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 
 	for _, entry := range values {
 		var tv = TextValue{}
-		tv.Value = entry[1].(string)
 		if v, ok := entry[0].(float64); ok {
 			tv.Time = time.Unix(int64(v), 0)
+		}
+
+		if v, ok := entry[1].(string); ok {
+			tv.Value = new(string)
+			*tv.Value = v
 		}
 
 		*tvr = append(*tvr, tv)
@@ -38,7 +42,7 @@ func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 // TextValue values represent text data read from IRONdb.
 type TextValue struct {
 	Time  time.Time
-	Value string
+	Value *string
 }
 
 // ReadTextValues reads text data values from an IRONdb node.

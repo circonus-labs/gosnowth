@@ -64,8 +64,12 @@ func TestReadTextValues(t *testing.T) {
 		t.Fatalf("Expected result length: 2, got: %v", len(res))
 	}
 
-	if res[0].Value != "hello" {
-		t.Errorf("Expected value: hello, got: %v", res[0].Value)
+	if res[0].Value == nil {
+		t.Fatal("Expected value: not nil, got: nil")
+	}
+
+	if *res[0].Value != "hello" {
+		t.Errorf("Expected value: hello, got: %v", *res[0].Value)
 	}
 }
 
