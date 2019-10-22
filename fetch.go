@@ -135,7 +135,7 @@ func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 		return nil, err
 	}
 
-	body, _, err := sc.do(ctx, node, "POST", "/fetch", buf)
+	body, _, err := sc.do(ctx, node, "POST", "/fetch", buf, nil)
 	if err != nil {
 		return nil, err
 	}

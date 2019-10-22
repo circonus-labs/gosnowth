@@ -153,7 +153,7 @@ func (sc *SnowthClient) WriteNNTContext(ctx context.Context, node *SnowthNode,
 		return errors.Wrap(err, "failed to encode NNTData for write")
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/write/nnt", buf)
+	_, _, err := sc.do(ctx, node, "POST", "/write/nnt", buf, nil)
 	return err
 }
 
@@ -172,7 +172,7 @@ func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
-		strconv.FormatInt(period, 10), id, t, metric), nil)
+		strconv.FormatInt(period, 10), id, t, metric), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +200,7 @@ func (sc *SnowthClient) ReadNNTAllValuesContext(ctx context.Context,
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
-		strconv.FormatInt(period, 10), id, "all", metric), nil)
+		strconv.FormatInt(period, 10), id, "all", metric), nil, nil)
 	if err != nil {
 		return nil, err
 	}

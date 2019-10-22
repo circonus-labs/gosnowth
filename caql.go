@@ -111,7 +111,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context,
 	}
 
 	r := &DF4Response{}
-	body, _, err := sc.do(ctx, node, "POST", u, bytes.NewBuffer(bBuf))
+	body, _, err := sc.do(ctx, node, "POST", u, bytes.NewBuffer(bBuf), nil)
 	if err != nil {
 		if body != nil {
 			cErr := &CAQLError{}

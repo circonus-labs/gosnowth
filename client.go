@@ -576,7 +576,7 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 
 // do sends a request to IRONdb.
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
-	method, url string, body io.Reader) (io.Reader, http.Header, error) {
+	method, url string, body io.Reader, headers map[string]string) (io.Reader, http.Header, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -587,6 +587,12 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	r.Close = true
+	if headers != nil {
+		for k, v := range headers {
+			r.Header.Add(k, v)
+		}
+	}
+
 	r = r.WithContext(ctx)
 	sc.RLock()
 	rf := sc.request

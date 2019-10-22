@@ -59,7 +59,7 @@ func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	r := TextValueResponse{}
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
-		strconv.FormatInt(end.Unix(), 10), uuid, metric), nil)
+		strconv.FormatInt(end.Unix(), 10), uuid, metric), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -92,6 +92,6 @@ func (sc *SnowthClient) WriteTextContext(ctx context.Context, node *SnowthNode,
 		return errors.Wrap(err, "failed to encode TextData for write")
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/write/text", buf)
+	_, _, err := sc.do(ctx, node, "POST", "/write/text", buf, nil)
 	return err
 }
