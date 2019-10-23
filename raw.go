@@ -3,6 +3,7 @@ package gosnowth
 import (
 	"context"
 	"io"
+	"net/http"
 	"strconv"
 )
 
@@ -19,9 +20,9 @@ func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
 func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
 	data io.Reader, fb bool, dataPoints uint64) error {
 
-	hdrs := map[string]string{"X-Snowth-Datapoints": strconv.FormatUint(dataPoints, 10)}
+	hdrs := http.Header{"X-Snowth-Datapoints": {strconv.FormatUint(dataPoints, 10)}}
 	if fb { // is flatbuffer?
-		hdrs["Content-Type"] = FlatbufferContentType
+		hdrs["Content-Type"] = []string{FlatbufferContentType}
 	}
 
 	_, _, err := sc.do(ctx, node, "POST", "/raw", data, hdrs)

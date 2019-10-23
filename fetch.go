@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"net/http"
 	"strconv"
 	"time"
 
@@ -135,7 +136,7 @@ func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 		return nil, err
 	}
 
-	hdrs := map[string]string{"Content-Type": "application/json"}
+	hdrs := http.Header{"Content-Type": {"application/json"}}
 	body, _, err := sc.do(ctx, node, "POST", "/fetch", buf, hdrs)
 	if err != nil {
 		return nil, err
