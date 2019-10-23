@@ -38,7 +38,7 @@ func (sc *SnowthClient) GetGossipInfo(
 func (sc *SnowthClient) GetGossipInfoContext(ctx context.Context,
 	node *SnowthNode) (*Gossip, error) {
 	r := &Gossip{}
-	body, _, err := sc.do(ctx, node, "GET", "/gossip/json", nil)
+	body, _, err := sc.do(ctx, node, "GET", "/gossip/json", nil, nil)
 	if err != nil {
 		return nil, err
 	}

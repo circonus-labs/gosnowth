@@ -34,7 +34,7 @@ func (sc *SnowthClient) GetTopoRingInfoContext(ctx context.Context,
 	hash string, node *SnowthNode) (*TopoRing, error) {
 	r := &TopoRing{}
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/toporing/xml", hash),
-		nil)
+		nil, nil)
 	if err != nil {
 		return nil, err
 	}

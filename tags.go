@@ -46,7 +46,7 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
 	}
 
 	r := &FindTagsResult{}
-	body, header, err := sc.do(ctx, node, "GET", u, nil)
+	body, header, err := sc.do(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err
 	}

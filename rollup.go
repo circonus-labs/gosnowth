@@ -215,7 +215,7 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	body, _, err := sc.do(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=%s",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
-			startTS, endTS, int64(period/time.Second), dataType), nil)
+			startTS, endTS, int64(period/time.Second), dataType), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,7 @@ func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	body, _, err := sc.do(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=all",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
-			startTS, endTS, int64(period/time.Second)), nil)
+			startTS, endTS, int64(period/time.Second)), nil, nil)
 	if err != nil {
 		return nil, err
 	}

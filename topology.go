@@ -37,7 +37,7 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	node *SnowthNode) (*Topology, error) {
 	r := &Topology{}
 	body, _, err := sc.do(ctx, node, "GET",
-		path.Join("/topology/xml", node.GetCurrentTopology()), nil)
+		path.Join("/topology/xml", node.GetCurrentTopology()), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +63,7 @@ func (sc *SnowthClient) LoadTopologyContext(ctx context.Context, hash string,
 		return errors.Wrap(err, "failed to encode request data")
 	}
 
-	_, _, err = sc.do(ctx, node, "POST", path.Join("/topology", hash), b)
+	_, _, err = sc.do(ctx, node, "POST", path.Join("/topology", hash), b, nil)
 	return err
 }
 
@@ -77,6 +77,6 @@ func (sc *SnowthClient) ActivateTopology(hash string, node *SnowthNode) error {
 // WARNING THIS IS DANGEROUS.
 func (sc *SnowthClient) ActivateTopologyContext(ctx context.Context,
 	hash string, node *SnowthNode) error {
-	_, _, err := sc.do(ctx, node, "GET", path.Join("/activate", hash), nil)
+	_, _, err := sc.do(ctx, node, "GET", path.Join("/activate", hash), nil, nil)
 	return err
 }

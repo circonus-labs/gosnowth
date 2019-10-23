@@ -100,7 +100,7 @@ func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 		path.Join("/histogram", strconv.FormatInt(startTS, 10),
 			strconv.FormatInt(endTS, 10),
 			strconv.FormatInt(int64(period.Seconds()), 10), uuid,
-			url.QueryEscape(metric)), nil)
+			url.QueryEscape(metric)), nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +138,6 @@ func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
 		return errors.Wrap(err, "failed to encode HistogramData for write")
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/histogram/write", buf)
+	_, _, err := sc.do(ctx, node, "POST", "/histogram/write", buf, nil)
 	return err
 }

@@ -18,7 +18,7 @@ func (sc *SnowthClient) LocateMetricContext(ctx context.Context, uuid string,
 	metric string, node *SnowthNode) (*Topology, error) {
 	r := &Topology{}
 	body, _, err := sc.do(ctx, node, "GET",
-		path.Join("/locate/xml", uuid, metric), nil)
+		path.Join("/locate/xml", uuid, metric), nil, nil)
 	if err != nil {
 		return nil, err
 	}

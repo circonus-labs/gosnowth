@@ -17,7 +17,7 @@ func (sc *SnowthClient) GetNodeState(node *SnowthNode) (*NodeState, error) {
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
 	node *SnowthNode) (*NodeState, error) {
 	r := &NodeState{}
-	body, _, err := sc.do(ctx, node, "GET", "/state", nil)
+	body, _, err := sc.do(ctx, node, "GET", "/state", nil, nil)
 	if err != nil {
 		return nil, err
 	}
