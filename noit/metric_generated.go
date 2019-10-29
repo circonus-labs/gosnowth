@@ -3,8 +3,6 @@
 package noit
 
 import (
-	"strconv"
-
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 

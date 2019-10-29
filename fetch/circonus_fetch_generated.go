@@ -3,8 +3,6 @@
 package fetch
 
 import (
-	"strconv"
-
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 

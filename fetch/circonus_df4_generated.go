@@ -91,7 +91,7 @@ func (rcv *HistSeries) Table() flatbuffers.Table {
 	return rcv._tab
 }
 
-func (rcv *HistSeries) Values(obj *metrics.Histogram, j int) bool {
+func (rcv *HistSeries) Values(obj *Histogram, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(4))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
