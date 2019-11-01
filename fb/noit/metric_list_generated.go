@@ -6,6 +6,43 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type MetricListT struct {
+	Metrics []*MetricT
+}
+
+func MetricListPack(builder *flatbuffers.Builder, t *MetricListT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	metricsOffset := flatbuffers.UOffsetT(0)
+	if t.Metrics != nil {
+		metricsLength := len(t.Metrics)
+		metricsOffsets := make([]flatbuffers.UOffsetT, metricsLength)
+		for j := 0; j < metricsLength; j++ {
+			metricsOffsets[j] = MetricPack(builder, t.Metrics[j])
+		}
+		MetricListStartMetricsVector(builder, metricsLength)
+		for j := metricsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(metricsOffsets[j])
+		}
+		metricsOffset = builder.EndVector(metricsLength)
+	}
+	MetricListStart(builder)
+	MetricListAddMetrics(builder, metricsOffset)
+	return MetricListEnd(builder)
+}
+
+func (rcv *MetricList) UnPack() *MetricListT {
+	if rcv == nil { return nil }
+	t := &MetricListT{}
+	metricsLength := rcv.MetricsLength()
+	t.Metrics = make([]*MetricT, metricsLength)
+	for j := 0; j < metricsLength; j++ {
+		x := Metric{}
+		rcv.Metrics(&x, j)
+		t.Metrics[j] = x.UnPack()
+	}
+	return t
+}
+
 type MetricList struct {
 	_tab flatbuffers.Table
 }

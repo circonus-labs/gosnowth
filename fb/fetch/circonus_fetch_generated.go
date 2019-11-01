@@ -6,6 +6,49 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type ReduceRequestT struct {
+	Label string
+	Method string
+	MethodParams []string
+}
+
+func ReduceRequestPack(builder *flatbuffers.Builder, t *ReduceRequestT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	labelOffset := builder.CreateString(t.Label)
+	methodOffset := builder.CreateString(t.Method)
+	methodParamsOffset := flatbuffers.UOffsetT(0)
+	if t.MethodParams != nil {
+		methodParamsLength := len(t.MethodParams)
+		methodParamsOffsets := make([]flatbuffers.UOffsetT, methodParamsLength)
+		for j := 0; j < methodParamsLength; j++ {
+			methodParamsOffsets[j] = builder.CreateString(t.MethodParams[j])
+		}
+		ReduceRequestStartMethodParamsVector(builder, methodParamsLength)
+		for j := methodParamsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(methodParamsOffsets[j])
+		}
+		methodParamsOffset = builder.EndVector(methodParamsLength)
+	}
+	ReduceRequestStart(builder)
+	ReduceRequestAddLabel(builder, labelOffset)
+	ReduceRequestAddMethod(builder, methodOffset)
+	ReduceRequestAddMethodParams(builder, methodParamsOffset)
+	return ReduceRequestEnd(builder)
+}
+
+func (rcv *ReduceRequest) UnPack() *ReduceRequestT {
+	if rcv == nil { return nil }
+	t := &ReduceRequestT{}
+	t.Label = string(rcv.Label())
+	t.Method = string(rcv.Method())
+	methodParamsLength := rcv.MethodParamsLength()
+	t.MethodParams = make([]string, methodParamsLength)
+	for j := 0; j < methodParamsLength; j++ {
+		t.MethodParams[j] = string(rcv.MethodParams(j))
+	}
+	return t
+}
+
 type ReduceRequest struct {
 	_tab flatbuffers.Table
 }
@@ -77,6 +120,63 @@ func ReduceRequestStartMethodParamsVector(builder *flatbuffers.Builder, numElems
 func ReduceRequestEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type StreamRequestT struct {
+	CheckUuid []byte
+	Name string
+	Kind Kind
+	Transform string
+	TransformParams []string
+	Label string
+}
+
+func StreamRequestPack(builder *flatbuffers.Builder, t *StreamRequestT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	checkUuidOffset := flatbuffers.UOffsetT(0)
+	if t.CheckUuid != nil {
+		checkUuidOffset = builder.CreateByteString(t.CheckUuid)
+	}
+	nameOffset := builder.CreateString(t.Name)
+	transformOffset := builder.CreateString(t.Transform)
+	transformParamsOffset := flatbuffers.UOffsetT(0)
+	if t.TransformParams != nil {
+		transformParamsLength := len(t.TransformParams)
+		transformParamsOffsets := make([]flatbuffers.UOffsetT, transformParamsLength)
+		for j := 0; j < transformParamsLength; j++ {
+			transformParamsOffsets[j] = builder.CreateString(t.TransformParams[j])
+		}
+		StreamRequestStartTransformParamsVector(builder, transformParamsLength)
+		for j := transformParamsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(transformParamsOffsets[j])
+		}
+		transformParamsOffset = builder.EndVector(transformParamsLength)
+	}
+	labelOffset := builder.CreateString(t.Label)
+	StreamRequestStart(builder)
+	StreamRequestAddCheckUuid(builder, checkUuidOffset)
+	StreamRequestAddName(builder, nameOffset)
+	StreamRequestAddKind(builder, t.Kind)
+	StreamRequestAddTransform(builder, transformOffset)
+	StreamRequestAddTransformParams(builder, transformParamsOffset)
+	StreamRequestAddLabel(builder, labelOffset)
+	return StreamRequestEnd(builder)
+}
+
+func (rcv *StreamRequest) UnPack() *StreamRequestT {
+	if rcv == nil { return nil }
+	t := &StreamRequestT{}
+	t.CheckUuid = rcv.CheckUuidBytes()
+	t.Name = string(rcv.Name())
+	t.Kind = rcv.Kind()
+	t.Transform = string(rcv.Transform())
+	transformParamsLength := rcv.TransformParamsLength()
+	t.TransformParams = make([]string, transformParamsLength)
+	for j := 0; j < transformParamsLength; j++ {
+		t.TransformParams[j] = string(rcv.TransformParams(j))
+	}
+	t.Label = string(rcv.Label())
+	return t
+}
+
 type StreamRequest struct {
 	_tab flatbuffers.Table
 }
@@ -214,6 +314,74 @@ func StreamRequestAddLabel(builder *flatbuffers.Builder, label flatbuffers.UOffs
 func StreamRequestEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type FetchT struct {
+	StartMs uint64
+	PeriodMs uint32
+	Count uint32
+	Streams []*StreamRequestT
+	Reduce []*ReduceRequestT
+}
+
+func FetchPack(builder *flatbuffers.Builder, t *FetchT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	streamsOffset := flatbuffers.UOffsetT(0)
+	if t.Streams != nil {
+		streamsLength := len(t.Streams)
+		streamsOffsets := make([]flatbuffers.UOffsetT, streamsLength)
+		for j := 0; j < streamsLength; j++ {
+			streamsOffsets[j] = StreamRequestPack(builder, t.Streams[j])
+		}
+		FetchStartStreamsVector(builder, streamsLength)
+		for j := streamsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(streamsOffsets[j])
+		}
+		streamsOffset = builder.EndVector(streamsLength)
+	}
+	reduceOffset := flatbuffers.UOffsetT(0)
+	if t.Reduce != nil {
+		reduceLength := len(t.Reduce)
+		reduceOffsets := make([]flatbuffers.UOffsetT, reduceLength)
+		for j := 0; j < reduceLength; j++ {
+			reduceOffsets[j] = ReduceRequestPack(builder, t.Reduce[j])
+		}
+		FetchStartReduceVector(builder, reduceLength)
+		for j := reduceLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(reduceOffsets[j])
+		}
+		reduceOffset = builder.EndVector(reduceLength)
+	}
+	FetchStart(builder)
+	FetchAddStartMs(builder, t.StartMs)
+	FetchAddPeriodMs(builder, t.PeriodMs)
+	FetchAddCount(builder, t.Count)
+	FetchAddStreams(builder, streamsOffset)
+	FetchAddReduce(builder, reduceOffset)
+	return FetchEnd(builder)
+}
+
+func (rcv *Fetch) UnPack() *FetchT {
+	if rcv == nil { return nil }
+	t := &FetchT{}
+	t.StartMs = rcv.StartMs()
+	t.PeriodMs = rcv.PeriodMs()
+	t.Count = rcv.Count()
+	streamsLength := rcv.StreamsLength()
+	t.Streams = make([]*StreamRequestT, streamsLength)
+	for j := 0; j < streamsLength; j++ {
+		x := StreamRequest{}
+		rcv.Streams(&x, j)
+		t.Streams[j] = x.UnPack()
+	}
+	reduceLength := rcv.ReduceLength()
+	t.Reduce = make([]*ReduceRequestT, reduceLength)
+	for j := 0; j < reduceLength; j++ {
+		x := ReduceRequest{}
+		rcv.Reduce(&x, j)
+		t.Reduce[j] = x.UnPack()
+	}
+	return t
+}
+
 type Fetch struct {
 	_tab flatbuffers.Table
 }

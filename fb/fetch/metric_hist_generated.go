@@ -6,6 +6,30 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type HistogramBucketT struct {
+	Val int8
+	Exp int8
+	Count uint64
+}
+
+func HistogramBucketPack(builder *flatbuffers.Builder, t *HistogramBucketT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	HistogramBucketStart(builder)
+	HistogramBucketAddVal(builder, t.Val)
+	HistogramBucketAddExp(builder, t.Exp)
+	HistogramBucketAddCount(builder, t.Count)
+	return HistogramBucketEnd(builder)
+}
+
+func (rcv *HistogramBucket) UnPack() *HistogramBucketT {
+	if rcv == nil { return nil }
+	t := &HistogramBucketT{}
+	t.Val = rcv.Val()
+	t.Exp = rcv.Exp()
+	t.Count = rcv.Count()
+	return t
+}
+
 type HistogramBucket struct {
 	_tab flatbuffers.Table
 }
@@ -77,6 +101,43 @@ func HistogramBucketAddCount(builder *flatbuffers.Builder, count uint64) {
 func HistogramBucketEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type HistogramT struct {
+	Buckets []*HistogramBucketT
+}
+
+func HistogramPack(builder *flatbuffers.Builder, t *HistogramT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	bucketsOffset := flatbuffers.UOffsetT(0)
+	if t.Buckets != nil {
+		bucketsLength := len(t.Buckets)
+		bucketsOffsets := make([]flatbuffers.UOffsetT, bucketsLength)
+		for j := 0; j < bucketsLength; j++ {
+			bucketsOffsets[j] = HistogramBucketPack(builder, t.Buckets[j])
+		}
+		HistogramStartBucketsVector(builder, bucketsLength)
+		for j := bucketsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(bucketsOffsets[j])
+		}
+		bucketsOffset = builder.EndVector(bucketsLength)
+	}
+	HistogramStart(builder)
+	HistogramAddBuckets(builder, bucketsOffset)
+	return HistogramEnd(builder)
+}
+
+func (rcv *Histogram) UnPack() *HistogramT {
+	if rcv == nil { return nil }
+	t := &HistogramT{}
+	bucketsLength := rcv.BucketsLength()
+	t.Buckets = make([]*HistogramBucketT, bucketsLength)
+	for j := 0; j < bucketsLength; j++ {
+		x := HistogramBucket{}
+		rcv.Buckets(&x, j)
+		t.Buckets[j] = x.UnPack()
+	}
+	return t
+}
+
 type Histogram struct {
 	_tab flatbuffers.Table
 }
@@ -129,6 +190,31 @@ func HistogramStartBucketsVector(builder *flatbuffers.Builder, numElems int) fla
 func HistogramEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type MetricHistogramResultT struct {
+	Timestamp uint64
+	Period int32
+	Histogram *HistogramT
+}
+
+func MetricHistogramResultPack(builder *flatbuffers.Builder, t *MetricHistogramResultT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	histogramOffset := HistogramPack(builder, t.Histogram)
+	MetricHistogramResultStart(builder)
+	MetricHistogramResultAddTimestamp(builder, t.Timestamp)
+	MetricHistogramResultAddPeriod(builder, t.Period)
+	MetricHistogramResultAddHistogram(builder, histogramOffset)
+	return MetricHistogramResultEnd(builder)
+}
+
+func (rcv *MetricHistogramResult) UnPack() *MetricHistogramResultT {
+	if rcv == nil { return nil }
+	t := &MetricHistogramResultT{}
+	t.Timestamp = rcv.Timestamp()
+	t.Period = rcv.Period()
+	t.Histogram = rcv.Histogram(nil).UnPack()
+	return t
+}
+
 type MetricHistogramResult struct {
 	_tab flatbuffers.Table
 }
@@ -201,6 +287,43 @@ func MetricHistogramResultAddHistogram(builder *flatbuffers.Builder, histogram f
 func MetricHistogramResultEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type MetricHistogramResultListT struct {
+	Results []*MetricHistogramResultT
+}
+
+func MetricHistogramResultListPack(builder *flatbuffers.Builder, t *MetricHistogramResultListT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	resultsOffset := flatbuffers.UOffsetT(0)
+	if t.Results != nil {
+		resultsLength := len(t.Results)
+		resultsOffsets := make([]flatbuffers.UOffsetT, resultsLength)
+		for j := 0; j < resultsLength; j++ {
+			resultsOffsets[j] = MetricHistogramResultPack(builder, t.Results[j])
+		}
+		MetricHistogramResultListStartResultsVector(builder, resultsLength)
+		for j := resultsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(resultsOffsets[j])
+		}
+		resultsOffset = builder.EndVector(resultsLength)
+	}
+	MetricHistogramResultListStart(builder)
+	MetricHistogramResultListAddResults(builder, resultsOffset)
+	return MetricHistogramResultListEnd(builder)
+}
+
+func (rcv *MetricHistogramResultList) UnPack() *MetricHistogramResultListT {
+	if rcv == nil { return nil }
+	t := &MetricHistogramResultListT{}
+	resultsLength := rcv.ResultsLength()
+	t.Results = make([]*MetricHistogramResultT, resultsLength)
+	for j := 0; j < resultsLength; j++ {
+		x := MetricHistogramResult{}
+		rcv.Results(&x, j)
+		t.Results[j] = x.UnPack()
+	}
+	return t
+}
+
 type MetricHistogramResultList struct {
 	_tab flatbuffers.Table
 }

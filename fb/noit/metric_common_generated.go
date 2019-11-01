@@ -8,6 +8,76 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type MetricValueUnionT struct {
+	Type MetricValueUnion
+	Value interface{}
+}
+
+func MetricValueUnionPack(builder *flatbuffers.Builder, t *MetricValueUnionT) flatbuffers.UOffsetT {
+	if t == nil {
+		return 0
+	}
+	switch t.Type {
+	case MetricValueUnionIntValue:
+		return IntValuePack(builder, t.Value.(*IntValueT))
+	case MetricValueUnionUintValue:
+		return UintValuePack(builder, t.Value.(*UintValueT))
+	case MetricValueUnionLongValue:
+		return LongValuePack(builder, t.Value.(*LongValueT))
+	case MetricValueUnionUlongValue:
+		return UlongValuePack(builder, t.Value.(*UlongValueT))
+	case MetricValueUnionDoubleValue:
+		return DoubleValuePack(builder, t.Value.(*DoubleValueT))
+	case MetricValueUnionStringValue:
+		return StringValuePack(builder, t.Value.(*StringValueT))
+	case MetricValueUnionHistogram:
+		return HistogramPack(builder, t.Value.(*HistogramT))
+	case MetricValueUnionAbsentNumericValue:
+		return AbsentNumericValuePack(builder, t.Value.(*AbsentNumericValueT))
+	case MetricValueUnionAbsentStringValue:
+		return AbsentStringValuePack(builder, t.Value.(*AbsentStringValueT))
+	case MetricValueUnionAbsentHistogramValue:
+		return AbsentHistogramValuePack(builder, t.Value.(*AbsentHistogramValueT))
+	}
+	return 0
+}
+
+func MetricValueUnionUnPack(t MetricValueUnion, table flatbuffers.Table) *MetricValueUnionT {
+	switch t {
+	case MetricValueUnionIntValue:
+		x := IntValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionIntValue, Value: x.UnPack() }
+	case MetricValueUnionUintValue:
+		x := UintValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionUintValue, Value: x.UnPack() }
+	case MetricValueUnionLongValue:
+		x := LongValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionLongValue, Value: x.UnPack() }
+	case MetricValueUnionUlongValue:
+		x := UlongValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionUlongValue, Value: x.UnPack() }
+	case MetricValueUnionDoubleValue:
+		x := DoubleValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionDoubleValue, Value: x.UnPack() }
+	case MetricValueUnionStringValue:
+		x := StringValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionStringValue, Value: x.UnPack() }
+	case MetricValueUnionHistogram:
+		x := Histogram{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionHistogram, Value: x.UnPack() }
+	case MetricValueUnionAbsentNumericValue:
+		x := AbsentNumericValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionAbsentNumericValue, Value: x.UnPack() }
+	case MetricValueUnionAbsentStringValue:
+		x := AbsentStringValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionAbsentStringValue, Value: x.UnPack() }
+	case MetricValueUnionAbsentHistogramValue:
+		x := AbsentHistogramValue{_tab: table}
+		return &MetricValueUnionT{ Type: MetricValueUnionAbsentHistogramValue, Value: x.UnPack() }
+	}
+	return nil
+}
+
 type MetricValueUnion byte
 
 const (
@@ -59,6 +129,24 @@ func (v MetricValueUnion) String() string {
 	return "MetricValueUnion(" + strconv.FormatInt(int64(v), 10) + ")"
 }
 
+type IntValueT struct {
+	Value int32
+}
+
+func IntValuePack(builder *flatbuffers.Builder, t *IntValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	IntValueStart(builder)
+	IntValueAddValue(builder, t.Value)
+	return IntValueEnd(builder)
+}
+
+func (rcv *IntValue) UnPack() *IntValueT {
+	if rcv == nil { return nil }
+	t := &IntValueT{}
+	t.Value = rcv.Value()
+	return t
+}
+
 type IntValue struct {
 	_tab flatbuffers.Table
 }
@@ -100,6 +188,24 @@ func IntValueAddValue(builder *flatbuffers.Builder, value int32) {
 func IntValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type UintValueT struct {
+	Value uint32
+}
+
+func UintValuePack(builder *flatbuffers.Builder, t *UintValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	UintValueStart(builder)
+	UintValueAddValue(builder, t.Value)
+	return UintValueEnd(builder)
+}
+
+func (rcv *UintValue) UnPack() *UintValueT {
+	if rcv == nil { return nil }
+	t := &UintValueT{}
+	t.Value = rcv.Value()
+	return t
+}
+
 type UintValue struct {
 	_tab flatbuffers.Table
 }
@@ -141,6 +247,24 @@ func UintValueAddValue(builder *flatbuffers.Builder, value uint32) {
 func UintValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type LongValueT struct {
+	Value int64
+}
+
+func LongValuePack(builder *flatbuffers.Builder, t *LongValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	LongValueStart(builder)
+	LongValueAddValue(builder, t.Value)
+	return LongValueEnd(builder)
+}
+
+func (rcv *LongValue) UnPack() *LongValueT {
+	if rcv == nil { return nil }
+	t := &LongValueT{}
+	t.Value = rcv.Value()
+	return t
+}
+
 type LongValue struct {
 	_tab flatbuffers.Table
 }
@@ -182,6 +306,24 @@ func LongValueAddValue(builder *flatbuffers.Builder, value int64) {
 func LongValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type UlongValueT struct {
+	Value uint64
+}
+
+func UlongValuePack(builder *flatbuffers.Builder, t *UlongValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	UlongValueStart(builder)
+	UlongValueAddValue(builder, t.Value)
+	return UlongValueEnd(builder)
+}
+
+func (rcv *UlongValue) UnPack() *UlongValueT {
+	if rcv == nil { return nil }
+	t := &UlongValueT{}
+	t.Value = rcv.Value()
+	return t
+}
+
 type UlongValue struct {
 	_tab flatbuffers.Table
 }
@@ -223,6 +365,24 @@ func UlongValueAddValue(builder *flatbuffers.Builder, value uint64) {
 func UlongValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type DoubleValueT struct {
+	Value float64
+}
+
+func DoubleValuePack(builder *flatbuffers.Builder, t *DoubleValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	DoubleValueStart(builder)
+	DoubleValueAddValue(builder, t.Value)
+	return DoubleValueEnd(builder)
+}
+
+func (rcv *DoubleValue) UnPack() *DoubleValueT {
+	if rcv == nil { return nil }
+	t := &DoubleValueT{}
+	t.Value = rcv.Value()
+	return t
+}
+
 type DoubleValue struct {
 	_tab flatbuffers.Table
 }
@@ -264,6 +424,25 @@ func DoubleValueAddValue(builder *flatbuffers.Builder, value float64) {
 func DoubleValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type StringValueT struct {
+	Value string
+}
+
+func StringValuePack(builder *flatbuffers.Builder, t *StringValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	valueOffset := builder.CreateString(t.Value)
+	StringValueStart(builder)
+	StringValueAddValue(builder, valueOffset)
+	return StringValueEnd(builder)
+}
+
+func (rcv *StringValue) UnPack() *StringValueT {
+	if rcv == nil { return nil }
+	t := &StringValueT{}
+	t.Value = string(rcv.Value())
+	return t
+}
+
 type StringValue struct {
 	_tab flatbuffers.Table
 }
@@ -301,6 +480,21 @@ func StringValueAddValue(builder *flatbuffers.Builder, value flatbuffers.UOffset
 func StringValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type AbsentNumericValueT struct {
+}
+
+func AbsentNumericValuePack(builder *flatbuffers.Builder, t *AbsentNumericValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	AbsentNumericValueStart(builder)
+	return AbsentNumericValueEnd(builder)
+}
+
+func (rcv *AbsentNumericValue) UnPack() *AbsentNumericValueT {
+	if rcv == nil { return nil }
+	t := &AbsentNumericValueT{}
+	return t
+}
+
 type AbsentNumericValue struct {
 	_tab flatbuffers.Table
 }
@@ -327,6 +521,21 @@ func AbsentNumericValueStart(builder *flatbuffers.Builder) {
 func AbsentNumericValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type AbsentStringValueT struct {
+}
+
+func AbsentStringValuePack(builder *flatbuffers.Builder, t *AbsentStringValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	AbsentStringValueStart(builder)
+	return AbsentStringValueEnd(builder)
+}
+
+func (rcv *AbsentStringValue) UnPack() *AbsentStringValueT {
+	if rcv == nil { return nil }
+	t := &AbsentStringValueT{}
+	return t
+}
+
 type AbsentStringValue struct {
 	_tab flatbuffers.Table
 }
@@ -353,6 +562,21 @@ func AbsentStringValueStart(builder *flatbuffers.Builder) {
 func AbsentStringValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type AbsentHistogramValueT struct {
+}
+
+func AbsentHistogramValuePack(builder *flatbuffers.Builder, t *AbsentHistogramValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	AbsentHistogramValueStart(builder)
+	return AbsentHistogramValueEnd(builder)
+}
+
+func (rcv *AbsentHistogramValue) UnPack() *AbsentHistogramValueT {
+	if rcv == nil { return nil }
+	t := &AbsentHistogramValueT{}
+	return t
+}
+
 type AbsentHistogramValue struct {
 	_tab flatbuffers.Table
 }
@@ -379,6 +603,30 @@ func AbsentHistogramValueStart(builder *flatbuffers.Builder) {
 func AbsentHistogramValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type HistogramBucketT struct {
+	Val int8
+	Exp int8
+	Count uint64
+}
+
+func HistogramBucketPack(builder *flatbuffers.Builder, t *HistogramBucketT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	HistogramBucketStart(builder)
+	HistogramBucketAddVal(builder, t.Val)
+	HistogramBucketAddExp(builder, t.Exp)
+	HistogramBucketAddCount(builder, t.Count)
+	return HistogramBucketEnd(builder)
+}
+
+func (rcv *HistogramBucket) UnPack() *HistogramBucketT {
+	if rcv == nil { return nil }
+	t := &HistogramBucketT{}
+	t.Val = rcv.Val()
+	t.Exp = rcv.Exp()
+	t.Count = rcv.Count()
+	return t
+}
+
 type HistogramBucket struct {
 	_tab flatbuffers.Table
 }
@@ -450,6 +698,46 @@ func HistogramBucketAddCount(builder *flatbuffers.Builder, count uint64) {
 func HistogramBucketEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type HistogramT struct {
+	Buckets []*HistogramBucketT
+	Cumulative bool
+}
+
+func HistogramPack(builder *flatbuffers.Builder, t *HistogramT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	bucketsOffset := flatbuffers.UOffsetT(0)
+	if t.Buckets != nil {
+		bucketsLength := len(t.Buckets)
+		bucketsOffsets := make([]flatbuffers.UOffsetT, bucketsLength)
+		for j := 0; j < bucketsLength; j++ {
+			bucketsOffsets[j] = HistogramBucketPack(builder, t.Buckets[j])
+		}
+		HistogramStartBucketsVector(builder, bucketsLength)
+		for j := bucketsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(bucketsOffsets[j])
+		}
+		bucketsOffset = builder.EndVector(bucketsLength)
+	}
+	HistogramStart(builder)
+	HistogramAddBuckets(builder, bucketsOffset)
+	HistogramAddCumulative(builder, t.Cumulative)
+	return HistogramEnd(builder)
+}
+
+func (rcv *Histogram) UnPack() *HistogramT {
+	if rcv == nil { return nil }
+	t := &HistogramT{}
+	bucketsLength := rcv.BucketsLength()
+	t.Buckets = make([]*HistogramBucketT, bucketsLength)
+	for j := 0; j < bucketsLength; j++ {
+		x := HistogramBucket{}
+		rcv.Buckets(&x, j)
+		t.Buckets[j] = x.UnPack()
+	}
+	t.Cumulative = rcv.Cumulative()
+	return t
+}
+
 type Histogram struct {
 	_tab flatbuffers.Table
 }
@@ -517,6 +805,62 @@ func HistogramAddCumulative(builder *flatbuffers.Builder, cumulative bool) {
 func HistogramEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+type MetricValueT struct {
+	Name string
+	Timestamp uint64
+	Value *MetricValueUnionT
+	Generation int16
+	StreamTags []string
+}
+
+func MetricValuePack(builder *flatbuffers.Builder, t *MetricValueT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	nameOffset := builder.CreateString(t.Name)
+	valueOffset := MetricValueUnionPack(builder, t.Value)
+
+	streamTagsOffset := flatbuffers.UOffsetT(0)
+	if t.StreamTags != nil {
+		streamTagsLength := len(t.StreamTags)
+		streamTagsOffsets := make([]flatbuffers.UOffsetT, streamTagsLength)
+		for j := 0; j < streamTagsLength; j++ {
+			streamTagsOffsets[j] = builder.CreateString(t.StreamTags[j])
+		}
+		MetricValueStartStreamTagsVector(builder, streamTagsLength)
+		for j := streamTagsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(streamTagsOffsets[j])
+		}
+		streamTagsOffset = builder.EndVector(streamTagsLength)
+	}
+	MetricValueStart(builder)
+	MetricValueAddName(builder, nameOffset)
+	MetricValueAddTimestamp(builder, t.Timestamp)
+	if t.Value != nil {
+		MetricValueAddValueType(builder, t.Value.Type)
+	}
+	MetricValueAddValue(builder, valueOffset)
+	MetricValueAddGeneration(builder, t.Generation)
+	MetricValueAddStreamTags(builder, streamTagsOffset)
+	return MetricValueEnd(builder)
+}
+
+func (rcv *MetricValue) UnPack() *MetricValueT {
+	if rcv == nil { return nil }
+	t := &MetricValueT{}
+	t.Name = string(rcv.Name())
+	t.Timestamp = rcv.Timestamp()
+	valueTable := flatbuffers.Table{}
+	if rcv.Value(&valueTable) {
+		t.Value = MetricValueUnionUnPack(rcv.ValueType(), valueTable)
+	}
+	t.Generation = rcv.Generation()
+	streamTagsLength := rcv.StreamTagsLength()
+	t.StreamTags = make([]string, streamTagsLength)
+	for j := 0; j < streamTagsLength; j++ {
+		t.StreamTags[j] = string(rcv.StreamTags(j))
+	}
+	return t
+}
+
 type MetricValue struct {
 	_tab flatbuffers.Table
 }

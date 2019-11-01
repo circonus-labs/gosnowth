@@ -6,6 +6,39 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type MetricT struct {
+	Timestamp uint64
+	CheckName string
+	CheckUuid string
+	AccountId int32
+	Value *MetricValueT
+}
+
+func MetricPack(builder *flatbuffers.Builder, t *MetricT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	checkNameOffset := builder.CreateString(t.CheckName)
+	checkUuidOffset := builder.CreateString(t.CheckUuid)
+	valueOffset := MetricValuePack(builder, t.Value)
+	MetricStart(builder)
+	MetricAddTimestamp(builder, t.Timestamp)
+	MetricAddCheckName(builder, checkNameOffset)
+	MetricAddCheckUuid(builder, checkUuidOffset)
+	MetricAddAccountId(builder, t.AccountId)
+	MetricAddValue(builder, valueOffset)
+	return MetricEnd(builder)
+}
+
+func (rcv *Metric) UnPack() *MetricT {
+	if rcv == nil { return nil }
+	t := &MetricT{}
+	t.Timestamp = rcv.Timestamp()
+	t.CheckName = string(rcv.CheckName())
+	t.CheckUuid = string(rcv.CheckUuid())
+	t.AccountId = rcv.AccountId()
+	t.Value = rcv.Value(nil).UnPack()
+	return t
+}
+
 type Metric struct {
 	_tab flatbuffers.Table
 }
