@@ -6,6 +6,57 @@ import (
 	flatbuffers "github.com/google/flatbuffers/go"
 )
 
+type MetricBatchT struct {
+	Timestamp uint64
+	CheckName string
+	CheckUuid string
+	AccountId int32
+	Metrics []*MetricValueT
+}
+
+func MetricBatchPack(builder *flatbuffers.Builder, t *MetricBatchT) flatbuffers.UOffsetT {
+	if t == nil { return 0 }
+	checkNameOffset := builder.CreateString(t.CheckName)
+	checkUuidOffset := builder.CreateString(t.CheckUuid)
+	metricsOffset := flatbuffers.UOffsetT(0)
+	if t.Metrics != nil {
+		metricsLength := len(t.Metrics)
+		metricsOffsets := make([]flatbuffers.UOffsetT, metricsLength)
+		for j := 0; j < metricsLength; j++ {
+			metricsOffsets[j] = MetricValuePack(builder, t.Metrics[j])
+		}
+		MetricBatchStartMetricsVector(builder, metricsLength)
+		for j := metricsLength - 1; j >= 0; j-- {
+			builder.PrependUOffsetT(metricsOffsets[j])
+		}
+		metricsOffset = builder.EndVector(metricsLength)
+	}
+	MetricBatchStart(builder)
+	MetricBatchAddTimestamp(builder, t.Timestamp)
+	MetricBatchAddCheckName(builder, checkNameOffset)
+	MetricBatchAddCheckUuid(builder, checkUuidOffset)
+	MetricBatchAddAccountId(builder, t.AccountId)
+	MetricBatchAddMetrics(builder, metricsOffset)
+	return MetricBatchEnd(builder)
+}
+
+func (rcv *MetricBatch) UnPack() *MetricBatchT {
+	if rcv == nil { return nil }
+	t := &MetricBatchT{}
+	t.Timestamp = rcv.Timestamp()
+	t.CheckName = string(rcv.CheckName())
+	t.CheckUuid = string(rcv.CheckUuid())
+	t.AccountId = rcv.AccountId()
+	metricsLength := rcv.MetricsLength()
+	t.Metrics = make([]*MetricValueT, metricsLength)
+	for j := 0; j < metricsLength; j++ {
+		x := MetricValue{}
+		rcv.Metrics(&x, j)
+		t.Metrics[j] = x.UnPack()
+	}
+	return t
+}
+
 type MetricBatch struct {
 	_tab flatbuffers.Table
 }
