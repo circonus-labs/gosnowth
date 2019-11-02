@@ -13,8 +13,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// FlatbufferContentType is the content type header for flatbuffer data.
-const FlatbufferContentType = "application/x-circonus-metric-list-flatbuffer"
+// MetriclistFlatbufferContentType is the content type header for flatbuffer raw data.
+const MetriclistFlatbufferContentType = "application/x-circonus-metric-list-flatbuffer"
 
 // RawNumericValueResponse values represent raw numeric data responses from IRONdb.
 type RawNumericValueResponse struct {
@@ -90,7 +90,7 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
 
 	hdrs := http.Header{"X-Snowth-Datapoints": {strconv.FormatUint(dataPoints, 10)}}
 	if fb { // is flatbuffer?
-		hdrs["Content-Type"] = []string{FlatbufferContentType}
+		hdrs["Content-Type"] = []string{MetriclistFlatbufferContentType}
 	}
 
 	_, _, err := sc.do(ctx, node, "POST", "/raw", data, hdrs)
