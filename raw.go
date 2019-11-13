@@ -78,25 +78,38 @@ func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 	return r.Data, nil
 }
 
+// WriteRawResponse values represent raw IRONdb data write responses.
+type WriteRawResponse struct {
+	Errors      uint64 `json:"errors"`
+	Misdirected uint64 `json:"misdirected"`
+	Records     uint64 `json:"records"`
+	Updated     uint64 `json:"updated"`
+}
+
 // WriteRaw writes raw IRONdb data to a node.
 func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
-	fb bool, dataPoints uint64) error {
+	fb bool, dataPoints uint64) (*WriteRawResponse, error) {
 	return sc.WriteRawContext(context.Background(), node, data, fb, dataPoints)
 }
 
 // WriteRawContext is the context aware version of WriteRaw.
 func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
-	data io.Reader, fb bool, dataPoints uint64) error {
+	data io.Reader, fb bool, dataPoints uint64) (*WriteRawResponse, error) {
 
 	hdrs := http.Header{"X-Snowth-Datapoints": {strconv.FormatUint(dataPoints, 10)}}
 	if fb { // is flatbuffer?
 		hdrs["Content-Type"] = []string{FlatbufferContentType}
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/raw", data, hdrs)
+	body, _, err := sc.do(ctx, node, "POST", "/raw", data, hdrs)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	r := &WriteRawResponse{}
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+
+	return r, nil
 }
