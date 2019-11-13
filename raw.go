@@ -1,8 +1,10 @@
 package gosnowth
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -10,7 +12,10 @@ import (
 	"strconv"
 	"time"
 
+	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/pkg/errors"
+
+	"github.com/circonus-labs/gosnowth/fb/noit"
 )
 
 // FlatbufferContentType is the content type header for flatbuffer data.
@@ -112,4 +117,35 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
 	}
 
 	return r, nil
+}
+
+var metricListFileIdentifier = []byte("CIML")
+
+// WriteRawMetricList writes raw IRONdb data to a node with FlatBuffers.
+func (sc *SnowthClient) WriteRawMetricList(node *SnowthNode, metricList *noit.MetricListT,
+	builder *flatbuffers.Builder) (*WriteRawResponse, error) {
+	return sc.WriteRawMetricListContext(context.Background(), node, metricList, builder)
+}
+
+// WriteRawMetricListContext is the context aware version of WriteRawMetricList.
+func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context, node *SnowthNode,
+	metricList *noit.MetricListT, builder *flatbuffers.Builder) (*WriteRawResponse, error) {
+
+	if metricList == nil {
+		return nil, fmt.Errorf("metric list cannot be nil")
+	}
+	datapoints := uint64(len(metricList.Metrics))
+	if datapoints == 0 {
+		return nil, fmt.Errorf("metric list cannot be empty")
+	}
+	if builder == nil {
+		builder = flatbuffers.NewBuilder(1024)
+	} else {
+		builder.Reset()
+	}
+	offset := noit.MetricListPack(builder, metricList)
+	builder.FinishWithFileIdentifier(offset, metricListFileIdentifier)
+	reader := bytes.NewReader(builder.FinishedBytes())
+
+	return sc.WriteRawContext(ctx, node, reader, true, datapoints)
 }
