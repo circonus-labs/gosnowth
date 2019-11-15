@@ -146,7 +146,7 @@ func (rv *RollupAllValue) UnmarshalJSON(b []byte) error {
 	if m, ok := v[1].(map[string]interface{}); ok {
 		rv.Data = &RollupAllData{}
 		for key, val := range m {
-			if fv := val.(float64); ok {
+			if fv, ok := val.(float64); ok {
 				switch key {
 				case "count":
 					rv.Data.Count = int64(fv)
