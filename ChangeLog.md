@@ -6,6 +6,16 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+### Added
+
+- Added SnowthClient.WriteRawMetricList() convenience function to support writing
+raw metric data directly to IRONdb via FlatBuffers Objects.
+
+### Changed
+
+- Changed the signature for SnowthClient.WriteRaw() to return the status
+result of the /raw operation with the new type WriteRawResponse.
+
 ## [v1.4.3] - 2019-09-20
 
 ### Changed
