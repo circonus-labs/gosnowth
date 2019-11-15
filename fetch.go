@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
+	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/pkg/errors"
+
+	"github.com/circonus-labs/gosnowth/fb/fetch"
 )
 
 // FetchStream values represent queries for individual data streams in an
@@ -128,7 +132,7 @@ func (sc *SnowthClient) FetchValues(node *SnowthNode,
 	return sc.FetchValuesContext(context.Background(), node, q)
 }
 
-// FetchValuesContext is the context aware version of FetchValuesValues.
+// FetchValuesContext is the context aware version of FetchValues.
 func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 	node *SnowthNode, q *FetchQuery) (*DF4Response, error) {
 	buf := &bytes.Buffer{}
@@ -146,6 +150,45 @@ func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 	if err := decodeJSON(body, &r); err != nil {
 		return nil, errors.Wrap(err, "unable to decode IRONdb response")
 	}
+
+	return r, nil
+}
+
+// FetchFlatbufferContentType is the content type header for flatbuffer fetch data.
+const FetchFlatbufferContentType = "x-irondb-fetch-flatbuffer"
+
+// Df4FlatbufferAccept is the accept header for flatbuffer df4 data.
+const Df4FlatbufferAccept = "x-irondb-df4-flatbuffer"
+
+// FetchValuesFb retrieves data values using the IRONdb fetch API with FlatBuffers.
+func (sc *SnowthClient) FetchValuesFb(node *SnowthNode,
+	q *fetch.FetchT) (*fetch.DF4T, error) {
+	return sc.FetchValuesFbContext(context.Background(), node, q)
+}
+
+// FetchValuesFbContext is the context aware version of FetchValuesFb.
+func (sc *SnowthClient) FetchValuesFbContext(ctx context.Context,
+	node *SnowthNode, q *fetch.FetchT) (*fetch.DF4T, error) {
+	builder := flatbuffers.NewBuilder(8192)
+	qOffset := fetch.FetchPack(builder, q)
+	builder.Finish(qOffset)
+	buf := bytes.NewBuffer(builder.FinishedBytes())
+
+	hdrs := http.Header{
+		"Content-Type": {FetchFlatbufferContentType},
+		"Accept":       {Df4FlatbufferAccept},
+	}
+	body, _, err := sc.do(ctx, node, "POST", "/fetch", buf, hdrs)
+	if err != nil {
+		return nil, err
+	}
+
+	df4Buf, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
+	df4 := fetch.GetRootAsDF4(df4Buf, flatbuffers.UOffsetT(0))
+	r := df4.UnPack()
 
 	return r, nil
 }
