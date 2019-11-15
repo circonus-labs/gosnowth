@@ -8,6 +8,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ### Added
 
+- Added SnowthClient.RebuildActivity() to request a rebuild of IRONdb activity
+tracking data for a list of metrics supplied in the new type RebuildActivityRequest.
 - Added SnowthClient.WriteRawMetricList() convenience function to support writing
 raw metric data directly to IRONdb via FlatBuffers Objects.
 
