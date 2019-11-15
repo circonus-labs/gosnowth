@@ -16,6 +16,12 @@ raw metric data directly to IRONdb via FlatBuffers Objects.
 - Changed the signature for SnowthClient.WriteRaw() to return the status
 result of the /raw operation with the new type WriteRawResponse.
 
+### Fixed
+
+- Bug (severe): An issue was fixed that resulted in panics when rollup result
+data, containing null values in specific places, was decoded from JSON format.
+Created: 2019-09-16. Fixed: 2019-11-15.
+
 ## [v1.4.3] - 2019-09-20
 
 ### Changed
