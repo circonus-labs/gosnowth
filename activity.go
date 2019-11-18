@@ -12,17 +12,14 @@ type RebuildActivityRequest struct {
 	Metric string `json:"metric_name"`
 }
 
-// RebuildActivityResponse values represent a response to activity tracking rebuilds.
-type RebuildActivityResponse WriteRawResponse
-
 // RebuildActivity rebuilds IRONdb activity tracking data for a list of metrics.
-func (sc *SnowthClient) RebuildActivity(node *SnowthNode, rebuildRequest []RebuildActivityRequest) (*RebuildActivityResponse, error) {
+func (sc *SnowthClient) RebuildActivity(node *SnowthNode, rebuildRequest []RebuildActivityRequest) (*IRONdbPutResponse, error) {
 	return sc.RebuildActivityContext(context.Background(), node, rebuildRequest)
 }
 
 // RebuildActivityContext is the context aware version of RebuildActivity.
 func (sc *SnowthClient) RebuildActivityContext(ctx context.Context, node *SnowthNode,
-	rebuildRequest []RebuildActivityRequest) (*RebuildActivityResponse, error) {
+	rebuildRequest []RebuildActivityRequest) (*IRONdbPutResponse, error) {
 
 	data, err := encodeJSON(rebuildRequest)
 	if err != nil {
@@ -33,7 +30,7 @@ func (sc *SnowthClient) RebuildActivityContext(ctx context.Context, node *Snowth
 		return nil, err
 	}
 
-	r := &RebuildActivityResponse{}
+	r := &IRONdbPutResponse{}
 	if err := decodeJSON(body, &r); err != nil {
 		return nil, errors.Wrap(err, "unable to decode IRONdb response")
 	}
