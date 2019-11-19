@@ -83,23 +83,15 @@ func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 	return r.Data, nil
 }
 
-// WriteRawResponse values represent raw IRONdb data write responses.
-type WriteRawResponse struct {
-	Errors      uint64 `json:"errors"`
-	Misdirected uint64 `json:"misdirected"`
-	Records     uint64 `json:"records"`
-	Updated     uint64 `json:"updated"`
-}
-
 // WriteRaw writes raw IRONdb data to a node.
 func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
-	fb bool, dataPoints uint64) (*WriteRawResponse, error) {
+	fb bool, dataPoints uint64) (*IRONdbPutResponse, error) {
 	return sc.WriteRawContext(context.Background(), node, data, fb, dataPoints)
 }
 
 // WriteRawContext is the context aware version of WriteRaw.
 func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
-	data io.Reader, fb bool, dataPoints uint64) (*WriteRawResponse, error) {
+	data io.Reader, fb bool, dataPoints uint64) (*IRONdbPutResponse, error) {
 
 	hdrs := http.Header{"X-Snowth-Datapoints": {strconv.FormatUint(dataPoints, 10)}}
 	if fb { // is flatbuffer?
@@ -111,7 +103,7 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
 		return nil, err
 	}
 
-	r := &WriteRawResponse{}
+	r := &IRONdbPutResponse{}
 	if err := decodeJSON(body, &r); err != nil {
 		return nil, errors.Wrap(err, "unable to decode IRONdb response")
 	}
@@ -123,13 +115,13 @@ var metricListFileIdentifier = []byte("CIML")
 
 // WriteRawMetricList writes raw IRONdb data to a node with FlatBuffers.
 func (sc *SnowthClient) WriteRawMetricList(node *SnowthNode, metricList *noit.MetricListT,
-	builder *flatbuffers.Builder) (*WriteRawResponse, error) {
+	builder *flatbuffers.Builder) (*IRONdbPutResponse, error) {
 	return sc.WriteRawMetricListContext(context.Background(), node, metricList, builder)
 }
 
 // WriteRawMetricListContext is the context aware version of WriteRawMetricList.
 func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context, node *SnowthNode,
-	metricList *noit.MetricListT, builder *flatbuffers.Builder) (*WriteRawResponse, error) {
+	metricList *noit.MetricListT, builder *flatbuffers.Builder) (*IRONdbPutResponse, error) {
 
 	if metricList == nil {
 		return nil, fmt.Errorf("metric list cannot be nil")

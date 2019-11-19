@@ -14,6 +14,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+// IRONdbPutResponse values represent raw IRONdb PUT/POST responses.
+type IRONdbPutResponse struct {
+	Errors      uint64 `json:"errors"`
+	Misdirected uint64 `json:"misdirected"`
+	Records     uint64 `json:"records"`
+	Updated     uint64 `json:"updated"`
+}
+
 // resolveURL resolves the address of a URL plus a string reference.
 func resolveURL(baseURL *url.URL, ref string) string {
 	refURL, _ := url.Parse(ref)
