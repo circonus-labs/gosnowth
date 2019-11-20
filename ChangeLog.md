@@ -8,6 +8,7 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ### Added
 
+- Added SnowthClient.DoRequest() to issue a custom HTTP request to IRONdb.
 - Added SnowthClient.RebuildActivity() to request a rebuild of IRONdb activity
 tracking data for a list of metrics supplied in the new type RebuildActivityRequest.
 - Added SnowthClient.WriteRawMetricList() convenience function to support writing
