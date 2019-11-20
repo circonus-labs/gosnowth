@@ -574,6 +574,18 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 	return result
 }
 
+// DoRequest sends a request to IRONdb.
+func (sc *SnowthClient) DoRequest(node *SnowthNode,
+	method string, url string, body io.Reader, headers http.Header) (io.Reader, http.Header, error) {
+	return sc.DoRequestContext(context.Background(), node, method, url, body, headers)
+}
+
+// DoRequestContext is the context aware version of DoRequest.
+func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
+	method string, url string, body io.Reader, headers http.Header) (io.Reader, http.Header, error) {
+	return sc.do(ctx, node, method, url, body, headers)
+}
+
 // do sends a request to IRONdb.
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	method, url string, body io.Reader, headers http.Header) (io.Reader, http.Header, error) {

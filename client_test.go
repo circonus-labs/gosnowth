@@ -101,6 +101,22 @@ func TestSnowthClientRequest(t *testing.T) {
 	if res.Items[0].AccountID != 1 {
 		t.Errorf("Expected account ID: 1, got: %v", res.Items[0].AccountID)
 	}
+
+	body, _, err := sc.DoRequest(node, "GET", "/stats.json", nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	r := map[string]map[string]interface{}{}
+	err = decodeJSON(body, &r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	appValue := r["application"]["_value"]
+	if appValue != "snowth" {
+		t.Fatalf("Expected application: snowth, got: %v", appValue)
+	}
 }
 
 func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
