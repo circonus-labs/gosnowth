@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.4.4] - 2019-11-21
+
 ### Added
 
 - Added SnowthClient.DoRequest() to issue a custom HTTP request to IRONdb.
@@ -194,6 +196,8 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.4.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.4
+[v1.4.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.3
 [v1.4.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.2
 [v1.4.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.1
 [v1.4.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.0
