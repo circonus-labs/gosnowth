@@ -47,6 +47,7 @@ func TestFindTags(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
+			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			w.Write([]byte(tagsTestData))
 			return
 		}
@@ -64,7 +65,13 @@ func TestFindTags(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.FindTags(node, 1, "test", "1", "1")
+	res, err := sc.FindTags(node, 1, "test",
+		FindTagsOptionStart("1"),
+		FindTagsOptionEnd("2"),
+		FindTagsOptionActivity("1"),
+		FindTagsOptionLatest("1"),
+		FindTagsOptionCountOnly("0"),
+		NewFindTagsOption("test", "test"))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +113,7 @@ func TestFindTags(t *testing.T) {
 			res.Items[0].Activity[1][1])
 	}
 
-	res, err = sc.FindTags(node, 1, "test", "", "")
+	res, err = sc.FindTags(node, 1, "test")
 	if err != nil {
 		t.Fatal(err)
 	}
