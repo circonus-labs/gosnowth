@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -29,11 +30,14 @@ type FindTagsResult struct {
 	Count int64
 }
 
-// FindTagsOption values contain optional parameters to be passed to the
+// FindTagsOptions values contain optional parameters to be passed to the
 // IRONdb find tags call by a FindTags operation.
-type FindTagsOption struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+type FindTagsOptions struct {
+	Start     time.Time `json:"activity_start_secs"`
+	End       time.Time `json:"activity_end_secs"`
+	Activity  int64     `json:"activity"`
+	Latest    int64     `json:"latest"`
+	CountOnly int64     `json:"count_only"`
 }
 
 // FindTagsLatest values contain the most recent data values for a metric.
@@ -180,89 +184,36 @@ func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-// NewFindTagsOption creates a new find tags option with any name and value.
-func NewFindTagsOption(name, value string) *FindTagsOption {
-	return &FindTagsOption{
-		Name:  name,
-		Value: value,
-	}
-}
-
-// FindTagsOptionStart creates a new find tags option for activity start.
-func FindTagsOptionStart(value string) *FindTagsOption {
-	return &FindTagsOption{
-		Name:  "activity_start_secs",
-		Value: value,
-	}
-}
-
-// FindTagsOptionEnd creates a new find tags option for activity end.
-func FindTagsOptionEnd(value string) *FindTagsOption {
-	return &FindTagsOption{
-		Name:  "activity_end_secs",
-		Value: value,
-	}
-}
-
-// FindTagsOptionActivity creates a new find tags option for retrieving
-// activity window data.
-func FindTagsOptionActivity(value string) *FindTagsOption {
-	return &FindTagsOption{
-		Name:  "activity",
-		Value: value,
-	}
-}
-
-// FindTagsOptionLatest creates a new find tags option for retrieving latest
-// metric values.
-func FindTagsOptionLatest(value string) *FindTagsOption {
-	return &FindTagsOption{
-		Name:  "latest",
-		Value: value,
-	}
-}
-
-// FindTagsOptionCountOnly creates a new find tags option for retrieving only
-// the count of matching metrics.
-func FindTagsOptionCountOnly(value string) *FindTagsOption {
-	return &FindTagsOption{
-		Name:  "count_only",
-		Value: value,
-	}
-}
-
 // FindTags retrieves metrics that are associated with the provided tag query.
 func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int64,
-	query string, opts ...*FindTagsOption) (*FindTagsResult, error) {
+	query string, options *FindTagsOptions) (*FindTagsResult, error) {
 	return sc.FindTagsContext(context.Background(), node, accountID, query,
-		opts...)
+		options)
 }
 
 // FindTagsContext is the context aware version of FindTags.
 func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
 	accountID int64, query string,
-	opts ...*FindTagsOption) (*FindTagsResult, error) {
+	options *FindTagsOptions) (*FindTagsResult, error) {
 	u := fmt.Sprintf("%s?query=%s",
 		sc.getURL(node, fmt.Sprintf("/find/%d/tags", accountID)),
 		url.QueryEscape(query))
-	start, end := "", ""
-	for _, opt := range opts {
-		if opt != nil {
-			switch opt.Name {
-			case "start", "activity_start_secs":
-				start = opt.Value
-			case "end", "activity_end_secs":
-				end = opt.Value
-			default:
-				u += fmt.Sprintf("&%s=%s", url.QueryEscape(opt.Name),
-					url.QueryEscape(opt.Value))
-			}
-		}
+	if !options.Start.IsZero() && !options.End.IsZero() &&
+		options.Start.Unix() != 0 && options.End.Unix() != 0 {
+		u += fmt.Sprintf("&activity_start_secs=%s&activity_end_secs=%s",
+			formatTimestamp(options.Start), formatTimestamp(options.End))
 	}
 
-	if start != "" && end != "" {
-		u += fmt.Sprintf("&activity_start_secs=%s&activity_end_secs=%s",
-			url.QueryEscape(start), url.QueryEscape(end))
+	if options.Activity != 0 {
+		u += fmt.Sprintf("&activity=%d", options.Activity)
+	}
+
+	if options.Latest != 0 {
+		u += fmt.Sprintf("&latest=%d", options.Latest)
+	}
+
+	if options.CountOnly != 0 {
+		u += fmt.Sprintf("&count_only=%d", options.CountOnly)
 	}
 
 	r := &FindTagsResult{}

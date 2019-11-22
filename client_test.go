@@ -85,8 +85,10 @@ func TestSnowthClientRequest(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.FindTags(node, 1, "test", FindTagsOptionStart("1"),
-		FindTagsOptionEnd("1"))
+	res, err := sc.FindTags(node, 1, "test", &FindTagsOptions{
+		Start: time.Unix(1, 0),
+		End:   time.Unix(2, 0),
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,8 +172,10 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 		currentTopology: "294cbd39999c2270964029691e8bc5e231a867d525ccba62181dc8988ff218dc",
 	}
 
-	res, err := sc.FindTags(node, 1, "test", FindTagsOptionStart("1"),
-		FindTagsOptionEnd("1"))
+	res, err := sc.FindTags(node, 1, "test", &FindTagsOptions{
+		Start: time.Unix(1, 0),
+		End:   time.Unix(2, 0),
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

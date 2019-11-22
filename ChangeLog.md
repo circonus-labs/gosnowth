@@ -15,9 +15,9 @@ requested from the IRONdb find call.
 ### Changed
 
 - Changed the signature of the SnowthClient.FindTags() and
-SnowthClient.FindTagsContext() methods to accept a variable number of
-*FindTagsOption parameters. This allows more flexibility when passing optional
-arguments to the underlying IRONdb find calls.
+SnowthClient.FindTagsContext() methods to accept a *FindTagsOptions argument.
+This argument contains the values for the supported IRONdb find operation query
+parameters.
 
 ## [v1.4.4] - 2019-11-21
 

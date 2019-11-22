@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 const tagsTestData = `[
@@ -121,13 +122,13 @@ func TestFindTags(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.FindTags(node, 1, "test",
-		FindTagsOptionStart("1"),
-		FindTagsOptionEnd("2"),
-		FindTagsOptionActivity("1"),
-		FindTagsOptionLatest("1"),
-		FindTagsOptionCountOnly("0"),
-		NewFindTagsOption("test", "test"))
+	res, err := sc.FindTags(node, 1, "test", &FindTagsOptions{
+		Start:     time.Unix(1, 0),
+		End:       time.Unix(2, 0),
+		Activity:  1,
+		Latest:    1,
+		CountOnly: 0,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +170,7 @@ func TestFindTags(t *testing.T) {
 			res.Items[0].Activity[1][1])
 	}
 
-	res, err = sc.FindTags(node, 1, "test")
+	res, err = sc.FindTags(node, 1, "test", &FindTagsOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
