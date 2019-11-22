@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"strconv"
@@ -11,14 +12,15 @@ import (
 
 // FindTagsItem values represent results returned from IRONdb tag queries.
 type FindTagsItem struct {
-	UUID       string    `json:"uuid"`
-	CheckName  string    `json:"check_name"`
-	CheckTags  []string  `json:"check_tags,omitempty"`
-	MetricName string    `json:"metric_name"`
-	Category   string    `json:"category"`
-	Type       string    `type:"type"`
-	AccountID  int64     `json:"account_id"`
-	Activity   [][]int64 `json:"activity,omitempty"`
+	UUID       string          `json:"uuid"`
+	CheckName  string          `json:"check_name"`
+	CheckTags  []string        `json:"check_tags,omitempty"`
+	MetricName string          `json:"metric_name"`
+	Category   string          `json:"category"`
+	Type       string          `type:"type"`
+	AccountID  int64           `json:"account_id"`
+	Activity   [][]int64       `json:"activity,omitempty"`
+	Latest     *FindTagsLatest `json:"latest,omitempty"`
 }
 
 // FindTagsResult values contain the results of a find tags request.
@@ -32,6 +34,144 @@ type FindTagsResult struct {
 type FindTagsOption struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+// FindTagsLatest values contain the most recent data values for a metric.
+type FindTagsLatest struct {
+	Numeric   []FindTagsLatestNumeric   `json:"numeric,omitempty"`
+	Text      []FindTagsLatestText      `json:"text,omitempty"`
+	Histogram []FindTagsLatestHistogram `json:"histogram,omitempty"`
+}
+
+// FindTagsLatestNumeric values contain recent metric numeric data.
+type FindTagsLatestNumeric struct {
+	Time  int64
+	Value float64
+}
+
+// MarshalJSON encodes a FindTagsLatestNumeric value into a JSON format byte
+// slice.
+func (ftl *FindTagsLatestNumeric) MarshalJSON() ([]byte, error) {
+	v := []interface{}{ftl.Time, ftl.Value}
+	return json.Marshal(v)
+}
+
+// UnmarshalJSON decodes a JSON format byte slice into a FindTagsLatestNumeric
+// value.
+func (ftl *FindTagsLatestNumeric) UnmarshalJSON(b []byte) error {
+	v := []interface{}{}
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
+	if len(v) != 2 {
+		return fmt.Errorf("unable to decode latest histogram value, "+
+			"invalid length: %v: %v", string(b), err)
+	}
+
+	if fv, ok := v[0].(float64); ok {
+		ftl.Time = int64(fv)
+	} else {
+		return fmt.Errorf("unable to decode latest histogram value, "+
+			"invalid timestamp: %v", string(b))
+	}
+
+	if fv, ok := v[1].(float64); ok {
+		ftl.Value = fv
+	} else {
+		return fmt.Errorf("unable to decode latest histogram value, "+
+			"invalid value: %v", string(b))
+	}
+
+	return nil
+}
+
+// FindTagsLatestText values contain recent metric text data.
+type FindTagsLatestText struct {
+	Time  int64
+	Value string
+}
+
+// MarshalJSON encodes a FindTagsLatestText value into a JSON format byte slice.
+func (ftl *FindTagsLatestText) MarshalJSON() ([]byte, error) {
+	v := []interface{}{ftl.Time, ftl.Value}
+	return json.Marshal(v)
+}
+
+// UnmarshalJSON decodes a JSON format byte slice into a FindTagsLatestText
+// value.
+func (ftl *FindTagsLatestText) UnmarshalJSON(b []byte) error {
+	v := []interface{}{}
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
+	if len(v) != 2 {
+		return fmt.Errorf("unable to decode latest text value, "+
+			"invalid length: %v: %v", string(b), err)
+	}
+
+	if fv, ok := v[0].(float64); ok {
+		ftl.Time = int64(fv)
+	} else {
+		return fmt.Errorf("unable to decode latest text value, "+
+			"invalid timestamp: %v", string(b))
+	}
+
+	if sv, ok := v[1].(string); ok {
+		ftl.Value = sv
+	} else {
+		return fmt.Errorf("unable to decode latest text value, "+
+			"invalid value: %v", string(b))
+	}
+
+	return nil
+}
+
+// FindTagsLatestHistogram values contain recent metric histogram data.
+type FindTagsLatestHistogram struct {
+	Time  int64
+	Value string
+}
+
+// MarshalJSON encodes a FindTagsLatestHistogram value into a JSON format byte
+// slice.
+func (ftl *FindTagsLatestHistogram) MarshalJSON() ([]byte, error) {
+	v := []interface{}{ftl.Time, ftl.Value}
+	return json.Marshal(v)
+}
+
+// UnmarshalJSON decodes a JSON format byte slice into a
+// FindTagsLatestHistogram value.
+func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
+	v := []interface{}{}
+	err := json.Unmarshal(b, &v)
+	if err != nil {
+		return err
+	}
+
+	if len(v) != 2 {
+		return fmt.Errorf("unable to decode latest histogram value, "+
+			"invalid length: %v: %v", string(b), err)
+	}
+
+	if fv, ok := v[0].(float64); ok {
+		ftl.Time = int64(fv)
+	} else {
+		return fmt.Errorf("unable to decode latest histogram value, "+
+			"invalid timestamp: %v", string(b))
+	}
+
+	if sv, ok := v[1].(string); ok {
+		ftl.Value = sv
+	} else {
+		return fmt.Errorf("unable to decode latest histogram value, "+
+			"invalid value: %v", string(b))
+	}
+
+	return nil
 }
 
 // NewFindTagsOption creates a new find tags option with any name and value.

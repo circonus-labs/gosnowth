@@ -1,6 +1,8 @@
 package gosnowth
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -29,9 +31,63 @@ const tagsTestData = `[
 				1561848300
 			]
 		],
+		"latest": {
+			"numeric": [
+				[1561848300000, 1]
+			]
+		},
 		"account_id": 1
 	}
 ]`
+
+func TestFindTagsJSON(t *testing.T) {
+	fti := &FindTagsItem{
+		UUID:       "11223344-5566-7788-9900-aabbccddeeff",
+		CheckName:  "test",
+		CheckTags:  []string{"test:test"},
+		MetricName: "test|ST[test:test]",
+		Category:   "reconnoiter",
+		Type:       "numeric",
+		AccountID:  1,
+		Activity:   [][]int64{{1, 1}, {2, 1}},
+		Latest: &FindTagsLatest{
+			Numeric:   []FindTagsLatestNumeric{{1, 1}},
+			Text:      []FindTagsLatestText{{1, "test"}},
+			Histogram: []FindTagsLatestHistogram{{1, "AAEoAgAB"}},
+		},
+	}
+
+	buf := &bytes.Buffer{}
+	err := json.NewEncoder(buf).Encode(&fti)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var r *FindTagsItem
+	err = json.NewDecoder(buf).Decode(&r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if fti.Latest == nil {
+		t.Fatal("Expected latest data to not be nil")
+	}
+
+	if fti.Latest.Numeric[0].Value != r.Latest.Numeric[0].Value {
+		t.Errorf("Expected numeric latest value: %v, got: %v",
+			fti.Latest.Numeric[0].Value, r.Latest.Numeric[0].Value)
+	}
+
+	if fti.Latest.Text[0].Value != r.Latest.Text[0].Value {
+		t.Errorf("Expected text latest value: %v, got: %v",
+			fti.Latest.Text[0].Value, r.Latest.Text[0].Value)
+	}
+
+	if fti.Latest.Histogram[0].Value != r.Latest.Histogram[0].Value {
+		t.Errorf("Expected histogram latest value: %v, got: %v",
+			fti.Latest.Histogram[0].Value, r.Latest.Histogram[0].Value)
+	}
+}
 
 func TestFindTags(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
