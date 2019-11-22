@@ -52,7 +52,7 @@ func TestFindTagsJSON(t *testing.T) {
 		Activity:   [][]int64{{1, 1}, {2, 1}},
 		Latest: &FindTagsLatest{
 			Numeric:   []FindTagsLatestNumeric{{1, float64Ptr(1)}},
-			Text:      []FindTagsLatestText{{1, stringPtr("test")}},
+			Text:      []FindTagsLatestText{{1, nil}},
 			Histogram: []FindTagsLatestHistogram{{1, stringPtr("AAEoAgAB")}},
 		},
 	}
@@ -78,9 +78,9 @@ func TestFindTagsJSON(t *testing.T) {
 			*fti.Latest.Numeric[0].Value, *r.Latest.Numeric[0].Value)
 	}
 
-	if *fti.Latest.Text[0].Value != *r.Latest.Text[0].Value {
-		t.Errorf("Expected text latest value: %v, got: %v",
-			*fti.Latest.Text[0].Value, *r.Latest.Text[0].Value)
+	if r.Latest.Text[0].Value != nil {
+		t.Errorf("Expected text latest value: nil, got: %v",
+			r.Latest.Text[0].Value)
 	}
 
 	if *fti.Latest.Histogram[0].Value != *r.Latest.Histogram[0].Value {

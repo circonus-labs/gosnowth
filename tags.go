@@ -77,11 +77,13 @@ func (ftl *FindTagsLatestNumeric) UnmarshalJSON(b []byte) error {
 			"invalid timestamp: %v", string(b))
 	}
 
-	if fv, ok := v[1].(float64); ok {
-		ftl.Value = &fv
-	} else {
-		return fmt.Errorf("unable to decode latest numeric value, "+
-			"invalid value: %v", string(b))
+	if v[1] != nil {
+		if fv, ok := v[1].(float64); ok {
+			ftl.Value = &fv
+		} else {
+			return fmt.Errorf("unable to decode latest numeric value, "+
+				"invalid value: %v", string(b))
+		}
 	}
 
 	return nil
@@ -120,11 +122,13 @@ func (ftl *FindTagsLatestText) UnmarshalJSON(b []byte) error {
 			"invalid timestamp: %v", string(b))
 	}
 
-	if sv, ok := v[1].(string); ok {
-		ftl.Value = &sv
-	} else {
-		return fmt.Errorf("unable to decode latest text value, "+
-			"invalid value: %v", string(b))
+	if v[1] != nil {
+		if sv, ok := v[1].(string); ok {
+			ftl.Value = &sv
+		} else {
+			return fmt.Errorf("unable to decode latest text value, "+
+				"invalid value: %v", string(b))
+		}
 	}
 
 	return nil
@@ -164,11 +168,13 @@ func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
 			"invalid timestamp: %v", string(b))
 	}
 
-	if sv, ok := v[1].(string); ok {
-		ftl.Value = &sv
-	} else {
-		return fmt.Errorf("unable to decode latest histogram value, "+
-			"invalid value: %v", string(b))
+	if v[1] != nil {
+		if sv, ok := v[1].(string); ok {
+			ftl.Value = &sv
+		} else {
+			return fmt.Errorf("unable to decode latest histogram value, "+
+				"invalid value: %v", string(b))
+		}
 	}
 
 	return nil
