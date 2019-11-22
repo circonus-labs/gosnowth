@@ -46,7 +46,7 @@ type FindTagsLatest struct {
 // FindTagsLatestNumeric values contain recent metric numeric data.
 type FindTagsLatestNumeric struct {
 	Time  int64
-	Value float64
+	Value *float64
 }
 
 // MarshalJSON encodes a FindTagsLatestNumeric value into a JSON format byte
@@ -66,21 +66,21 @@ func (ftl *FindTagsLatestNumeric) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(v) != 2 {
-		return fmt.Errorf("unable to decode latest histogram value, "+
+		return fmt.Errorf("unable to decode latest numeric value, "+
 			"invalid length: %v: %v", string(b), err)
 	}
 
 	if fv, ok := v[0].(float64); ok {
 		ftl.Time = int64(fv)
 	} else {
-		return fmt.Errorf("unable to decode latest histogram value, "+
+		return fmt.Errorf("unable to decode latest numeric value, "+
 			"invalid timestamp: %v", string(b))
 	}
 
 	if fv, ok := v[1].(float64); ok {
-		ftl.Value = fv
+		ftl.Value = &fv
 	} else {
-		return fmt.Errorf("unable to decode latest histogram value, "+
+		return fmt.Errorf("unable to decode latest numeric value, "+
 			"invalid value: %v", string(b))
 	}
 
@@ -90,7 +90,7 @@ func (ftl *FindTagsLatestNumeric) UnmarshalJSON(b []byte) error {
 // FindTagsLatestText values contain recent metric text data.
 type FindTagsLatestText struct {
 	Time  int64
-	Value string
+	Value *string
 }
 
 // MarshalJSON encodes a FindTagsLatestText value into a JSON format byte slice.
@@ -121,7 +121,7 @@ func (ftl *FindTagsLatestText) UnmarshalJSON(b []byte) error {
 	}
 
 	if sv, ok := v[1].(string); ok {
-		ftl.Value = sv
+		ftl.Value = &sv
 	} else {
 		return fmt.Errorf("unable to decode latest text value, "+
 			"invalid value: %v", string(b))
@@ -133,7 +133,7 @@ func (ftl *FindTagsLatestText) UnmarshalJSON(b []byte) error {
 // FindTagsLatestHistogram values contain recent metric histogram data.
 type FindTagsLatestHistogram struct {
 	Time  int64
-	Value string
+	Value *string
 }
 
 // MarshalJSON encodes a FindTagsLatestHistogram value into a JSON format byte
@@ -165,7 +165,7 @@ func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
 	}
 
 	if sv, ok := v[1].(string); ok {
-		ftl.Value = sv
+		ftl.Value = &sv
 	} else {
 		return fmt.Errorf("unable to decode latest histogram value, "+
 			"invalid value: %v", string(b))

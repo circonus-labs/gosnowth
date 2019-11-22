@@ -51,9 +51,9 @@ func TestFindTagsJSON(t *testing.T) {
 		AccountID:  1,
 		Activity:   [][]int64{{1, 1}, {2, 1}},
 		Latest: &FindTagsLatest{
-			Numeric:   []FindTagsLatestNumeric{{1, 1}},
-			Text:      []FindTagsLatestText{{1, "test"}},
-			Histogram: []FindTagsLatestHistogram{{1, "AAEoAgAB"}},
+			Numeric:   []FindTagsLatestNumeric{{1, float64Ptr(1)}},
+			Text:      []FindTagsLatestText{{1, stringPtr("test")}},
+			Histogram: []FindTagsLatestHistogram{{1, stringPtr("AAEoAgAB")}},
 		},
 	}
 
@@ -73,19 +73,19 @@ func TestFindTagsJSON(t *testing.T) {
 		t.Fatal("Expected latest data to not be nil")
 	}
 
-	if fti.Latest.Numeric[0].Value != r.Latest.Numeric[0].Value {
+	if *fti.Latest.Numeric[0].Value != *r.Latest.Numeric[0].Value {
 		t.Errorf("Expected numeric latest value: %v, got: %v",
-			fti.Latest.Numeric[0].Value, r.Latest.Numeric[0].Value)
+			*fti.Latest.Numeric[0].Value, *r.Latest.Numeric[0].Value)
 	}
 
-	if fti.Latest.Text[0].Value != r.Latest.Text[0].Value {
+	if *fti.Latest.Text[0].Value != *r.Latest.Text[0].Value {
 		t.Errorf("Expected text latest value: %v, got: %v",
-			fti.Latest.Text[0].Value, r.Latest.Text[0].Value)
+			*fti.Latest.Text[0].Value, *r.Latest.Text[0].Value)
 	}
 
-	if fti.Latest.Histogram[0].Value != r.Latest.Histogram[0].Value {
+	if *fti.Latest.Histogram[0].Value != *r.Latest.Histogram[0].Value {
 		t.Errorf("Expected histogram latest value: %v, got: %v",
-			fti.Latest.Histogram[0].Value, r.Latest.Histogram[0].Value)
+			*fti.Latest.Histogram[0].Value, *r.Latest.Histogram[0].Value)
 	}
 }
 
