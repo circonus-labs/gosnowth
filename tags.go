@@ -204,14 +204,8 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
 			formatTimestamp(options.Start), formatTimestamp(options.End))
 	}
 
-	if options.Activity != 0 {
-		u += fmt.Sprintf("&activity=%d", options.Activity)
-	}
-
-	if options.Latest != 0 {
-		u += fmt.Sprintf("&latest=%d", options.Latest)
-	}
-
+	u += fmt.Sprintf("&activity=%d", options.Activity)
+	u += fmt.Sprintf("&latest=%d", options.Latest)
 	if options.CountOnly != 0 {
 		u += fmt.Sprintf("&count_only=%d", options.CountOnly)
 	}
