@@ -6,6 +6,19 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+### Added
+
+- Added a new FindTagsLatest type and a new 'Latest' field to the `FindTagsItem`
+type to support `SnowthClient.FindTags()` returning the latest data values when
+requested from the IRONdb find call.
+
+### Changed
+
+- Changed the signature of the `SnowthClient.FindTags()` and
+`SnowthClient.FindTagsContext()` methods to accept a `*FindTagsOptions`
+argument. This argument contains the values for the supported IRONdb find
+operation query parameters.
+
 ## [v1.4.4] - 2019-11-21
 
 ### Added

@@ -1,11 +1,14 @@
 package gosnowth
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 )
 
 const tagsTestData = `[
@@ -29,9 +32,63 @@ const tagsTestData = `[
 				1561848300
 			]
 		],
+		"latest": {
+			"numeric": [
+				[1561848300000, 1]
+			]
+		},
 		"account_id": 1
 	}
 ]`
+
+func TestFindTagsJSON(t *testing.T) {
+	fti := &FindTagsItem{
+		UUID:       "11223344-5566-7788-9900-aabbccddeeff",
+		CheckName:  "test",
+		CheckTags:  []string{"test:test"},
+		MetricName: "test|ST[test:test]",
+		Category:   "reconnoiter",
+		Type:       "numeric",
+		AccountID:  1,
+		Activity:   [][]int64{{1, 1}, {2, 1}},
+		Latest: &FindTagsLatest{
+			Numeric:   []FindTagsLatestNumeric{{1, float64Ptr(1)}},
+			Text:      []FindTagsLatestText{{1, nil}},
+			Histogram: []FindTagsLatestHistogram{{1, stringPtr("AAEoAgAB")}},
+		},
+	}
+
+	buf := &bytes.Buffer{}
+	err := json.NewEncoder(buf).Encode(&fti)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var r *FindTagsItem
+	err = json.NewDecoder(buf).Decode(&r)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if fti.Latest == nil {
+		t.Fatal("Expected latest data to not be nil")
+	}
+
+	if *fti.Latest.Numeric[0].Value != *r.Latest.Numeric[0].Value {
+		t.Errorf("Expected numeric latest value: %v, got: %v",
+			*fti.Latest.Numeric[0].Value, *r.Latest.Numeric[0].Value)
+	}
+
+	if r.Latest.Text[0].Value != nil {
+		t.Errorf("Expected text latest value: nil, got: %v",
+			r.Latest.Text[0].Value)
+	}
+
+	if *fti.Latest.Histogram[0].Value != *r.Latest.Histogram[0].Value {
+		t.Errorf("Expected histogram latest value: %v, got: %v",
+			*fti.Latest.Histogram[0].Value, *r.Latest.Histogram[0].Value)
+	}
+}
 
 func TestFindTags(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
@@ -47,6 +104,7 @@ func TestFindTags(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
+			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			w.Write([]byte(tagsTestData))
 			return
 		}
@@ -64,7 +122,13 @@ func TestFindTags(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.FindTags(node, 1, "test", "1", "1")
+	res, err := sc.FindTags(node, 1, "test", &FindTagsOptions{
+		Start:     time.Unix(1, 0),
+		End:       time.Unix(2, 0),
+		Activity:  1,
+		Latest:    1,
+		CountOnly: 0,
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +170,7 @@ func TestFindTags(t *testing.T) {
 			res.Items[0].Activity[1][1])
 	}
 
-	res, err = sc.FindTags(node, 1, "test", "", "")
+	res, err = sc.FindTags(node, 1, "test", &FindTagsOptions{})
 	if err != nil {
 		t.Fatal(err)
 	}
