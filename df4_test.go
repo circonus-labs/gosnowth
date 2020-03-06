@@ -12,7 +12,12 @@ const testDF4Response = `{
 	"head": {
 		"count": 3,
 		"start": 0,
-		"period": 300
+		"period": 300,
+		"explain":{
+			"info":{
+				"putype":["none","number"]
+			}
+		}
 	},
 	"meta": [
 		{
@@ -76,6 +81,8 @@ func TestMarshalDF4Response(t *testing.T) {
 			Count:  3,
 			Start:  0,
 			Period: 300,
+			Explain: json.RawMessage([]byte(
+				`{"info":{"putype":["none","number"]}}`)),
 		},
 	}
 
@@ -114,5 +121,9 @@ func TestUnmarshalDF4Timeseries(t *testing.T) {
 
 	if v.Head.Period != 300 {
 		t.Errorf(`Expected time period: 300. got %d`, v.Head.Period)
+	}
+
+	if len(v.Head.Explain) != 53 {
+		t.Errorf("Expected length explain: 53, got: %v", len(v.Head.Explain))
 	}
 }

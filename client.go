@@ -9,7 +9,12 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/http/httptrace"
+	"net/http/httputil"
+	"net/textproto"
 	"net/url"
+	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -113,6 +118,14 @@ type SnowthClient struct {
 	// to activate or deactivate snowth cluster nodes during the watch and
 	// update process, using custom logic.
 	watch func(n *SnowthNode)
+
+	// dumpRequests and traceRequests are settings from the environment
+	// GOSNOWTH_DUMP_REQUESTS and GOSNOWTH_TRACE_REQUESTS respectively.
+	// Set to a path `/data/fetch` or `*` for all paths.
+	// Dump: full request w/payload is emitted to stdout
+	// Trace: httptrace of request
+	dumpRequests  string
+	traceRequests string
 }
 
 // NewSnowthClient initializes a new SnowthClient value, constructing all the
@@ -138,7 +151,20 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 	client := &http.Client{
 		Timeout: cfg.Timeout(),
 		Transport: &http.Transport{
-			Dial: (&net.Dialer{Timeout: cfg.DialTimeout()}).Dial,
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   cfg.DialTimeout(),
+				KeepAlive: 30 * time.Second,
+				DualStack: true,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			DisableKeepAlives:     true,
+			MaxConnsPerHost:       0,
+			MaxIdleConns:          10,
+			MaxIdleConnsPerHost:   1,
+			IdleConnTimeout:       5 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 10 * time.Second,
 		},
 	}
 
@@ -147,6 +173,8 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		activeNodes:   []*SnowthNode{},
 		inactiveNodes: []*SnowthNode{},
 		watchInterval: cfg.WatchInterval(),
+		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
+		traceRequests: os.Getenv("GOSNOWTH_TRACE_REQUESTS"),
 	}
 
 	// For each of the addrs we need to parse the connection string,
@@ -598,6 +626,10 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		return nil, nil, errors.Wrap(err, "failed to create request")
 	}
 
+	traceReq := sc.traceRequests != "" && (sc.traceRequests == "*" || strings.HasPrefix(r.URL.Path, sc.traceRequests))
+	traceID := time.Now().UTC().Nanosecond()
+	dumpReq := sc.dumpRequests != "" && (sc.dumpRequests == "*" || strings.HasPrefix(r.URL.Path, sc.dumpRequests))
+
 	r.Close = true
 	for key, values := range headers {
 		for _, value := range values {
@@ -606,6 +638,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	r = r.WithContext(ctx)
+
 	sc.RLock()
 	rf := sc.request
 	sc.RUnlock()
@@ -617,6 +650,63 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		if r == nil {
 			return nil, nil, errors.New("invalid request after processing")
 		}
+	}
+
+	if traceReq {
+		ctrace := &httptrace.ClientTrace{
+			GetConn: func(hostPort string) {
+				fmt.Printf("TRACE-%d: connecting %s\n", traceID, hostPort)
+			},
+			GotConn: func(info httptrace.GotConnInfo) {
+				fmt.Printf("TRACE-%d: connected %+v\n", traceID, info)
+			},
+			PutIdleConn: func(err error) {
+				fmt.Printf("TRACE-%d: put conn back in idle pool, err: %v\n", traceID, err)
+			},
+			GotFirstResponseByte: func() {
+				fmt.Printf("TRACE-%d: got first byte\n", traceID)
+			},
+			Got100Continue: func() {
+				fmt.Printf("TRACE-%d: got 100 Continue\n", traceID)
+			},
+			Got1xxResponse: func(code int, header textproto.MIMEHeader) error {
+				fmt.Printf("TRACE-%d: %d %+v\n", traceID, code, header)
+				return nil
+			},
+			DNSStart: func(info httptrace.DNSStartInfo) {
+				fmt.Printf("TRACE-%d: dns start %+v\n", traceID, info)
+			},
+			DNSDone: func(info httptrace.DNSDoneInfo) {
+				fmt.Printf("TRACE-%d: dns done %+v\n", traceID, info)
+			},
+			ConnectStart: func(network, addr string) {
+				fmt.Printf("TRACE-%d: dialing %s/%s\n", traceID, network, addr)
+			},
+			ConnectDone: func(network, addr string, err error) {
+				fmt.Printf("TRACE-%d: dial complete %s/%s err: %v\n", traceID, network, addr, err)
+			},
+			WroteHeaderField: func(key string, values []string) {
+				fmt.Printf("TRACE-%d: wrote header %s: %+v\n", traceID, key, values)
+			},
+			WroteHeaders: func() {
+				fmt.Printf("TRACE-%d: wrote all headers\n", traceID)
+			},
+			Wait100Continue: func() {
+				fmt.Printf("TRACE-%d: waiting for '100 Continue' from server\n", traceID)
+			},
+			WroteRequest: func(info httptrace.WroteRequestInfo) {
+				fmt.Printf("TRACE-%d: wrote request %s %s - info: %+v\n", traceID, r.Method, r.URL.Path, info)
+			},
+		}
+		r = r.WithContext(httptrace.WithClientTrace(r.Context(), ctrace))
+	}
+
+	if dumpReq {
+		dump, err := httputil.DumpRequestOut(r, true)
+		if err != nil {
+			sc.LogErrorf("%v", err)
+		}
+		fmt.Println(string(dump))
 	}
 
 	sc.LogDebugf("snowth request: %+v", r)
@@ -632,6 +722,14 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		return nil, nil, errors.Wrap(err, "unable to read response body")
 	}
 
+	if traceReq {
+		msg := string(res[0:64]) + "..."
+		if resp.StatusCode != http.StatusOK {
+			msg = string(res)
+		}
+		fmt.Printf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
+	}
+
 	sc.LogDebugf("snowth response: %+v", resp)
 	sc.LogDebugf("snowth response body: %v", string(res))
 	sc.LogDebugf("snowth latency: %+v", time.Since(start))
@@ -645,8 +743,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		sc.LogWarnf("error returned from IRONdb: [%d] %s",
 			resp.StatusCode, string(res))
 		return bytes.NewBuffer(res), resp.Header,
-			fmt.Errorf("error returned from IRONdb: [%d] %s",
-				resp.StatusCode, string(res))
+			fmt.Errorf("error returned from IRONdb (%s): [%d] %s",
+				r.URL.Host, resp.StatusCode, string(res))
 	}
 
 	return bytes.NewBuffer(res), resp.Header, nil

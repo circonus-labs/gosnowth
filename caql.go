@@ -26,6 +26,7 @@ type CAQLQuery struct {
 	Debug                byte     `json:"_debug,omitempty"`
 	Expansion            []string `json:"expansion,omitempty"`
 	End                  int64    `json:"end_time,omitempty"`
+	Explain              bool     `json:"explain"`
 }
 
 // CAQLErrorArgs values represent CAQL request arguments returned in an error.
