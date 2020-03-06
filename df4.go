@@ -21,9 +21,11 @@ type DF4Meta struct {
 // DF4Head values contain information about the time range of the data elements
 // in a DF4 time series data response.
 type DF4Head struct {
-	Count   int64           `json:"count"`
-	Start   int64           `json:"start"`
-	Period  int64           `json:"period"`
+	Count  int64 `json:"count"`
+	Start  int64 `json:"start"`
+	Period int64 `json:"period"`
+	// TODO: Replace the Explain value with an actual typed schema when one
+	// becomes available.
 	Explain json.RawMessage `json:"explain,omitempty"`
 }
 
