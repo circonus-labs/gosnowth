@@ -126,6 +126,10 @@ type SnowthClient struct {
 	// Trace: httptrace of request
 	dumpRequests  string
 	traceRequests string
+
+	// current topology
+	currentTopology         string
+	currentTopologyCompiled *Topology
 }
 
 // NewSnowthClient initializes a new SnowthClient value, constructing all the
@@ -202,6 +206,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 
 		node.identifier = stats.Identity()
 		node.currentTopology = stats.CurrentTopology()
+		sc.currentTopology = node.currentTopology
 		node.semVer = stats.SemVer()
 		sc.AddNodes(node)
 		sc.ActivateNodes(node)
@@ -288,6 +293,22 @@ func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 	if sc.log != nil {
 		sc.log.Debugf(format, args...)
 	}
+}
+
+func (sc *SnowthClient) Topology() (*Topology, error) {
+	if sc.currentTopologyCompiled != nil {
+		return sc.currentTopologyCompiled, nil
+	}
+	var lasterr error = nil
+	for _, node := range sc.ListActiveNodes() {
+		if topology, err := sc.GetTopologyInfo(node); err == nil {
+			sc.currentTopologyCompiled = topology
+			return topology, nil
+		} else {
+			lasterr = err
+		}
+	}
+	return nil, lasterr
 }
 
 // isNodeActive checks to see if a given node is active or not taking into
@@ -458,6 +479,11 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 			sc.inactiveNodes[i].currentTopology = hash
 			continue
 		}
+	}
+
+	if sc.currentTopology != hash {
+		sc.currentTopology = hash
+		sc.currentTopologyCompiled = nil
 	}
 
 	sc.Unlock()
@@ -720,6 +746,12 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	res, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to read response body")
+	}
+
+	new_topo := resp.Header.Get("X-Topo-0")
+	if new_topo != "" && new_topo != sc.currentTopology {
+		sc.currentTopology = new_topo
+		sc.currentTopologyCompiled = nil
 	}
 
 	if traceReq {
