@@ -73,7 +73,7 @@ type TopologyNode struct {
 	Port        uint16   `xml:"port,attr" json:"port"`
 	APIPort     uint16   `xml:"apiport,attr" json:"apiport"`
 	Weight      uint16   `xml:"weight,attr" json:"weight"`
-	Side        TopoSide `xml:"side,attr", json:"side"`
+	Side        TopoSide `xml:"side,attr" json:"side"`
 	WriteCopies uint8    `xml:"-" json:"n"`
 }
 
@@ -118,7 +118,7 @@ func (topo *Topology) compile() error {
 		topo.Hash = sum
 	}
 	if topo.Hash != sum {
-		errors.New("bad topology hash")
+		return errors.New("bad topology hash")
 	}
 
 	topo.ring = make([]TopologyNodeSlot, nslots)
