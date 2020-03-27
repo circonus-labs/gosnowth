@@ -9,13 +9,19 @@ import (
 )
 
 // GetNodeState retrieves the state of an IRONdb node.
-func (sc *SnowthClient) GetNodeState(node *SnowthNode) (*NodeState, error) {
-	return sc.GetNodeStateContext(context.Background(), node)
+func (sc *SnowthClient) GetNodeState(nodes ...*SnowthNode) (*NodeState, error) {
+	return sc.GetNodeStateContext(context.Background(), nodes...)
 }
 
 // GetNodeStateContext is the context aware version of GetNodeState.
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
-	node *SnowthNode) (*NodeState, error) {
+	nodes ...*SnowthNode) (*NodeState, error) {
+
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	r := &NodeState{}
 	body, _, err := sc.do(ctx, node, "GET", "/state", nil, nil)
 	if err != nil {

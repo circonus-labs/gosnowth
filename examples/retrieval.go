@@ -88,8 +88,8 @@ func ExampleReadText() {
 			log.Fatalf("failed to write text data: %v", err)
 		}
 
-		data, err := client.ReadTextValues(node, id, "test-text-metric2",
-			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second))
+		data, err := client.ReadTextValues(id, "test-text-metric2",
+			time.Now().Add(-60*time.Second), time.Now().Add(60*time.Second), node)
 		if err != nil {
 			log.Fatalf("failed to read text data: %v", err)
 		}

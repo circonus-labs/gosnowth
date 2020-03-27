@@ -68,7 +68,7 @@ func TestLocateMetric(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.LocateMetricRemote("1f846f26-0cfd-4df5-b4f1-e0930604e577",
+	res, err := sc.LocateMetric("1f846f26-0cfd-4df5-b4f1-e0930604e577",
 		"test", node)
 	if err != nil {
 		t.Fatal(err)

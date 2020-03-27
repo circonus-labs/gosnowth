@@ -123,14 +123,18 @@ func (le *LuaExtensions) UnmarshalJSON(b []byte) error {
 }
 
 // GetLuaExtensions retrieves information about available Lua extensions.
-func (sc *SnowthClient) GetLuaExtensions(node *SnowthNode) (LuaExtensions,
+func (sc *SnowthClient) GetLuaExtensions(nodes ...*SnowthNode) (LuaExtensions,
 	error) {
-	return sc.GetLuaExtensionsContext(context.Background(), node)
+	return sc.GetLuaExtensionsContext(context.Background(), nodes...)
 }
 
 // GetLuaExtensionsContext is the context aware version of GetLuaExtensions.
 func (sc *SnowthClient) GetLuaExtensionsContext(ctx context.Context,
-	node *SnowthNode) (LuaExtensions, error) {
+	nodes ...*SnowthNode) (LuaExtensions, error) {
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
 	u := sc.getURL(node, "/extension/lua")
 	r := LuaExtensions{}
 	body, _, err := sc.do(ctx, node, "GET", u, nil, nil)
@@ -153,23 +157,25 @@ type ExtParam struct {
 
 // ExecLuaExtension executes the specified Lua extension and returns the
 // response as a JSON map.
-func (sc *SnowthClient) ExecLuaExtension(node *SnowthNode, name string,
-	params ...*ExtParam) (map[string]interface{}, error) {
-	return sc.ExecLuaExtensionContext(context.Background(), node, name,
-		params...)
+func (sc *SnowthClient) ExecLuaExtension(name string,
+	params []ExtParam, nodes ...*SnowthNode) (map[string]interface{}, error) {
+	return sc.ExecLuaExtensionContext(context.Background(), name,
+		params, nodes...)
 }
 
 // ExecLuaExtensionContext is the context aware version of ExecLuaExtension.
 func (sc *SnowthClient) ExecLuaExtensionContext(ctx context.Context,
-	node *SnowthNode, name string,
-	params ...*ExtParam) (map[string]interface{}, error) {
+	name string, params []ExtParam,
+	nodes ...*SnowthNode) (map[string]interface{}, error) {
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
 	u := sc.getURL(node, "/extension/lua/"+name)
 	if len(params) > 0 {
 		qp := url.Values{}
 		for _, p := range params {
-			if p != nil {
-				qp.Add(p.Name, p.Value)
-			}
+			qp.Add(p.Name, p.Value)
 		}
 
 		u += "?" + qp.Encode()

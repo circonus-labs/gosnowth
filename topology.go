@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type TopologyNodeSlot struct {
+type topologyNodeSlot struct {
 	Location [sha256.Size]byte
 	Node     *TopologyNode
 	Idx      uint16
@@ -27,8 +27,8 @@ type Topology struct {
 	WriteCopies    uint8          `xml:"write_copies,attr" json:"-"`
 	Hash           string         `xml:"-"`
 	Nodes          []TopologyNode `xml:"node"`
-	use_side       bool
-	ring           []TopologyNodeSlot
+	useSide        bool
+	ring           []topologyNodeSlot
 }
 
 func (topo *Topology) Len() int { return len(topo.ring) }
@@ -39,8 +39,10 @@ func (topo *Topology) Less(i, j int) bool {
 	return bytes.Compare(topo.ring[i].Location[:], topo.ring[j].Location[:]) < 0
 }
 
+// TopoSide represent the (both = 0, a = 1, b = 2) side of a snowth ring
 type TopoSide uint8
 
+// UnmarshalXMLAttr handle side enum to integral transformation
 func (i *TopoSide) UnmarshalXMLAttr(attr xml.Attr) error {
 	switch strings.ToLower(attr.Value) {
 	default:
@@ -52,6 +54,8 @@ func (i *TopoSide) UnmarshalXMLAttr(attr xml.Attr) error {
 	}
 	return nil
 }
+
+// MarshalXMLAttr handle side integral to enum transformation
 func (i TopoSide) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	var s string
 	switch i {
@@ -86,7 +90,7 @@ func (topo *Topology) compile() error {
 	for _, node := range topo.Nodes {
 		node.ID = strings.ToLower(node.ID)
 		if node.Side != 0 {
-			topo.use_side = true
+			topo.useSide = true
 		}
 		nslots += int(node.Weight)
 	}
@@ -97,7 +101,7 @@ func (topo *Topology) compile() error {
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, node.Weight)
 		hash.Write(netshort)
-		if topo.use_side {
+		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, uint16(node.Side))
 			hash.Write(netshort)
 		}
@@ -108,7 +112,7 @@ func (topo *Topology) compile() error {
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, uint16(topo.WriteCopies))
 		hash.Write(netshort)
-		if topo.use_side {
+		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, 0)
 			hash.Write(netshort)
 		}
@@ -121,16 +125,16 @@ func (topo *Topology) compile() error {
 		return errors.New("bad topology hash")
 	}
 
-	topo.ring = make([]TopologyNodeSlot, nslots)
+	topo.ring = make([]topologyNodeSlot, nslots)
 	i := 0
-	for node_idx, node := range topo.Nodes {
+	for nodeIdx, node := range topo.Nodes {
 		for w := uint16(0); w < node.Weight; w++ {
 			location := make([]byte, 38)
 			copy(location, node.ID)
 			binary.BigEndian.PutUint16(location[36:], w)
 			sum := sha256.Sum256(location)
 			copy(topo.ring[i].Location[:], sum[:])
-			topo.ring[i].Node = &topo.Nodes[node_idx]
+			topo.ring[i].Node = &topo.Nodes[nodeIdx]
 			topo.ring[i].Idx = w
 			if node.Side == 1 {
 				topo.ring[i].Location[0] &= 0x7f
@@ -180,9 +184,9 @@ func nodeListContains(list []TopologyNode, item TopologyNode) bool {
 	}
 	return false
 }
-func (topo *Topology) FindNext(location [sha256.Size]byte, found []TopologyNode) *TopologyNode {
+func (topo *Topology) findNext(location [sha256.Size]byte, found []TopologyNode) *TopologyNode {
 	side := 0
-	if topo.use_side {
+	if topo.useSide {
 		side = 1
 		if (location[0] & 0x80) != 0 {
 			side = 2
@@ -209,15 +213,39 @@ func (topo *Topology) FindNext(location [sha256.Size]byte, found []TopologyNode)
 	}
 	return nil
 }
+
+// FindMetricNodeIDs finds topo.WriteCopies nodes on which uuid-metric lives
+func (topo *Topology) FindMetricNodeIDs(uuid, metric string) ([]string, error) {
+	nodes, err := topo.FindN(strings.ToLower(uuid)+"-"+metric, int(topo.WriteCopies))
+	if nodes == nil {
+		if err == nil {
+			err = errors.New("FindN failed")
+		}
+		return nil, err
+	}
+	results := make([]string, len(nodes))
+	for i, node := range nodes {
+		results[i] = node.ID
+	}
+	return results, nil
+}
+
+// FindMetric finds topo.WriteCopies nodes on which uuid-metric lives
 func (topo *Topology) FindMetric(uuid, metric string) ([]TopologyNode, error) {
 	return topo.FindN(strings.ToLower(uuid)+"-"+metric, int(topo.WriteCopies))
 }
+
+// FindMetricN finds n nodes on which uuid-metric lives
 func (topo *Topology) FindMetricN(uuid, metric string, n int) ([]TopologyNode, error) {
 	return topo.FindN(strings.ToLower(uuid)+"-"+metric, n)
 }
+
+// Find finds topo.WriteCopies nodes on which s lives
 func (topo *Topology) Find(s string) ([]TopologyNode, error) {
 	return topo.FindN(s, int(topo.WriteCopies))
 }
+
+// FindN finds n nodes on which s lives
 func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 	if topo.ring == nil || len(topo.ring) < 1 {
 		return nil, errors.New("Empty topology")
@@ -225,7 +253,7 @@ func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 	location := sha256.Sum256([]byte(s))
 	nodes := make([]TopologyNode, 0)
 	for i := 0; i < n; i++ {
-		node := topo.FindNext(location, nodes)
+		node := topo.findNext(location, nodes)
 		if node == nil {
 			break
 		}
@@ -236,10 +264,18 @@ func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 }
 
 // GetTopologyInfo retrieves topology information from a node.
-func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (*Topology, error) {
+func (sc *SnowthClient) GetTopologyInfo(nodes ...*SnowthNode) (*Topology, error) {
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+	if node == nil {
+		return nil, errors.New("no active nodes")
+	}
 	return sc.GetTopologyInfoContext(context.Background(), node)
 }
 
+// TopologyLoadXML creates a new Topology directly from an XML buffer
 func TopologyLoadXML(xml string) (*Topology, error) {
 	r := &Topology{}
 
@@ -254,20 +290,17 @@ func TopologyLoadXML(xml string) (*Topology, error) {
 
 // GetTopologyInfoContext is the context aware version of GetTopologyInfo.
 func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
-	node *SnowthNode) (*Topology, error) {
+	nodes ...*SnowthNode) (*Topology, error) {
 	r := &Topology{}
-	if node == nil {
-		nodes := sc.ListActiveNodes()
-		if len(nodes) == 0 {
-			return nil, errors.New("no active nodes")
-		}
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
 	}
-	topology_id := node.GetCurrentTopology()
-	if topology_id == "" {
+	topologyID := node.GetCurrentTopology()
+	if topologyID == "" {
 		return nil, errors.New("no active topology")
 	}
-	if topology_id == sc.currentTopology && sc.currentTopologyCompiled != nil {
+	if topologyID == sc.currentTopology && sc.currentTopologyCompiled != nil {
 		return sc.currentTopologyCompiled, nil
 	}
 	body, _, err := sc.do(ctx, node, "GET",
@@ -282,7 +315,7 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	if err = r.compile(); err != nil {
 		return nil, err
 	}
-	sc.currentTopology = topology_id
+	sc.currentTopology = topologyID
 	sc.currentTopologyCompiled = r
 
 	return r, nil
@@ -290,7 +323,11 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 
 // LoadTopology loads a new topology on a node without activating it.
 func (sc *SnowthClient) LoadTopology(hash string, t *Topology,
-	node *SnowthNode) error {
+	nodes ...*SnowthNode) error {
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
 	return sc.LoadTopologyContext(context.Background(), hash, t, node)
 }
 

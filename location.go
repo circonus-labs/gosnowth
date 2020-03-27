@@ -7,7 +7,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func (sc *SnowthClient) LocateMetric(uuid string, metric string) ([]TopologyNode, error) {
+// LocateMetric returns a list of nodes owning the specified metric
+func (sc *SnowthClient) LocateMetric(uuid string, metric string,
+	node ...*SnowthNode) ([]TopologyNode, error) {
+	if len(node) > 0 {
+		return sc.LocateMetricRemote(uuid, metric, node[0])
+	}
 	topo, err := sc.Topology()
 	if err != nil {
 		return nil, err
@@ -15,13 +20,26 @@ func (sc *SnowthClient) LocateMetric(uuid string, metric string) ([]TopologyNode
 	return topo.FindMetric(uuid, metric)
 }
 
-// LocateMetric locates which nodes contain specified metric data.
+// LocateMetricContext is the context aware version of LocateMetric
+func (sc *SnowthClient) LocateMetricContext(ctx context.Context, uuid string,
+	metric string, node ...*SnowthNode) ([]TopologyNode, error) {
+	if len(node) > 0 {
+		return sc.LocateMetricRemoteContext(ctx, uuid, metric, node[0])
+	}
+	topo, err := sc.Topology()
+	if err != nil {
+		return nil, err
+	}
+	return topo.FindMetric(uuid, metric)
+}
+
+// LocateMetricRemote locates which nodes contain specified metric data.
 func (sc *SnowthClient) LocateMetricRemote(uuid string, metric string,
 	node *SnowthNode) ([]TopologyNode, error) {
 	return sc.LocateMetricRemoteContext(context.Background(), uuid, metric, node)
 }
 
-// LocateMetricContext is the context aware version of LocateMetric.
+// LocateMetricRemoteContext is the context aware version of LocateMetricRemote.
 func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context, uuid string,
 	metric string, node *SnowthNode) ([]TopologyNode, error) {
 	r := &Topology{}

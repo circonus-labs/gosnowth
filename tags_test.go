@@ -122,13 +122,13 @@ func TestFindTags(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.FindTags(node, 1, "test", &FindTagsOptions{
+	res, err := sc.FindTags(1, "test", &FindTagsOptions{
 		Start:     time.Unix(1, 0),
 		End:       time.Unix(2, 0),
 		Activity:  1,
 		Latest:    1,
 		CountOnly: 0,
-	})
+	}, node)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +170,7 @@ func TestFindTags(t *testing.T) {
 			res.Items[0].Activity[1][1])
 	}
 
-	res, err = sc.FindTags(node, 1, "test", &FindTagsOptions{})
+	res, err = sc.FindTags(1, "test", &FindTagsOptions{}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

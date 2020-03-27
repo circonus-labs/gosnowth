@@ -46,16 +46,22 @@ type TextValue struct {
 }
 
 // ReadTextValues reads text data values from an IRONdb node.
-func (sc *SnowthClient) ReadTextValues(node *SnowthNode, uuid, metric string,
-	start, end time.Time) ([]TextValue, error) {
-	return sc.ReadTextValuesContext(context.Background(), node, uuid, metric,
-		start, end)
+func (sc *SnowthClient) ReadTextValues(uuid, metric string,
+	start, end time.Time, nodes ...*SnowthNode) ([]TextValue, error) {
+	return sc.ReadTextValuesContext(context.Background(), uuid, metric,
+		start, end, nodes...)
 }
 
 // ReadTextValuesContext is the context aware version of ReadTextValues.
 func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
-	node *SnowthNode, uuid, metric string,
-	start, end time.Time) ([]TextValue, error) {
+	uuid, metric string,
+	start, end time.Time, nodes ...*SnowthNode) ([]TextValue, error) {
+
+	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	r := TextValueResponse{}
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),

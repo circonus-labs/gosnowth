@@ -185,16 +185,22 @@ func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
 }
 
 // FindTags retrieves metrics that are associated with the provided tag query.
-func (sc *SnowthClient) FindTags(node *SnowthNode, accountID int64,
-	query string, options *FindTagsOptions) (*FindTagsResult, error) {
-	return sc.FindTagsContext(context.Background(), node, accountID, query,
-		options)
+func (sc *SnowthClient) FindTags(accountID int64,
+	query string, options *FindTagsOptions, nodes ...*SnowthNode) (*FindTagsResult, error) {
+	return sc.FindTagsContext(context.Background(), accountID, query,
+		options, nodes...)
 }
 
 // FindTagsContext is the context aware version of FindTags.
-func (sc *SnowthClient) FindTagsContext(ctx context.Context, node *SnowthNode,
-	accountID int64, query string,
-	options *FindTagsOptions) (*FindTagsResult, error) {
+func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
+	query string, options *FindTagsOptions,
+	nodes ...*SnowthNode) (*FindTagsResult, error) {
+
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	u := fmt.Sprintf("%s?query=%s",
 		sc.getURL(node, fmt.Sprintf("/find/%d/tags", accountID)),
 		url.QueryEscape(query))

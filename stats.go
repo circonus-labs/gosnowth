@@ -7,13 +7,19 @@ import (
 )
 
 // GetStats retrieves the metrics about the status of an IRONdb node.
-func (sc *SnowthClient) GetStats(node *SnowthNode) (*Stats, error) {
-	return sc.GetStatsContext(context.Background(), node)
+func (sc *SnowthClient) GetStats(nodes ...*SnowthNode) (*Stats, error) {
+	return sc.GetStatsContext(context.Background(), nodes...)
 }
 
 // GetStatsContext is the context aware version of GetStats.
 func (sc *SnowthClient) GetStatsContext(ctx context.Context,
-	node *SnowthNode) (*Stats, error) {
+	nodes ...*SnowthNode) (*Stats, error) {
+
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	r := &Stats{}
 	body, _, err := sc.do(ctx, node, "GET", "/stats.json", nil, nil)
 	if err != nil {
