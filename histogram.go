@@ -80,18 +80,24 @@ func (hv *HistogramValue) Timestamp() string {
 }
 
 // ReadHistogramValues reads histogram data from a node.
-func (sc *SnowthClient) ReadHistogramValues(node *SnowthNode,
+func (sc *SnowthClient) ReadHistogramValues(
 	uuid, metric string, period time.Duration,
-	start, end time.Time) ([]HistogramValue, error) {
-	return sc.ReadHistogramValuesContext(context.Background(), node, uuid,
-		metric, period, start, end)
+	start, end time.Time, nodes ...*SnowthNode) ([]HistogramValue, error) {
+	return sc.ReadHistogramValuesContext(context.Background(), uuid,
+		metric, period, start, end, nodes...)
 }
 
 // ReadHistogramValuesContext is the context aware version of
 // ReadHistogramValues.
 func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
-	node *SnowthNode, uuid, metric string, period time.Duration,
-	start, end time.Time) ([]HistogramValue, error) {
+	uuid, metric string, period time.Duration,
+	start, end time.Time, nodes ...*SnowthNode) ([]HistogramValue, error) {
+
+	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	startTS := start.Unix() - start.Unix()%int64(period.Seconds())
 	endTS := end.Unix() - end.Unix()%int64(period.Seconds()) +
 		int64(period.Seconds())

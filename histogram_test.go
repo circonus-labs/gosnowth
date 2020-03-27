@@ -113,10 +113,10 @@ func TestReadHistogramValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.ReadHistogramValues(node,
+	res, err := sc.ReadHistogramValues(
 		"ae0f7f90-2a6b-481c-9cf5-21a31837020e", "example1",
 		300*time.Second, time.Unix(1556290800, 0),
-		time.Unix(1556291200, 0))
+		time.Unix(1556291200, 0), node)
 	if err != nil {
 		t.Fatal(err)
 	}
