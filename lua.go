@@ -157,7 +157,7 @@ type ExtParam struct {
 
 // ExecLuaExtension executes the specified Lua extension and returns the
 // response as a JSON map.
-func (sc *SnowthClient) ExecLuaExtension(node *SnowthNode, name string,
+func (sc *SnowthClient) ExecLuaExtension(name string,
 	params []ExtParam, nodes ...*SnowthNode) (map[string]interface{}, error) {
 	return sc.ExecLuaExtensionContext(context.Background(), name,
 		params, nodes...)
