@@ -81,29 +81,3 @@ func ExampleGetTopology() {
 		log.Println(topology)
 	}
 }
-
-// ExampleGetTopoRing demonstrates how to get topology ring details from a
-// node.
-func ExampleGetTopoRing() {
-	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
-
-	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
-	if err != nil {
-		log.Fatalf("failed to create snowth client: %v", err)
-	}
-
-	// Get the topology ring data from the node.
-	for _, node := range client.ListActiveNodes() {
-		tr, err := client.GetTopoRingInfo(node.GetCurrentTopology(), node)
-		if err != nil {
-			log.Fatalf("failed to get topology ring: %v", err)
-		}
-
-		log.Println(tr)
-	}
-}

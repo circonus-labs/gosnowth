@@ -58,13 +58,13 @@ func TestWriteRaw(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	_, err = sc.WriteRaw(node, bytes.NewBufferString("test"), true, 1)
+	_, err = sc.WriteRaw(bytes.NewBufferString("test"), true, 1, node)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	sc.SetRequestFunc(func(r *http.Request) error { return nil })
-	_, err = sc.WriteRaw(node, bytes.NewBufferString("error"), true, 1)
+	_, err = sc.WriteRaw(bytes.NewBufferString("error"), true, 1, node)
 	if err == nil {
 		t.Fatal("Expected error response")
 	}
@@ -75,7 +75,7 @@ func TestWriteRaw(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
-	_, err = sc.WriteRawContext(ctx, node, bytes.NewBufferString("test"), true, 1)
+	_, err = sc.WriteRawContext(ctx, bytes.NewBufferString("test"), true, 1, node)
 	if err == nil {
 		t.Fatal("Expected error response")
 	}

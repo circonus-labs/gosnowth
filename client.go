@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -295,20 +296,32 @@ func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 	}
 }
 
+// Topology returns the currently active topology
 func (sc *SnowthClient) Topology() (*Topology, error) {
 	if sc.currentTopologyCompiled != nil {
 		return sc.currentTopologyCompiled, nil
 	}
 	var lasterr error = nil
 	for _, node := range sc.ListActiveNodes() {
-		if topology, err := sc.GetTopologyInfo(node); err == nil {
+		if topology, lasterr := sc.GetTopologyInfo(node); lasterr == nil {
 			sc.currentTopologyCompiled = topology
 			return topology, nil
-		} else {
-			lasterr = err
 		}
 	}
 	return nil, lasterr
+}
+
+// FindMetricNodeIDs returns (possibly) as list of uuid node identifiers that own the metric
+func (sc *SnowthClient) FindMetricNodeIDs(uuid, metric string) []string {
+	topo, err := sc.Topology()
+	if topo == nil || err != nil {
+		return make([]string, 0)
+	}
+	results, err := topo.FindMetricNodeIDs(uuid, metric)
+	if results == nil || err != nil {
+		return make([]string, 0)
+	}
+	return results
 }
 
 // isNodeActive checks to see if a given node is active or not taking into
@@ -612,7 +625,6 @@ func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
 	for _, url := range sc.inactiveNodes {
 		result = append(result, url)
 	}
-
 	return result
 }
 
@@ -624,8 +636,26 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 	for _, url := range sc.activeNodes {
 		result = append(result, url)
 	}
-
 	return result
+}
+
+// GetActiveNode returns a random active node in the cluster
+func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
+	sc.RLock()
+	defer sc.RUnlock()
+	if len(sc.activeNodes) == 0 {
+		return nil
+	}
+	for _, ids := range idsets {
+		for _, id := range ids {
+			for _, node := range sc.activeNodes {
+				if node.identifier == id {
+					return node
+				}
+			}
+		}
+	}
+	return sc.activeNodes[rand.Intn(len(sc.activeNodes))]
 }
 
 // DoRequest sends a request to IRONdb.
@@ -748,9 +778,9 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		return nil, nil, errors.Wrap(err, "unable to read response body")
 	}
 
-	new_topo := resp.Header.Get("X-Topo-0")
-	if new_topo != "" && new_topo != sc.currentTopology {
-		sc.currentTopology = new_topo
+	newTopo := resp.Header.Get("X-Topo-0")
+	if newTopo != "" && newTopo != sc.currentTopology {
+		sc.currentTopology = newTopo
 		sc.currentTopologyCompiled = nil
 	}
 

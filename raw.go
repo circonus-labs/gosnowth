@@ -58,14 +58,20 @@ type RawNumericValue struct {
 }
 
 // ReadRawNumericValues reads raw numeric data from a node.
-func (sc *SnowthClient) ReadRawNumericValues(node *SnowthNode,
-	start time.Time, end time.Time, uuid string, metric string) ([]RawNumericValue, error) {
-	return sc.ReadRawNumericValuesContext(context.Background(), node, start, end, uuid, metric)
+func (sc *SnowthClient) ReadRawNumericValues(start time.Time, end time.Time,
+	uuid string, metric string, nodes ...*SnowthNode) ([]RawNumericValue, error) {
+	return sc.ReadRawNumericValuesContext(context.Background(), start, end, uuid, metric, nodes...)
 }
 
 // ReadRawNumericValuesContext is the context aware version of ReadRawNumericValues.
 func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
-	node *SnowthNode, start, end time.Time, uuid string, metric string) ([]RawNumericValue, error) {
+	start, end time.Time, uuid string, metric string, nodes ...*SnowthNode) ([]RawNumericValue, error) {
+
+	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	qp := url.Values{}
 	qp.Add("start_ts", formatTimestamp(start))
 	qp.Add("end_ts", formatTimestamp(end))
@@ -84,14 +90,19 @@ func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 }
 
 // WriteRaw writes raw IRONdb data to a node.
-func (sc *SnowthClient) WriteRaw(node *SnowthNode, data io.Reader,
-	fb bool, dataPoints uint64) (*IRONdbPutResponse, error) {
-	return sc.WriteRawContext(context.Background(), node, data, fb, dataPoints)
+func (sc *SnowthClient) WriteRaw(data io.Reader,
+	fb bool, dataPoints uint64, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
+	return sc.WriteRawContext(context.Background(), data, fb, dataPoints, nodes...)
 }
 
 // WriteRawContext is the context aware version of WriteRaw.
-func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
-	data io.Reader, fb bool, dataPoints uint64) (*IRONdbPutResponse, error) {
+func (sc *SnowthClient) WriteRawContext(ctx context.Context,
+	data io.Reader, fb bool, dataPoints uint64, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
+
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
 
 	hdrs := http.Header{"X-Snowth-Datapoints": {strconv.FormatUint(dataPoints, 10)}}
 	if fb { // is flatbuffer?
@@ -114,14 +125,14 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context, node *SnowthNode,
 var metricListFileIdentifier = []byte("CIML")
 
 // WriteRawMetricList writes raw IRONdb data to a node with FlatBuffers.
-func (sc *SnowthClient) WriteRawMetricList(node *SnowthNode, metricList *noit.MetricListT,
-	builder *flatbuffers.Builder) (*IRONdbPutResponse, error) {
-	return sc.WriteRawMetricListContext(context.Background(), node, metricList, builder)
+func (sc *SnowthClient) WriteRawMetricList(metricList *noit.MetricListT,
+	builder *flatbuffers.Builder, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
+	return sc.WriteRawMetricListContext(context.Background(), metricList, builder, nodes...)
 }
 
 // WriteRawMetricListContext is the context aware version of WriteRawMetricList.
-func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context, node *SnowthNode,
-	metricList *noit.MetricListT, builder *flatbuffers.Builder) (*IRONdbPutResponse, error) {
+func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context,
+	metricList *noit.MetricListT, builder *flatbuffers.Builder, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
 
 	if metricList == nil {
 		return nil, fmt.Errorf("metric list cannot be nil")
@@ -139,5 +150,5 @@ func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context, node *Sno
 	builder.FinishWithFileIdentifier(offset, metricListFileIdentifier)
 	reader := bytes.NewReader(builder.FinishedBytes())
 
-	return sc.WriteRawContext(ctx, node, reader, true, datapoints)
+	return sc.WriteRawContext(ctx, reader, true, datapoints, nodes...)
 }

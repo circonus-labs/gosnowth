@@ -29,7 +29,6 @@ func main() {
 	ExampleGetNodeState()
 	ExampleGetNodeGossip()
 	ExampleGetTopology()
-	ExampleGetTopoRing()
 	ExampleSubmitNNT()
 	ExampleSubmitHistogram()
 	ExampleReadNNT()

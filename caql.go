@@ -82,14 +82,19 @@ func (ce *CAQLError) Error() string {
 }
 
 // GetCAQLQuery retrieves data values for metrics matching a CAQL format.
-func (sc *SnowthClient) GetCAQLQuery(node *SnowthNode,
-	q *CAQLQuery) (*DF4Response, error) {
-	return sc.GetCAQLQueryContext(context.Background(), node, q)
+func (sc *SnowthClient) GetCAQLQuery(q *CAQLQuery, nodes ...*SnowthNode) (*DF4Response, error) {
+	return sc.GetCAQLQueryContext(context.Background(), q, nodes...)
 }
 
 // GetCAQLQueryContext is the context aware version of GetCAQLQuery.
 func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context,
-	node *SnowthNode, q *CAQLQuery) (*DF4Response, error) {
+	q *CAQLQuery, nodes ...*SnowthNode) (*DF4Response, error) {
+
+	node := sc.GetActiveNode()
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	if q == nil {
 		q = &CAQLQuery{}
 	}

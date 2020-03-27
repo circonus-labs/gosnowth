@@ -169,7 +169,7 @@ func TestExecLuaExtensionContext(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.ExecLuaExtension(node, "test",
-		&ExtParam{Name: "test", Value: "1"})
+		[]ExtParam{ExtParam{Name: "test", Value: "1"}})
 	if err != nil {
 		t.Fatal(err)
 	}

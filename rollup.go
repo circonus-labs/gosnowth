@@ -185,17 +185,22 @@ func (rv *RollupAllValue) Timestamp() string {
 }
 
 // ReadRollupValues reads rollup data from a node.
-func (sc *SnowthClient) ReadRollupValues(node *SnowthNode,
-	uuid, metric string, period time.Duration,
-	start, end time.Time, dataType string) ([]RollupValue, error) {
-	return sc.ReadRollupValuesContext(context.Background(), node, uuid, metric,
-		period, start, end, dataType)
+func (sc *SnowthClient) ReadRollupValues(uuid, metric string, period time.Duration,
+	start, end time.Time, dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
+	return sc.ReadRollupValuesContext(context.Background(), uuid, metric,
+		period, start, end, dataType, nodes...)
 }
 
 // ReadRollupValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
-	node *SnowthNode, uuid, metric string, period time.Duration,
-	start, end time.Time, dataType string) ([]RollupValue, error) {
+	uuid, metric string, period time.Duration,
+	start, end time.Time, dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
+
+	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	if dataType == "" {
 		dataType = "average"
 	}
@@ -229,16 +234,22 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 
 // ReadRollupAllValues reads rollup data from a node.
 func (sc *SnowthClient) ReadRollupAllValues(
-	node *SnowthNode, uuid, metric string, period time.Duration,
-	start, end time.Time) ([]RollupAllValue, error) {
-	return sc.ReadRollupAllValuesContext(context.Background(), node, uuid,
-		metric, period, start, end)
+	uuid, metric string, period time.Duration,
+	start, end time.Time, nodes ...*SnowthNode) ([]RollupAllValue, error) {
+	return sc.ReadRollupAllValuesContext(context.Background(), uuid,
+		metric, period, start, end, nodes...)
 }
 
 // ReadRollupAllValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
-	node *SnowthNode, uuid, metric string, period time.Duration,
-	start, end time.Time) ([]RollupAllValue, error) {
+	uuid, metric string, period time.Duration,
+	start, end time.Time, nodes ...*SnowthNode) ([]RollupAllValue, error) {
+
+	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
+
 	startTS := start.Unix() - start.Unix()%int64(period/time.Second)
 	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
 		int64(period/time.Second)

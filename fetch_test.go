@@ -83,7 +83,7 @@ func TestFetchQuery(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.FetchValues(node, &FetchQuery{
+	res, err := sc.FetchValues(&FetchQuery{
 		Start:  time.Unix(0, 0),
 		Period: 300 * time.Second,
 		Count:  3,
@@ -98,7 +98,7 @@ func TestFetchQuery(t *testing.T) {
 			Label:  "test",
 			Method: "average",
 		}},
-	})
+	}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -127,14 +127,22 @@ func (fq *FetchQuery) Timestamp() string {
 }
 
 // FetchValues retrieves data values using the IRONdb fetch API.
-func (sc *SnowthClient) FetchValues(node *SnowthNode,
-	q *FetchQuery) (*DF4Response, error) {
-	return sc.FetchValuesContext(context.Background(), node, q)
+func (sc *SnowthClient) FetchValues(q *FetchQuery, nodes ...*SnowthNode) (*DF4Response, error) {
+	return sc.FetchValuesContext(context.Background(), q, nodes...)
 }
 
 // FetchValuesContext is the context aware version of FetchValues.
 func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
-	node *SnowthNode, q *FetchQuery) (*DF4Response, error) {
+	q *FetchQuery, nodes ...*SnowthNode) (*DF4Response, error) {
+	var node *SnowthNode
+	if len(q.Streams) > 0 {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(q.Streams[0].UUID, q.Streams[0].Name))
+	} else {
+		node = sc.GetActiveNode()
+	}
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	}
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(&q); err != nil {
 		return nil, err

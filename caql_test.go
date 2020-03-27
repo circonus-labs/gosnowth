@@ -81,13 +81,13 @@ func TestGetCAQLQuery(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.GetCAQLQuery(node, &CAQLQuery{
+	res, err := sc.GetCAQLQuery(&CAQLQuery{
 		AccountID: 1,
 		Query:     "test",
 		Start:     0,
 		End:       900,
 		Period:    300,
-	})
+	}, node)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -117,13 +117,13 @@ func TestGetCAQLQuery(t *testing.T) {
 		t.Errorf("Expected meta label: test, got: %v", res.Meta[0].Label)
 	}
 
-	_, err = sc.GetCAQLQuery(node, &CAQLQuery{
+	_, err = sc.GetCAQLQuery(&CAQLQuery{
 		AccountID: 1,
 		Query:     "find:histograms()",
 		Start:     0,
 		End:       900,
 		Period:    300,
-	})
+	}, node)
 	if err == nil {
 		t.Fatal("Expected CAQL error response")
 	}

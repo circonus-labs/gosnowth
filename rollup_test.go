@@ -190,9 +190,9 @@ func TestReadRollupValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.ReadRollupValues(node,
+	res, err := sc.ReadRollupValues(
 		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", time.Second,
-		time.Unix(1529509020, 0), time.Unix(1529509200, 0), "average")
+		time.Unix(1529509020, 0), time.Unix(1529509200, 0), "average", node)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,9 +244,9 @@ func TestReadRollupAllValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.ReadRollupAllValues(node,
+	res, err := sc.ReadRollupAllValues(
 		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", time.Second,
-		time.Unix(1529509020, 0), time.Unix(1529509200, 0))
+		time.Unix(1529509020, 0), time.Unix(1529509200, 0), node)
 	if err != nil {
 		t.Fatal(err)
 	}
