@@ -240,6 +240,18 @@ func (sc *SnowthClient) GetTopologyInfo(node *SnowthNode) (*Topology, error) {
 	return sc.GetTopologyInfoContext(context.Background(), node)
 }
 
+func TopologyLoadXML(xml string) (*Topology, error) {
+	r := &Topology{}
+
+	if err := decodeXML(strings.NewReader(xml), &r); err != nil {
+		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	}
+	if err := r.compile(); err != nil {
+		return nil, err
+	}
+	return r, nil
+}
+
 // GetTopologyInfoContext is the context aware version of GetTopologyInfo.
 func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	node *SnowthNode) (*Topology, error) {

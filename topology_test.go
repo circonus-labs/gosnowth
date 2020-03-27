@@ -158,6 +158,18 @@ func checkLocationAgainstNode(t *testing.T, sc *SnowthClient, uuid string, metri
 		}
 	}
 }
+func BenchmarkLookup1(b *testing.B) {
+	b.StopTimer()
+	id := uuid.New().String()
+	topo, err := TopologyLoadXML(topologyXMLTestData)
+	if err != nil {
+		b.Fatal("cannot load topology for benchmark")
+	}
+	b.StartTimer()
+	for n := 0; n < b.N; n++ {
+		topo.FindMetric(id, "this.is.a.metric|ST[nice:andhappy,with:tags]")
+	}
+}
 func TestLiveNode(t *testing.T) {
 	base := os.Getenv("SNOWTH_URL")
 	if base == "" {
