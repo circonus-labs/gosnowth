@@ -23,23 +23,22 @@ func TestReadTextValues(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/read/1/2/3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d/test") {
-			w.Write([]byte(textTestData))
+			_, _ = w.Write([]byte(textTestData))
 			return
 		}
 
 		w.WriteHeader(500)
-		return
 	}))
 
 	defer ms.Close()
@@ -77,12 +76,12 @@ func TestWriteText(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -93,7 +92,6 @@ func TestWriteText(t *testing.T) {
 		}
 
 		w.WriteHeader(500)
-		return
 	}))
 
 	defer ms.Close()

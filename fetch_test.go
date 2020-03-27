@@ -55,18 +55,18 @@ func TestFetchQuery(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/fetch") {
-			w.Write([]byte(testDF4Response))
+			_, _ = w.Write([]byte(testDF4Response))
 			return
 		}
 	}))

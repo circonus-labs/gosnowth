@@ -14,12 +14,12 @@ func TestRebuildActivity(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -31,18 +31,17 @@ func TestRebuildActivity(t *testing.T) {
 
 			if string(b) == "[]\n" {
 				w.WriteHeader(200)
-				w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
+				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
 				return
 			}
 
 			w.WriteHeader(500)
-			w.Write([]byte("invalid request body"))
+			_, _ = w.Write([]byte("invalid request body"))
 			return
 		}
 
 		t.Errorf("Unexpected request: %v", r)
 		w.WriteHeader(500)
-		return
 	}))
 
 	defer ms.Close()

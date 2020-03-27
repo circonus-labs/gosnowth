@@ -96,25 +96,44 @@ func (topo *Topology) compile() error {
 	}
 	hash := sha256.New()
 	for _, node := range topo.Nodes {
-		hash.Write([]byte(node.ID))
-		hash.Write([]byte{0, 0})
+		if _, err := hash.Write([]byte(node.ID)); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
+		if _, err := hash.Write([]byte{0, 0}); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, node.Weight)
-		hash.Write(netshort)
+		if _, err := hash.Write(netshort); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, uint16(node.Side))
-			hash.Write(netshort)
+			if _, err := hash.Write(netshort); err != nil {
+				return errors.Wrap(err, "unable to write hash")
+			}
 		}
 	}
 	// This matches the horrible backware compatibility requirements in the C version
 	if topo.WriteCopies != 2 {
-		hash.Write(bytes.Repeat([]byte{0}, 38))
+		if _, err := hash.Write(bytes.Repeat([]byte{0}, 38)); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, uint16(topo.WriteCopies))
-		hash.Write(netshort)
+		if _, err := hash.Write(netshort); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, 0)
-			hash.Write(netshort)
+			if _, err := hash.Write(netshort); err != nil {
+				return errors.Wrap(err, "unable to write hash")
+			}
 		}
 	}
 	sum := hex.EncodeToString(hash.Sum(nil))
@@ -152,7 +171,7 @@ func (topo *Topology) binSearchNext(location [sha256.Size]byte) (match, next int
 	start := 0
 	end := len(topo.ring) - 1
 	mid := len(topo.ring) / 2
-	cmp := -1
+	var cmp int
 	for start <= end {
 		cmp = bytes.Compare(location[:], topo.ring[mid].Location[:])
 

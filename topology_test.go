@@ -167,7 +167,8 @@ func BenchmarkLookup1(b *testing.B) {
 	}
 	b.StartTimer()
 	for n := 0; n < b.N; n++ {
-		topo.FindMetric(id, "this.is.a.metric|ST[nice:andhappy,with:tags]")
+		_, _ = topo.FindMetric(id,
+			"this.is.a.metric|ST[nice:andhappy,with:tags]")
 	}
 }
 func TestLiveNode(t *testing.T) {
@@ -195,18 +196,18 @@ func TestTopology(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/xml") {
-			w.Write([]byte(topologyXMLTestData))
+			_, _ = w.Write([]byte(topologyXMLTestData))
 			return
 		}
 
@@ -223,7 +224,6 @@ func TestTopology(t *testing.T) {
 		}
 
 		w.WriteHeader(500)
-		return
 	}))
 
 	defer ms.Close()

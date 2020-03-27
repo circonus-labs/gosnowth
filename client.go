@@ -622,9 +622,7 @@ func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
 	result := []*SnowthNode{}
-	for _, url := range sc.inactiveNodes {
-		result = append(result, url)
-	}
+	result = append(result, sc.inactiveNodes...)
 	return result
 }
 
@@ -633,9 +631,7 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
 	result := []*SnowthNode{}
-	for _, url := range sc.activeNodes {
-		result = append(result, url)
-	}
+	result = append(result, sc.activeNodes...)
 	return result
 }
 

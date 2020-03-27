@@ -49,12 +49,12 @@ func TestSnowthClientRequest(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -63,7 +63,7 @@ func TestSnowthClientRequest(t *testing.T) {
 				t.Error("Expected X-Test-Header:test")
 			}
 
-			w.Write([]byte(tagsTestData))
+			_, _ = w.Write([]byte(tagsTestData))
 			return
 		}
 	}))
@@ -126,31 +126,31 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
-			w.Write([]byte(tagsTestData))
+			_, _ = w.Write([]byte(tagsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/topology/xml/") {
-			w.Write([]byte(topologyXMLTestData))
+			_, _ = w.Write([]byte(topologyXMLTestData))
 			return
 		}
 
 		if r.RequestURI == "/gossip/json" {
 			if r.Header.Get("ALT") != "" {
-				w.Write([]byte(gossipTestAltData))
+				_, _ = w.Write([]byte(gossipTestAltData))
 			}
 
-			w.Write([]byte(gossipTestData))
+			_, _ = w.Write([]byte(gossipTestData))
 			return
 		}
 	}))
@@ -247,22 +247,22 @@ func TestSnowthClientLog(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
-			w.Write([]byte(tagsTestData))
+			_, _ = w.Write([]byte(tagsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/topology/xml/") {
-			w.Write([]byte(topologyXMLTestData))
+			_, _ = w.Write([]byte(topologyXMLTestData))
 			return
 		}
 	}))
@@ -304,12 +304,12 @@ func TestSnowthClientSetWatch(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -318,7 +318,7 @@ func TestSnowthClientSetWatch(t *testing.T) {
 				t.Error("Expected X-Test-Header:test")
 			}
 
-			w.Write([]byte(tagsTestData))
+			_, _ = w.Write([]byte(tagsTestData))
 			return
 		}
 	}))

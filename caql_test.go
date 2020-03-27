@@ -40,12 +40,12 @@ func TestGetCAQLQuery(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -54,17 +54,17 @@ func TestGetCAQLQuery(t *testing.T) {
 			b, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
-				w.Write([]byte(testCAQLError))
+				_, _ = w.Write([]byte(testCAQLError))
 				return
 			}
 
 			if strings.Contains(string(b), "histograms") {
 				w.WriteHeader(502)
-				w.Write([]byte(testCAQLError))
+				_, _ = w.Write([]byte(testCAQLError))
 				return
 			}
 
-			w.Write([]byte(testDF4Response))
+			_, _ = w.Write([]byte(testDF4Response))
 			return
 		}
 	}))

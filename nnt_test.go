@@ -127,26 +127,26 @@ func TestNNTReadWrite(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		u := "/read/1529509020/1529509200/1/" +
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/count/test"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(nntTestData))
+			_, _ = w.Write([]byte(nntTestData))
 			return
 		}
 
 		u = "/read/1529509020/1529509200/1/" +
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/all/test"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(nntTestAllData))
+			_, _ = w.Write([]byte(nntTestAllData))
 			return
 		}
 
