@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -59,14 +60,17 @@ type RawNumericValue struct {
 
 // ReadRawNumericValues reads raw numeric data from a node.
 func (sc *SnowthClient) ReadRawNumericValues(start time.Time, end time.Time,
-	uuid string, metric string, nodes ...*SnowthNode) ([]RawNumericValue, error) {
-	return sc.ReadRawNumericValuesContext(context.Background(), start, end, uuid, metric, nodes...)
+	uuid string, metric string,
+	nodes ...*SnowthNode) ([]RawNumericValue, error) {
+	return sc.ReadRawNumericValuesContext(context.Background(), start, end,
+		uuid, metric, nodes...)
 }
 
-// ReadRawNumericValuesContext is the context aware version of ReadRawNumericValues.
+// ReadRawNumericValuesContext is the context aware version of
+// ReadRawNumericValues.
 func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
-	start, end time.Time, uuid string, metric string, nodes ...*SnowthNode) ([]RawNumericValue, error) {
-
+	start, end time.Time, uuid, metric string,
+	nodes ...*SnowthNode) ([]RawNumericValue, error) {
 	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -97,8 +101,8 @@ func (sc *SnowthClient) WriteRaw(data io.Reader,
 
 // WriteRawContext is the context aware version of WriteRaw.
 func (sc *SnowthClient) WriteRawContext(ctx context.Context,
-	data io.Reader, fb bool, dataPoints uint64, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
-
+	data io.Reader, fb bool, dataPoints uint64,
+	nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
 	node := sc.GetActiveNode()
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -122,8 +126,6 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context,
 	return r, nil
 }
 
-var metricListFileIdentifier = []byte("CIML")
-
 // WriteRawMetricList writes raw IRONdb data to a node with FlatBuffers.
 func (sc *SnowthClient) WriteRawMetricList(metricList *noit.MetricListT,
 	builder *flatbuffers.Builder, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
@@ -132,8 +134,8 @@ func (sc *SnowthClient) WriteRawMetricList(metricList *noit.MetricListT,
 
 // WriteRawMetricListContext is the context aware version of WriteRawMetricList.
 func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context,
-	metricList *noit.MetricListT, builder *flatbuffers.Builder, nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
-
+	metricList *noit.MetricListT, builder *flatbuffers.Builder,
+	nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
 	if metricList == nil {
 		return nil, fmt.Errorf("metric list cannot be nil")
 	}
@@ -147,7 +149,7 @@ func (sc *SnowthClient) WriteRawMetricListContext(ctx context.Context,
 		builder.Reset()
 	}
 	offset := noit.MetricListPack(builder, metricList)
-	builder.FinishWithFileIdentifier(offset, metricListFileIdentifier)
+	builder.FinishWithFileIdentifier(offset, []byte("CIML"))
 	reader := bytes.NewReader(builder.FinishedBytes())
 
 	return sc.WriteRawContext(ctx, reader, true, datapoints, nodes...)

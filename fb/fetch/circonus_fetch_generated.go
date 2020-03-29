@@ -7,13 +7,15 @@ import (
 )
 
 type ReduceRequestT struct {
-	Label string
-	Method string
+	Label        string
+	Method       string
 	MethodParams []string
 }
 
 func ReduceRequestPack(builder *flatbuffers.Builder, t *ReduceRequestT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	labelOffset := builder.CreateString(t.Label)
 	methodOffset := builder.CreateString(t.Method)
 	methodParamsOffset := flatbuffers.UOffsetT(0)
@@ -37,7 +39,9 @@ func ReduceRequestPack(builder *flatbuffers.Builder, t *ReduceRequestT) flatbuff
 }
 
 func (rcv *ReduceRequest) UnPack() *ReduceRequestT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ReduceRequestT{}
 	t.Label = string(rcv.Label())
 	t.Method = string(rcv.Method())
@@ -120,17 +124,20 @@ func ReduceRequestStartMethodParamsVector(builder *flatbuffers.Builder, numElems
 func ReduceRequestEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type StreamRequestT struct {
-	CheckUuid []byte
-	Name string
-	Kind Kind
-	Transform string
+	CheckUuid       []byte
+	Name            string
+	Kind            Kind
+	Transform       string
 	TransformParams []string
-	Label string
+	Label           string
 }
 
 func StreamRequestPack(builder *flatbuffers.Builder, t *StreamRequestT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	checkUuidOffset := flatbuffers.UOffsetT(0)
 	if t.CheckUuid != nil {
 		checkUuidOffset = builder.CreateByteString(t.CheckUuid)
@@ -162,7 +169,9 @@ func StreamRequestPack(builder *flatbuffers.Builder, t *StreamRequestT) flatbuff
 }
 
 func (rcv *StreamRequest) UnPack() *StreamRequestT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &StreamRequestT{}
 	t.CheckUuid = rcv.CheckUuidBytes()
 	t.Name = string(rcv.Name())
@@ -314,16 +323,19 @@ func StreamRequestAddLabel(builder *flatbuffers.Builder, label flatbuffers.UOffs
 func StreamRequestEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type FetchT struct {
-	StartMs uint64
+	StartMs  uint64
 	PeriodMs uint32
-	Count uint32
-	Streams []*StreamRequestT
-	Reduce []*ReduceRequestT
+	Count    uint32
+	Streams  []*StreamRequestT
+	Reduce   []*ReduceRequestT
 }
 
 func FetchPack(builder *flatbuffers.Builder, t *FetchT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	streamsOffset := flatbuffers.UOffsetT(0)
 	if t.Streams != nil {
 		streamsLength := len(t.Streams)
@@ -360,7 +372,9 @@ func FetchPack(builder *flatbuffers.Builder, t *FetchT) flatbuffers.UOffsetT {
 }
 
 func (rcv *Fetch) UnPack() *FetchT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &FetchT{}
 	t.StartMs = rcv.StartMs()
 	t.PeriodMs = rcv.PeriodMs()

@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -195,7 +196,7 @@ func TestWriteHistogram(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	err = sc.WriteHistogram(node, v...)
+	err = sc.WriteHistogram(v, node)
 	if err != nil {
 		t.Fatal(err)
 	}

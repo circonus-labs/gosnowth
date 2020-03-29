@@ -11,7 +11,9 @@ type MetricListT struct {
 }
 
 func MetricListPack(builder *flatbuffers.Builder, t *MetricListT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	metricsOffset := flatbuffers.UOffsetT(0)
 	if t.Metrics != nil {
 		metricsLength := len(t.Metrics)
@@ -31,7 +33,9 @@ func MetricListPack(builder *flatbuffers.Builder, t *MetricListT) flatbuffers.UO
 }
 
 func (rcv *MetricList) UnPack() *MetricListT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MetricListT{}
 	metricsLength := rcv.MetricsLength()
 	t.Metrics = make([]*MetricT, metricsLength)

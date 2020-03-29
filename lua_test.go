@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -169,7 +170,7 @@ func TestExecLuaExtensionContext(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.ExecLuaExtension("test",
-		[]ExtParam{ExtParam{Name: "test", Value: "1"}}, node)
+		[]ExtParam{{Name: "test", Value: "1"}}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

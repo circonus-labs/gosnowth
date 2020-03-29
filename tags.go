@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -185,8 +186,8 @@ func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
 }
 
 // FindTags retrieves metrics that are associated with the provided tag query.
-func (sc *SnowthClient) FindTags(accountID int64,
-	query string, options *FindTagsOptions, nodes ...*SnowthNode) (*FindTagsResult, error) {
+func (sc *SnowthClient) FindTags(accountID int64, query string,
+	options *FindTagsOptions, nodes ...*SnowthNode) (*FindTagsResult, error) {
 	return sc.FindTagsContext(context.Background(), accountID, query,
 		options, nodes...)
 }
@@ -195,7 +196,6 @@ func (sc *SnowthClient) FindTags(accountID int64,
 func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	query string, options *FindTagsOptions,
 	nodes ...*SnowthNode) (*FindTagsResult, error) {
-
 	node := sc.GetActiveNode()
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]

@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -34,7 +35,7 @@ type LuaExtension struct {
 type LuaExtensions map[string]*LuaExtension
 
 // UnmarshalJSON decodes a byte slice of JSON data into a LuaExtensions map.
-func (le *LuaExtensions) UnmarshalJSON(b []byte) error {
+func (le *LuaExtensions) UnmarshalJSON(b []byte) error { // nolint gocyclo
 	r := map[string]interface{}{}
 	err := json.NewDecoder(bytes.NewBuffer(b)).Decode(&r)
 	if err != nil {

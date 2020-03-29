@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -54,9 +55,8 @@ func (sc *SnowthClient) ReadTextValues(uuid, metric string,
 
 // ReadTextValuesContext is the context aware version of ReadTextValues.
 func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
-	uuid, metric string,
-	start, end time.Time, nodes ...*SnowthNode) ([]TextValue, error) {
-
+	uuid, metric string, start, end time.Time,
+	nodes ...*SnowthNode) ([]TextValue, error) {
 	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -86,13 +86,21 @@ type TextData struct {
 }
 
 // WriteText writes text data to an IRONdb node.
-func (sc *SnowthClient) WriteText(node *SnowthNode, data ...TextData) error {
-	return sc.WriteTextContext(context.Background(), node, data...)
+func (sc *SnowthClient) WriteText(data []TextData, nodes ...*SnowthNode) error {
+	return sc.WriteTextContext(context.Background(), data, nodes...)
 }
 
 // WriteTextContext is the context aware version of WriteText.
-func (sc *SnowthClient) WriteTextContext(ctx context.Context, node *SnowthNode,
-	data ...TextData) error {
+func (sc *SnowthClient) WriteTextContext(ctx context.Context,
+	data []TextData, nodes ...*SnowthNode) error {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else if len(data) > 0 {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(data[0].ID,
+			data[0].Metric))
+	}
+
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode TextData for write")

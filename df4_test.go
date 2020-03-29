@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -97,7 +98,6 @@ func TestMarshalDF4Response(t *testing.T) {
 	if buf.String() != exp {
 		t.Errorf("Expected JSON: %s, got: %s", exp, buf.String())
 	}
-
 }
 
 func TestUnmarshalDF4Timeseries(t *testing.T) {

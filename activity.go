@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -13,18 +14,20 @@ type RebuildActivityRequest struct {
 }
 
 // RebuildActivity rebuilds IRONdb activity tracking data for a list of metrics.
-func (sc *SnowthClient) RebuildActivity(node *SnowthNode, rebuildRequest []RebuildActivityRequest) (*IRONdbPutResponse, error) {
+func (sc *SnowthClient) RebuildActivity(node *SnowthNode,
+	rebuildRequest []RebuildActivityRequest) (*IRONdbPutResponse, error) {
 	return sc.RebuildActivityContext(context.Background(), node, rebuildRequest)
 }
 
 // RebuildActivityContext is the context aware version of RebuildActivity.
-func (sc *SnowthClient) RebuildActivityContext(ctx context.Context, node *SnowthNode,
+func (sc *SnowthClient) RebuildActivityContext(ctx context.Context,
+	node *SnowthNode,
 	rebuildRequest []RebuildActivityRequest) (*IRONdbPutResponse, error) {
-
 	data, err := encodeJSON(rebuildRequest)
 	if err != nil {
 		return nil, err
 	}
+
 	body, _, err := sc.do(ctx, node, "POST", "/surrogate/activity_rebuild", data, nil)
 	if err != nil {
 		return nil, err

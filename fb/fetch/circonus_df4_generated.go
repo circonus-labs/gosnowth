@@ -42,7 +42,7 @@ func (v Kind) String() string {
 }
 
 type SeriesT struct {
-	Type Series
+	Type  Series
 	Value interface{}
 }
 
@@ -65,13 +65,13 @@ func SeriesUnPack(t Series, table flatbuffers.Table) *SeriesT {
 	switch t {
 	case SeriesNumericSeries:
 		x := NumericSeries{_tab: table}
-		return &SeriesT{ Type: SeriesNumericSeries, Value: x.UnPack() }
+		return &SeriesT{Type: SeriesNumericSeries, Value: x.UnPack()}
 	case SeriesHistSeries:
 		x := HistSeries{_tab: table}
-		return &SeriesT{ Type: SeriesHistSeries, Value: x.UnPack() }
+		return &SeriesT{Type: SeriesHistSeries, Value: x.UnPack()}
 	case SeriesTextSeries:
 		x := TextSeries{_tab: table}
-		return &SeriesT{ Type: SeriesTextSeries, Value: x.UnPack() }
+		return &SeriesT{Type: SeriesTextSeries, Value: x.UnPack()}
 	}
 	return nil
 }
@@ -111,7 +111,9 @@ type HistSeriesT struct {
 }
 
 func HistSeriesPack(builder *flatbuffers.Builder, t *HistSeriesT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	valuesOffset := flatbuffers.UOffsetT(0)
 	if t.Values != nil {
 		valuesLength := len(t.Values)
@@ -131,7 +133,9 @@ func HistSeriesPack(builder *flatbuffers.Builder, t *HistSeriesT) flatbuffers.UO
 }
 
 func (rcv *HistSeries) UnPack() *HistSeriesT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &HistSeriesT{}
 	valuesLength := rcv.ValuesLength()
 	t.Values = make([]*HistogramT, valuesLength)
@@ -195,13 +199,16 @@ func HistSeriesStartValuesVector(builder *flatbuffers.Builder, numElems int) fla
 func HistSeriesEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type TextEntryT struct {
 	InternalOffsetMs uint64
-	Value string
+	Value            string
 }
 
 func TextEntryPack(builder *flatbuffers.Builder, t *TextEntryT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	valueOffset := builder.CreateString(t.Value)
 	TextEntryStart(builder)
 	TextEntryAddInternalOffsetMs(builder, t.InternalOffsetMs)
@@ -210,7 +217,9 @@ func TextEntryPack(builder *flatbuffers.Builder, t *TextEntryT) flatbuffers.UOff
 }
 
 func (rcv *TextEntry) UnPack() *TextEntryT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TextEntryT{}
 	t.InternalOffsetMs = rcv.InternalOffsetMs()
 	t.Value = string(rcv.Value())
@@ -269,12 +278,15 @@ func TextEntryAddValue(builder *flatbuffers.Builder, value flatbuffers.UOffsetT)
 func TextEntryEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type TextMultiValueT struct {
 	Entries []*TextEntryT
 }
 
 func TextMultiValuePack(builder *flatbuffers.Builder, t *TextMultiValueT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	entriesOffset := flatbuffers.UOffsetT(0)
 	if t.Entries != nil {
 		entriesLength := len(t.Entries)
@@ -294,7 +306,9 @@ func TextMultiValuePack(builder *flatbuffers.Builder, t *TextMultiValueT) flatbu
 }
 
 func (rcv *TextMultiValue) UnPack() *TextMultiValueT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TextMultiValueT{}
 	entriesLength := rcv.EntriesLength()
 	t.Entries = make([]*TextEntryT, entriesLength)
@@ -358,12 +372,15 @@ func TextMultiValueStartEntriesVector(builder *flatbuffers.Builder, numElems int
 func TextMultiValueEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type TextSeriesT struct {
 	Values []*TextMultiValueT
 }
 
 func TextSeriesPack(builder *flatbuffers.Builder, t *TextSeriesT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	valuesOffset := flatbuffers.UOffsetT(0)
 	if t.Values != nil {
 		valuesLength := len(t.Values)
@@ -383,7 +400,9 @@ func TextSeriesPack(builder *flatbuffers.Builder, t *TextSeriesT) flatbuffers.UO
 }
 
 func (rcv *TextSeries) UnPack() *TextSeriesT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &TextSeriesT{}
 	valuesLength := rcv.ValuesLength()
 	t.Values = make([]*TextMultiValueT, valuesLength)
@@ -447,12 +466,15 @@ func TextSeriesStartValuesVector(builder *flatbuffers.Builder, numElems int) fla
 func TextSeriesEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type NumericSeriesT struct {
 	Values []float64
 }
 
 func NumericSeriesPack(builder *flatbuffers.Builder, t *NumericSeriesT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	valuesOffset := flatbuffers.UOffsetT(0)
 	if t.Values != nil {
 		valuesLength := len(t.Values)
@@ -468,7 +490,9 @@ func NumericSeriesPack(builder *flatbuffers.Builder, t *NumericSeriesT) flatbuff
 }
 
 func (rcv *NumericSeries) UnPack() *NumericSeriesT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &NumericSeriesT{}
 	valuesLength := rcv.ValuesLength()
 	t.Values = make([]float64, valuesLength)
@@ -536,13 +560,16 @@ func NumericSeriesStartValuesVector(builder *flatbuffers.Builder, numElems int) 
 func NumericSeriesEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type SeriesContainerT struct {
 	Kind Kind
 	Data *SeriesT
 }
 
 func SeriesContainerPack(builder *flatbuffers.Builder, t *SeriesContainerT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	dataOffset := SeriesPack(builder, t.Data)
 
 	SeriesContainerStart(builder)
@@ -555,7 +582,9 @@ func SeriesContainerPack(builder *flatbuffers.Builder, t *SeriesContainerT) flat
 }
 
 func (rcv *SeriesContainer) UnPack() *SeriesContainerT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &SeriesContainerT{}
 	t.Kind = rcv.Kind()
 	dataTable := flatbuffers.Table{}
@@ -633,13 +662,16 @@ func SeriesContainerAddData(builder *flatbuffers.Builder, data flatbuffers.UOffs
 func SeriesContainerEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type KVPairT struct {
-	Key string
+	Key   string
 	Value string
 }
 
 func KVPairPack(builder *flatbuffers.Builder, t *KVPairT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	keyOffset := builder.CreateString(t.Key)
 	valueOffset := builder.CreateString(t.Value)
 	KVPairStart(builder)
@@ -649,7 +681,9 @@ func KVPairPack(builder *flatbuffers.Builder, t *KVPairT) flatbuffers.UOffsetT {
 }
 
 func (rcv *KVPair) UnPack() *KVPairT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &KVPairT{}
 	t.Key = string(rcv.Key())
 	t.Value = string(rcv.Value())
@@ -704,17 +738,20 @@ func KVPairAddValue(builder *flatbuffers.Builder, value flatbuffers.UOffsetT) {
 func KVPairEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type GlobalMetaDataT struct {
-	StartMs uint64
+	StartMs  uint64
 	PeriodMs uint32
-	Count uint32
-	Error []string
-	Warning []string
-	Meta []*KVPairT
+	Count    uint32
+	Error    []string
+	Warning  []string
+	Meta     []*KVPairT
 }
 
 func GlobalMetaDataPack(builder *flatbuffers.Builder, t *GlobalMetaDataT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	errorOffset := flatbuffers.UOffsetT(0)
 	if t.Error != nil {
 		errorLength := len(t.Error)
@@ -765,7 +802,9 @@ func GlobalMetaDataPack(builder *flatbuffers.Builder, t *GlobalMetaDataT) flatbu
 }
 
 func (rcv *GlobalMetaData) UnPack() *GlobalMetaDataT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &GlobalMetaDataT{}
 	t.StartMs = rcv.StartMs()
 	t.PeriodMs = rcv.PeriodMs()
@@ -933,13 +972,16 @@ func GlobalMetaDataStartMetaVector(builder *flatbuffers.Builder, numElems int) f
 func GlobalMetaDataEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type ColumnMetaDataT struct {
 	Label string
-	Meta []*KVPairT
+	Meta  []*KVPairT
 }
 
 func ColumnMetaDataPack(builder *flatbuffers.Builder, t *ColumnMetaDataT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	labelOffset := builder.CreateString(t.Label)
 	metaOffset := flatbuffers.UOffsetT(0)
 	if t.Meta != nil {
@@ -961,7 +1003,9 @@ func ColumnMetaDataPack(builder *flatbuffers.Builder, t *ColumnMetaDataT) flatbu
 }
 
 func (rcv *ColumnMetaData) UnPack() *ColumnMetaDataT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &ColumnMetaDataT{}
 	t.Label = string(rcv.Label())
 	metaLength := rcv.MetaLength()
@@ -1037,15 +1081,18 @@ func ColumnMetaDataStartMetaVector(builder *flatbuffers.Builder, numElems int) f
 func ColumnMetaDataEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type DF4T struct {
 	Version uint32
-	Head *GlobalMetaDataT
-	Meta []*ColumnMetaDataT
+	Head    *GlobalMetaDataT
+	Meta    []*ColumnMetaDataT
 	Columns []*SeriesContainerT
 }
 
 func DF4Pack(builder *flatbuffers.Builder, t *DF4T) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	headOffset := GlobalMetaDataPack(builder, t.Head)
 	metaOffset := flatbuffers.UOffsetT(0)
 	if t.Meta != nil {
@@ -1082,7 +1129,9 @@ func DF4Pack(builder *flatbuffers.Builder, t *DF4T) flatbuffers.UOffsetT {
 }
 
 func (rcv *DF4) UnPack() *DF4T {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &DF4T{}
 	t.Version = rcv.Version()
 	t.Head = rcv.Head(nil).UnPack()

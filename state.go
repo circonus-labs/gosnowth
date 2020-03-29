@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -16,7 +17,6 @@ func (sc *SnowthClient) GetNodeState(nodes ...*SnowthNode) (*NodeState, error) {
 // GetNodeStateContext is the context aware version of GetNodeState.
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
 	nodes ...*SnowthNode) (*NodeState, error) {
-
 	node := sc.GetActiveNode()
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]

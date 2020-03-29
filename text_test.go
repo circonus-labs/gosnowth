@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -106,12 +107,12 @@ func TestWriteText(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	err = sc.WriteText(node, TextData{
+	err = sc.WriteText([]TextData{{
 		Metric: "test",
 		ID:     "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
 		Offset: "1",
 		Value:  "test",
-	})
+	}}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

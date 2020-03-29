@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -92,7 +93,6 @@ func (sc *SnowthClient) ReadHistogramValues(
 func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration,
 	start, end time.Time, nodes ...*SnowthNode) ([]HistogramValue, error) {
-
 	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -129,16 +129,24 @@ type HistogramData struct {
 	Histogram *circonusllhist.Histogram `json:"histogram"`
 }
 
-// WriteHistogram sends a variadic list of histogram data values to be written
+// WriteHistogram sends a list of histogram data values to be written
 // to an IRONdb node.
-func (sc *SnowthClient) WriteHistogram(node *SnowthNode,
-	data ...HistogramData) error {
-	return sc.WriteHistogramContext(context.Background(), node, data...)
+func (sc *SnowthClient) WriteHistogram(data []HistogramData,
+	nodes ...*SnowthNode) error {
+	return sc.WriteHistogramContext(context.Background(), data, nodes...)
 }
 
 // WriteHistogramContext is the context aware version of WriteHistogram.
 func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
-	node *SnowthNode, data ...HistogramData) error {
+	data []HistogramData, nodes ...*SnowthNode) error {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else if len(data) > 0 {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(data[0].ID,
+			data[0].Metric))
+	}
+
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode HistogramData for write")
