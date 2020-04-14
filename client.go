@@ -779,8 +779,9 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	newTopo := resp.Header.Get("X-Topo-0")
-	if newTopo != "" && newTopo != sc.currentTopology {
+	if newTopo != "" && (newTopo != sc.currentTopology || newTopo != node.currentTopology) {
 		sc.currentTopology = newTopo
+		node.currentTopology = newTopo
 		sc.currentTopologyCompiled = nil
 	}
 
