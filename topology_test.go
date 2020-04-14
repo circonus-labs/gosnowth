@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -96,28 +97,28 @@ func TestTopologyXMLSerialization(t *testing.T) {
 	topo := Topology{
 		WriteCopies: 2,
 		Nodes: []TopologyNode{
-			TopologyNode{
+			{
 				ID:      "1f846f26-0cfd-4df5-b4f1-e0930604e577",
 				Address: "10.8.20.1",
 				Port:    8112,
 				APIPort: 8112,
 				Weight:  32,
 			},
-			TopologyNode{
+			{
 				ID:      "765ac4cc-1929-4642-9ef1-d194d08f9538",
 				Address: "10.8.20.2",
 				Port:    8112,
 				APIPort: 8112,
 				Weight:  32,
 			},
-			TopologyNode{
+			{
 				ID:      "8c2fc7b8-c569-402d-a393-db433fb267aa",
 				Address: "10.8.20.3",
 				Port:    8112,
 				APIPort: 8112,
 				Weight:  32,
 			},
-			TopologyNode{
+			{
 				ID:      "07fa2237-5744-4c28-a622-a99cfc1ac87e",
 				Address: "10.8.20.4",
 				Port:    8112,
@@ -167,7 +168,8 @@ func BenchmarkLookup1(b *testing.B) {
 	}
 	b.StartTimer()
 	for n := 0; n < b.N; n++ {
-		topo.FindMetric(id, "this.is.a.metric|ST[nice:andhappy,with:tags]")
+		_, _ = topo.FindMetric(id,
+			"this.is.a.metric|ST[nice:andhappy,with:tags]")
 	}
 }
 func TestLiveNode(t *testing.T) {
@@ -195,18 +197,18 @@ func TestTopology(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/xml") {
-			w.Write([]byte(topologyXMLTestData))
+			_, _ = w.Write([]byte(topologyXMLTestData))
 			return
 		}
 
@@ -223,7 +225,6 @@ func TestTopology(t *testing.T) {
 		}
 
 		w.WriteHeader(500)
-		return
 	}))
 
 	defer ms.Close()

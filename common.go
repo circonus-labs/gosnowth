@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -107,11 +108,13 @@ func decodeXML(r io.Reader, v interface{}) error {
 	return nil
 }
 
+const million int = 1000000
+
 // formatTimestamp returns a string containing a timestamp in the format used
 // by the IRONdb API.
 func formatTimestamp(t time.Time) string {
-	if t.Nanosecond()/1000000 != 0 {
-		return fmt.Sprintf("%d.%03d", t.Unix(), t.Nanosecond()/1000000)
+	if t.Nanosecond()/million != 0 {
+		return fmt.Sprintf("%d.%03d", t.Unix(), t.Nanosecond()/million)
 	}
 
 	return fmt.Sprintf("%d", t.Unix())
@@ -136,7 +139,7 @@ func parseTimestamp(s string) (time.Time, error) {
 				s, err.Error())
 		}
 
-		nsec = nsec * 1000000
+		nsec *= int64(million)
 	}
 
 	return time.Unix(sec, nsec), nil

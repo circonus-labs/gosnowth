@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -40,18 +41,18 @@ func TestLocateMetric(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/locate/xml/1f846f26-0cfd-4df5-b4f1-e0930604e577/test") {
-			w.Write([]byte(locateXMLTestData))
+			_, _ = w.Write([]byte(locateXMLTestData))
 			return
 		}
 	}))

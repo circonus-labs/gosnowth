@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -160,12 +161,12 @@ func TestReadRollupValues(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -173,7 +174,7 @@ func TestReadRollupValues(t *testing.T) {
 			"online?start_ts=1529509020&end_ts=1529509201&rollup_span=1s" +
 			"&type=average"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(rollupTestData))
+			_, _ = w.Write([]byte(rollupTestData))
 			return
 		}
 	}))
@@ -214,12 +215,12 @@ func TestReadRollupAllValues(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -227,7 +228,7 @@ func TestReadRollupAllValues(t *testing.T) {
 			"online?start_ts=1529509020&end_ts=1529509201&rollup_span=1s" +
 			"&type=all"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(rollupAllTestData))
+			_, _ = w.Write([]byte(rollupAllTestData))
 			return
 		}
 	}))

@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -127,26 +128,26 @@ func TestNNTReadWrite(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		u := "/read/1529509020/1529509200/1/" +
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/count/test"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(nntTestData))
+			_, _ = w.Write([]byte(nntTestData))
 			return
 		}
 
 		u = "/read/1529509020/1529509200/1/" +
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/all/test"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(nntTestAllData))
+			_, _ = w.Write([]byte(nntTestAllData))
 			return
 		}
 
@@ -169,9 +170,9 @@ func TestNNTReadWrite(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	res, err := sc.ReadNNTValues(node, time.Unix(1529509020, 0),
+	res, err := sc.ReadNNTValues(time.Unix(1529509020, 0),
 		time.Unix(1529509200, 0), 1, "count",
-		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "test")
+		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "test", node)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -184,9 +185,9 @@ func TestNNTReadWrite(t *testing.T) {
 		t.Errorf("Expected value: 50, got: %v", res[0].Value)
 	}
 
-	resA, err := sc.ReadNNTAllValues(node, time.Unix(1529509020, 0),
+	resA, err := sc.ReadNNTAllValues(time.Unix(1529509020, 0),
 		time.Unix(1529509200, 0), 1, "fc85e0ab-f568-45e6-86ee-d7443be8277d",
-		"test")
+		"test", node)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +206,7 @@ func TestNNTReadWrite(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = sc.WriteNNT(node, nv...)
+	err = sc.WriteNNT(nv, node)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -141,16 +142,24 @@ func (p *Parts) MarshalJSON() ([]byte, error) {
 }
 
 // WriteNNT writes NNT data to a node.
-func (sc *SnowthClient) WriteNNT(node *SnowthNode, data ...NNTData) error {
-	return sc.WriteNNTContext(context.Background(), node, data...)
+func (sc *SnowthClient) WriteNNT(data []NNTData, nodes ...*SnowthNode) error {
+	return sc.WriteNNTContext(context.Background(), data, nodes...)
 }
 
 // WriteNNTContext is the context aware version of WriteNNT.
-func (sc *SnowthClient) WriteNNTContext(ctx context.Context, node *SnowthNode,
-	data ...NNTData) error {
+func (sc *SnowthClient) WriteNNTContext(ctx context.Context,
+	data []NNTData, nodes ...*SnowthNode) error {
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
 		return errors.Wrap(err, "failed to encode NNTData for write")
+	}
+
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else if len(data) > 0 {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(data[0].ID,
+			data[0].Metric))
 	}
 
 	_, _, err := sc.do(ctx, node, "POST", "/write/nnt", buf, nil)
@@ -158,16 +167,23 @@ func (sc *SnowthClient) WriteNNTContext(ctx context.Context, node *SnowthNode,
 }
 
 // ReadNNTValues reads NNT data from a node.
-func (sc *SnowthClient) ReadNNTValues(node *SnowthNode, start, end time.Time,
-	period int64, t, id, metric string) ([]NNTValue, error) {
-	return sc.ReadNNTValuesContext(context.Background(), node, start, end,
-		period, t, id, metric)
+func (sc *SnowthClient) ReadNNTValues(start, end time.Time, period int64,
+	t, id, metric string, nodes ...*SnowthNode) ([]NNTValue, error) {
+	return sc.ReadNNTValuesContext(context.Background(), start, end,
+		period, t, id, metric, nodes...)
 }
 
 // ReadNNTValuesContext is the context aware version of ReadNNTValues.
 func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
-	node *SnowthNode, start, end time.Time, period int64,
-	t, id, metric string) ([]NNTValue, error) {
+	start, end time.Time, period int64,
+	t, id, metric string, nodes ...*SnowthNode) ([]NNTValue, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(id, metric))
+	}
+
 	r := &NNTValueResponse{}
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
@@ -185,17 +201,23 @@ func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 }
 
 // ReadNNTAllValues reads all NNT data from a node.
-func (sc *SnowthClient) ReadNNTAllValues(node *SnowthNode,
-	start, end time.Time, period int64,
-	id, metric string) ([]NNTAllValue, error) {
-	return sc.ReadNNTAllValuesContext(context.Background(), node, start, end,
-		period, id, metric)
+func (sc *SnowthClient) ReadNNTAllValues(start, end time.Time, period int64,
+	id, metric string, nodes ...*SnowthNode) ([]NNTAllValue, error) {
+	return sc.ReadNNTAllValuesContext(context.Background(), start, end,
+		period, id, metric, nodes...)
 }
 
 // ReadNNTAllValuesContext is the context aware version of ReadNNTAllValues.
 func (sc *SnowthClient) ReadNNTAllValuesContext(ctx context.Context,
-	node *SnowthNode, start, end time.Time, period int64,
-	id, metric string) ([]NNTAllValue, error) {
+	start, end time.Time, period int64,
+	id, metric string, nodes ...*SnowthNode) ([]NNTAllValue, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(id, metric))
+	}
+
 	r := &NNTAllValueResponse{}
 	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),

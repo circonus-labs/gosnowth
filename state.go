@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -16,7 +17,6 @@ func (sc *SnowthClient) GetNodeState(nodes ...*SnowthNode) (*NodeState, error) {
 // GetNodeStateContext is the context aware version of GetNodeState.
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
 	nodes ...*SnowthNode) (*NodeState, error) {
-
 	node := sc.GetActiveNode()
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -101,7 +101,10 @@ func (r *Rollup) UnmarshalJSON(b []byte) error {
 		if strings.HasPrefix(k, "rollup_") {
 			b, _ := json.Marshal(v)
 			rd := new(RollupDetails)
-			json.Unmarshal(b, rd)
+			if err := json.Unmarshal(b, rd); err != nil {
+				return err
+			}
+
 			rr[k] = *rd
 		}
 	}
@@ -157,44 +160,29 @@ func (f *Features) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
+loop:
 	for k, v := range m {
-		switch k {
-		case "text:store":
-			if v == "1" {
+		if v == "1" {
+			switch k {
+			case "text:store":
 				f.TextStore = true
-			}
-
-			break
-		case "histogram:store":
-			if v == "1" {
+				break loop
+			case "histogram:store":
 				f.HistogramStore = true
-			}
-
-			break
-		case "nnt:second_order":
-			if v == "1" {
+				break loop
+			case "nnt:second_order":
 				f.NNTSecondOrder = true
-			}
-
-			break
-		case "histogram:dynamic_rollups":
-			if v == "1" {
+				break loop
+			case "histogram:dynamic_rollups":
 				f.HistogramDynamicRollups = true
-			}
-
-			break
-		case "nnt:store":
-			if v == "1" {
+				break loop
+			case "nnt:store":
 				f.NNTStore = true
-			}
-
-			break
-		case "features":
-			if v == "1" {
+				break loop
+			case "features":
 				f.FeatureFlags = true
+				break loop
 			}
-
-			break
 		}
 	}
 

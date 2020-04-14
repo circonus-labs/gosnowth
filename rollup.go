@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -193,9 +194,8 @@ func (sc *SnowthClient) ReadRollupValues(uuid, metric string, period time.Durati
 
 // ReadRollupValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
-	uuid, metric string, period time.Duration,
-	start, end time.Time, dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
-
+	uuid, metric string, period time.Duration, start, end time.Time,
+	dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
 	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -244,7 +244,6 @@ func (sc *SnowthClient) ReadRollupAllValues(
 func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration,
 	start, end time.Time, nodes ...*SnowthNode) ([]RollupAllValue, error) {
-
 	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]

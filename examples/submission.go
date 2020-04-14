@@ -26,17 +26,15 @@ func ExampleSubmitText() {
 	}
 
 	// Write text data.
-	for _, node := range client.ListActiveNodes() {
-		id := uuid.New().String()
-		// WriteText takes in a node and variadic of TextData entries.
-		if err := client.WriteText(node, gosnowth.TextData{
-			Metric: "test-text-metric2",
-			ID:     id,
-			Offset: strconv.FormatInt(time.Now().Unix(), 10),
-			Value:  "a_text_data_value",
-		}); err != nil {
-			log.Fatalf("failed to write text data: %v", err)
-		}
+	id := uuid.New().String()
+	// WriteText takes in a node and variadic of TextData entries.
+	if err := client.WriteText([]gosnowth.TextData{{
+		Metric: "test-text-metric2",
+		ID:     id,
+		Offset: strconv.FormatInt(time.Now().Unix(), 10),
+		Value:  "a_text_data_value",
+	}}); err != nil {
+		log.Fatalf("failed to write text data: %v", err)
 	}
 }
 
@@ -55,26 +53,24 @@ func ExampleSubmitNNT() {
 	}
 
 	// Write NNT data to the node.
-	for _, node := range client.ListActiveNodes() {
-		id := uuid.New().String()
-		if err := client.WriteNNT(node, gosnowth.NNTData{
-			Metric: "test-metric",
-			ID:     id,
-			Offset: time.Now().Unix(),
-			Count:  5, Value: 100,
-			Parts: gosnowth.Parts{
-				Period: 60,
-				Data: []gosnowth.NNTPartsData{
-					gosnowth.NNTPartsData{Count: 1, Value: 100},
-					gosnowth.NNTPartsData{Count: 1, Value: 100},
-					gosnowth.NNTPartsData{Count: 1, Value: 100},
-					gosnowth.NNTPartsData{Count: 1, Value: 100},
-					gosnowth.NNTPartsData{Count: 1, Value: 100},
-				},
+	id := uuid.New().String()
+	if err := client.WriteNNT([]gosnowth.NNTData{{
+		Metric: "test-metric",
+		ID:     id,
+		Offset: time.Now().Unix(),
+		Count:  5, Value: 100,
+		Parts: gosnowth.Parts{
+			Period: 60,
+			Data: []gosnowth.NNTPartsData{
+				{Count: 1, Value: 100},
+				{Count: 1, Value: 100},
+				{Count: 1, Value: 100},
+				{Count: 1, Value: 100},
+				{Count: 1, Value: 100},
 			},
-		}); err != nil {
-			log.Fatalf("failed to write nnt data: %v", err)
-		}
+		},
+	}}); err != nil {
+		log.Fatalf("failed to write nnt data: %v", err)
 	}
 }
 
@@ -102,18 +98,16 @@ func ExampleSubmitHistogram() {
 	}, false)
 
 	// Write histogram data.
-	for _, node := range client.ListActiveNodes() {
-		id := uuid.New().String()
-		if err := client.WriteHistogram(node, gosnowth.HistogramData{
-			AccountID: 1,
-			Metric:    "test-hist-metric",
-			ID:        id,
-			CheckName: "test",
-			Offset:    time.Now().Unix(),
-			Histogram: hist,
-			Period:    60,
-		}); err != nil {
-			log.Fatalf("failed to write histogram data: %v", err)
-		}
+	id := uuid.New().String()
+	if err := client.WriteHistogram([]gosnowth.HistogramData{{
+		AccountID: 1,
+		Metric:    "test-hist-metric",
+		ID:        id,
+		CheckName: "test",
+		Offset:    time.Now().Unix(),
+		Histogram: hist,
+		Period:    60,
+	}}); err != nil {
+		log.Fatalf("failed to write histogram data: %v", err)
 	}
 }

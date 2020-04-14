@@ -11,11 +11,13 @@ type MetricBatchT struct {
 	CheckName string
 	CheckUuid string
 	AccountId int32
-	Metrics []*MetricValueT
+	Metrics   []*MetricValueT
 }
 
 func MetricBatchPack(builder *flatbuffers.Builder, t *MetricBatchT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	checkNameOffset := builder.CreateString(t.CheckName)
 	checkUuidOffset := builder.CreateString(t.CheckUuid)
 	metricsOffset := flatbuffers.UOffsetT(0)
@@ -41,7 +43,9 @@ func MetricBatchPack(builder *flatbuffers.Builder, t *MetricBatchT) flatbuffers.
 }
 
 func (rcv *MetricBatch) UnPack() *MetricBatchT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MetricBatchT{}
 	t.Timestamp = rcv.Timestamp()
 	t.CheckName = string(rcv.CheckName())

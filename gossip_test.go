@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -135,17 +136,17 @@ func TestGetGossipInfo(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if r.RequestURI == "/gossip/json" {
-			w.Write([]byte(gossipTestData))
+			_, _ = w.Write([]byte(gossipTestData))
 			return
 		}
 	}))
@@ -192,7 +193,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	cancel()
-	res, err = sc.GetGossipInfoContext(ctx, node)
+	_, err = sc.GetGossipInfoContext(ctx, node)
 	if err == nil || !strings.Contains(err.Error(), "context") {
 		t.Error("Expected context error.", err)
 	}

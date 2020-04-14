@@ -11,11 +11,13 @@ type MetricT struct {
 	CheckName string
 	CheckUuid string
 	AccountId int32
-	Value *MetricValueT
+	Value     *MetricValueT
 }
 
 func MetricPack(builder *flatbuffers.Builder, t *MetricT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	checkNameOffset := builder.CreateString(t.CheckName)
 	checkUuidOffset := builder.CreateString(t.CheckUuid)
 	valueOffset := MetricValuePack(builder, t.Value)
@@ -29,7 +31,9 @@ func MetricPack(builder *flatbuffers.Builder, t *MetricT) flatbuffers.UOffsetT {
 }
 
 func (rcv *Metric) UnPack() *MetricT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MetricT{}
 	t.Timestamp = rcv.Timestamp()
 	t.CheckName = string(rcv.CheckName())

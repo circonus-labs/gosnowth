@@ -7,13 +7,15 @@ import (
 )
 
 type HistogramBucketT struct {
-	Val int8
-	Exp int8
+	Val   int8
+	Exp   int8
 	Count uint64
 }
 
 func HistogramBucketPack(builder *flatbuffers.Builder, t *HistogramBucketT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	HistogramBucketStart(builder)
 	HistogramBucketAddVal(builder, t.Val)
 	HistogramBucketAddExp(builder, t.Exp)
@@ -22,7 +24,9 @@ func HistogramBucketPack(builder *flatbuffers.Builder, t *HistogramBucketT) flat
 }
 
 func (rcv *HistogramBucket) UnPack() *HistogramBucketT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &HistogramBucketT{}
 	t.Val = rcv.Val()
 	t.Exp = rcv.Exp()
@@ -101,12 +105,15 @@ func HistogramBucketAddCount(builder *flatbuffers.Builder, count uint64) {
 func HistogramBucketEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type HistogramT struct {
 	Buckets []*HistogramBucketT
 }
 
 func HistogramPack(builder *flatbuffers.Builder, t *HistogramT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	bucketsOffset := flatbuffers.UOffsetT(0)
 	if t.Buckets != nil {
 		bucketsLength := len(t.Buckets)
@@ -126,7 +133,9 @@ func HistogramPack(builder *flatbuffers.Builder, t *HistogramT) flatbuffers.UOff
 }
 
 func (rcv *Histogram) UnPack() *HistogramT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &HistogramT{}
 	bucketsLength := rcv.BucketsLength()
 	t.Buckets = make([]*HistogramBucketT, bucketsLength)
@@ -190,14 +199,17 @@ func HistogramStartBucketsVector(builder *flatbuffers.Builder, numElems int) fla
 func HistogramEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type MetricHistogramResultT struct {
 	Timestamp uint64
-	Period int32
+	Period    int32
 	Histogram *HistogramT
 }
 
 func MetricHistogramResultPack(builder *flatbuffers.Builder, t *MetricHistogramResultT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	histogramOffset := HistogramPack(builder, t.Histogram)
 	MetricHistogramResultStart(builder)
 	MetricHistogramResultAddTimestamp(builder, t.Timestamp)
@@ -207,7 +219,9 @@ func MetricHistogramResultPack(builder *flatbuffers.Builder, t *MetricHistogramR
 }
 
 func (rcv *MetricHistogramResult) UnPack() *MetricHistogramResultT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MetricHistogramResultT{}
 	t.Timestamp = rcv.Timestamp()
 	t.Period = rcv.Period()
@@ -287,12 +301,15 @@ func MetricHistogramResultAddHistogram(builder *flatbuffers.Builder, histogram f
 func MetricHistogramResultEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type MetricHistogramResultListT struct {
 	Results []*MetricHistogramResultT
 }
 
 func MetricHistogramResultListPack(builder *flatbuffers.Builder, t *MetricHistogramResultListT) flatbuffers.UOffsetT {
-	if t == nil { return 0 }
+	if t == nil {
+		return 0
+	}
 	resultsOffset := flatbuffers.UOffsetT(0)
 	if t.Results != nil {
 		resultsLength := len(t.Results)
@@ -312,7 +329,9 @@ func MetricHistogramResultListPack(builder *flatbuffers.Builder, t *MetricHistog
 }
 
 func (rcv *MetricHistogramResultList) UnPack() *MetricHistogramResultListT {
-	if rcv == nil { return nil }
+	if rcv == nil {
+		return nil
+	}
 	t := &MetricHistogramResultListT{}
 	resultsLength := rcv.ResultsLength()
 	t.Results = make([]*MetricHistogramResultT, resultsLength)

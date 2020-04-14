@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -22,12 +23,12 @@ type topologyNodeSlot struct {
 
 // Topology values represent IRONdb topology structure.
 type Topology struct {
-	XMLName        xml.Name       `xml:"nodes" json:"-"`
-	OldWriteCopies uint8          `xml:"n,attr" json:"-"`
-	WriteCopies    uint8          `xml:"write_copies,attr" json:"-"`
+	XMLName        xml.Name `xml:"nodes" json:"-"`
+	OldWriteCopies uint8    `xml:"n,attr" json:"-"`
+	WriteCopies    uint8    `xml:"write_copies,attr" json:"-"`
+	useSide        bool
 	Hash           string         `xml:"-"`
 	Nodes          []TopologyNode `xml:"node"`
-	useSide        bool
 	ring           []topologyNodeSlot
 }
 
@@ -96,25 +97,44 @@ func (topo *Topology) compile() error {
 	}
 	hash := sha256.New()
 	for _, node := range topo.Nodes {
-		hash.Write([]byte(node.ID))
-		hash.Write([]byte{0, 0})
+		if _, err := hash.Write([]byte(node.ID)); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
+		if _, err := hash.Write([]byte{0, 0}); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, node.Weight)
-		hash.Write(netshort)
+		if _, err := hash.Write(netshort); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, uint16(node.Side))
-			hash.Write(netshort)
+			if _, err := hash.Write(netshort); err != nil {
+				return errors.Wrap(err, "unable to write hash")
+			}
 		}
 	}
 	// This matches the horrible backware compatibility requirements in the C version
 	if topo.WriteCopies != 2 {
-		hash.Write(bytes.Repeat([]byte{0}, 38))
+		if _, err := hash.Write(bytes.Repeat([]byte{0}, 38)); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, uint16(topo.WriteCopies))
-		hash.Write(netshort)
+		if _, err := hash.Write(netshort); err != nil {
+			return errors.Wrap(err, "unable to write hash")
+		}
+
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, 0)
-			hash.Write(netshort)
+			if _, err := hash.Write(netshort); err != nil {
+				return errors.Wrap(err, "unable to write hash")
+			}
 		}
 	}
 	sum := hex.EncodeToString(hash.Sum(nil))
@@ -152,7 +172,7 @@ func (topo *Topology) binSearchNext(location [sha256.Size]byte) (match, next int
 	start := 0
 	end := len(topo.ring) - 1
 	mid := len(topo.ring) / 2
-	cmp := -1
+	var cmp int
 	for start <= end {
 		cmp = bytes.Compare(location[:], topo.ring[mid].Location[:])
 
@@ -219,7 +239,7 @@ func (topo *Topology) FindMetricNodeIDs(uuid, metric string) ([]string, error) {
 	nodes, err := topo.FindN(strings.ToLower(uuid)+"-"+metric, int(topo.WriteCopies))
 	if nodes == nil {
 		if err == nil {
-			err = errors.New("FindN failed")
+			err = errors.New("unable to find metric node: FindN failed")
 		}
 		return nil, err
 	}
@@ -248,7 +268,7 @@ func (topo *Topology) Find(s string) ([]TopologyNode, error) {
 // FindN finds n nodes on which s lives
 func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 	if topo.ring == nil || len(topo.ring) < 1 {
-		return nil, errors.New("Empty topology")
+		return nil, errors.New("unable to find n nodes: empty topology")
 	}
 	location := sha256.Sum256([]byte(s))
 	nodes := make([]TopologyNode, 0)

@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -61,17 +62,17 @@ func TestGetLuaExtension(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/extension/lua") {
-			w.Write([]byte(testLuaExtensionData))
+			_, _ = w.Write([]byte(testLuaExtensionData))
 			return
 		}
 	}))
@@ -139,18 +140,18 @@ func TestExecLuaExtensionContext(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/extension/lua/test") {
 			if r.URL.Query().Get("test") == "1" {
-				w.Write([]byte(`{"test":1}`))
+				_, _ = w.Write([]byte(`{"test":1}`))
 				return
 			}
 		}
@@ -169,7 +170,7 @@ func TestExecLuaExtensionContext(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.ExecLuaExtension("test",
-		[]ExtParam{ExtParam{Name: "test", Value: "1"}}, node)
+		[]ExtParam{{Name: "test", Value: "1"}}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

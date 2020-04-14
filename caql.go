@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -69,6 +70,7 @@ func (ce *CAQLError) String() string {
 	buf := &bytes.Buffer{}
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
+
 	if err := enc.Encode(ce); err != nil {
 		return "unable to encode JSON: " + err.Error()
 	}
@@ -76,20 +78,20 @@ func (ce *CAQLError) String() string {
 	return buf.String()
 }
 
-// String returns this error as a JSON format string.
+// Error returns this error as a JSON format string.
 func (ce *CAQLError) Error() string {
 	return ce.String()
 }
 
 // GetCAQLQuery retrieves data values for metrics matching a CAQL format.
-func (sc *SnowthClient) GetCAQLQuery(q *CAQLQuery, nodes ...*SnowthNode) (*DF4Response, error) {
+func (sc *SnowthClient) GetCAQLQuery(q *CAQLQuery,
+	nodes ...*SnowthNode) (*DF4Response, error) {
 	return sc.GetCAQLQueryContext(context.Background(), q, nodes...)
 }
 
 // GetCAQLQueryContext is the context aware version of GetCAQLQuery.
-func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context,
-	q *CAQLQuery, nodes ...*SnowthNode) (*DF4Response, error) {
-
+func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
+	nodes ...*SnowthNode) (*DF4Response, error) {
 	node := sc.GetActiveNode()
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]

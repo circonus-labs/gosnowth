@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -22,11 +23,11 @@ type Config struct {
 // NewConfig creates and initializes a new SnowthClient configuration value.
 func NewConfig(servers ...string) (*Config, error) {
 	c := &Config{
-		dialTimeout:   time.Duration(500 * time.Millisecond),
+		dialTimeout:   500 * time.Millisecond,
 		discover:      false,
 		servers:       []string{},
-		timeout:       time.Duration(10 * time.Second),
-		watchInterval: time.Duration(30 * time.Second),
+		timeout:       10 * time.Second,
+		watchInterval: 30 * time.Second,
 	}
 
 	if err := c.SetServers(servers...); err != nil {
@@ -191,7 +192,7 @@ func (c *Config) Servers() []string {
 	return s
 }
 
-// SetServers assigns a new list of server addressess and returns a pointer to the
+// SetServers assigns a new list of server addresses and returns a pointer to the
 // updated configuration value.
 func (c *Config) SetServers(servers ...string) error {
 	s := []string{}

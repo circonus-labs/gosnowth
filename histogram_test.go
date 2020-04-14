@@ -1,3 +1,4 @@
+// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
@@ -84,19 +85,19 @@ func TestReadHistogramValues(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
 		u := "/histogram/1556290800/1556291400/300/" +
 			"ae0f7f90-2a6b-481c-9cf5-21a31837020e/example1"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.Write([]byte(histogramTestData))
+			_, _ = w.Write([]byte(histogramTestData))
 			return
 		}
 	}))
@@ -142,12 +143,12 @@ func TestWriteHistogram(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
-			w.Write([]byte(stateTestData))
+			_, _ = w.Write([]byte(stateTestData))
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
-			w.Write([]byte(statsTestData))
+			_, _ = w.Write([]byte(statsTestData))
 			return
 		}
 
@@ -172,7 +173,7 @@ func TestWriteHistogram(t *testing.T) {
 				return
 			}
 
-			w.Write([]byte(histTestData))
+			_, _ = w.Write([]byte(histTestData))
 			return
 		}
 	}))
@@ -195,7 +196,7 @@ func TestWriteHistogram(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
-	err = sc.WriteHistogram(node, v...)
+	err = sc.WriteHistogram(v, node)
 	if err != nil {
 		t.Fatal(err)
 	}

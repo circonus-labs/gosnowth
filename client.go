@@ -301,6 +301,7 @@ func (sc *SnowthClient) Topology() (*Topology, error) {
 	if sc.currentTopologyCompiled != nil {
 		return sc.currentTopologyCompiled, nil
 	}
+
 	var lasterr error = nil
 	for _, node := range sc.ListActiveNodes() {
 		if topology, lasterr := sc.GetTopologyInfo(node); lasterr == nil {
@@ -622,9 +623,7 @@ func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
 	result := []*SnowthNode{}
-	for _, url := range sc.inactiveNodes {
-		result = append(result, url)
-	}
+	result = append(result, sc.inactiveNodes...)
 	return result
 }
 
@@ -633,9 +632,7 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
 	result := []*SnowthNode{}
-	for _, url := range sc.activeNodes {
-		result = append(result, url)
-	}
+	result = append(result, sc.activeNodes...)
 	return result
 }
 
@@ -772,7 +769,10 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		return nil, nil, errors.Wrap(err, "failed to perform request")
 	}
 
-	defer resp.Body.Close()
+	defer func() {
+		_ = resp.Body.Close()
+	}()
+
 	res, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "unable to read response body")
