@@ -6,6 +6,23 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.5.0] - 2020-04-16
+
+* Adds linting configuration to the project and includes linting cleanup.
+* Changes the API for most of the library functions to make the parameter
+specifying a snowth node variadic and optional. This is possible because
+gosnowth can now correctly determine which node to use itself.
+* Adds internal implementation of topology location services matching the
+logic used by snowth clusters.
+
+## [v1.4.6] - 2020-03-06
+
+* Adds support for the Explain parameter and results for CAQL requests.
+* Adds support for tracing and dumping request payload to stdout for diagnostic
+purposes.
+
+## [v1.4.5] - 2020-01-10
+
 ### Added
 
 - Added a new FindTagsLatest type and a new 'Latest' field to the `FindTagsItem`
@@ -209,6 +226,9 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.5.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.0
+[v1.4.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.6
+[v1.4.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.5
 [v1.4.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.4
 [v1.4.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.3
 [v1.4.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.2
