@@ -6,6 +6,9 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+* Added a `Limit` field to `FindTagsOptions` struct for specifying the maximum
+number of metric results returned from the IRONdb find call.
+
 ## [v1.5.0] - 2020-04-16
 
 * Adds linting configuration to the project and includes linting cleanup.

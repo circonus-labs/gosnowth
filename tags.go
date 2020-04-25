@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -39,6 +40,7 @@ type FindTagsOptions struct {
 	Activity  int64     `json:"activity"`
 	Latest    int64     `json:"latest"`
 	CountOnly int64     `json:"count_only"`
+	Limit     int64     `json:"limit"`
 }
 
 // FindTagsLatest values contain the most recent data values for a metric.
@@ -216,8 +218,12 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 		u += fmt.Sprintf("&count_only=%d", options.CountOnly)
 	}
 
+	hdrs := http.Header{}
+	if options.Limit != 0 {
+		hdrs.Set("X-Snowth-Advisory-Limit", strconv.FormatInt(options.Limit, 10))
+	}
 	r := &FindTagsResult{}
-	body, header, err := sc.do(ctx, node, "GET", u, nil, nil)
+	body, header, err := sc.do(ctx, node, "GET", u, nil, hdrs)
 	if err != nil {
 		return nil, err
 	}
