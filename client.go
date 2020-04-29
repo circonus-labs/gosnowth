@@ -764,10 +764,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				return bdy, hdr, err
 			}
 
-			// This is a pretty crude way to detect networking errors.
-			// But, it does work. Any broken network errors will contain
-			// 'dial tcp:' and will be from the http.Client.
-			if !strings.Contains(err.Error(), "dial tcp:") {
+			// Stop retrying other nodes if this is not a network connection
+			// error.
+			if nerr, ok := err.(net.Error); ok && !nerr.Temporary() {
 				break
 			}
 
