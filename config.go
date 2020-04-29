@@ -25,11 +25,13 @@ type Config struct {
 // NewConfig creates and initializes a new SnowthClient configuration value.
 func NewConfig(servers ...string) (*Config, error) {
 	c := &Config{
-		dialTimeout:   500 * time.Millisecond,
-		discover:      false,
-		servers:       []string{},
-		timeout:       10 * time.Second,
-		watchInterval: 30 * time.Second,
+		dialTimeout:    500 * time.Millisecond,
+		discover:       false,
+		servers:        []string{},
+		timeout:        10 * time.Second,
+		watchInterval:  30 * time.Second,
+		retries:        0,
+		connectRetries: -1,
 	}
 
 	if err := c.SetServers(servers...); err != nil {
