@@ -93,16 +93,18 @@ func (sc *SnowthClient) ReadHistogramValues(
 func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration,
 	start, end time.Time, nodes ...*SnowthNode) ([]HistogramValue, error) {
-	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	}
 
 	startTS := start.Unix() - start.Unix()%int64(period.Seconds())
 	endTS := end.Unix() - end.Unix()%int64(period.Seconds()) +
 		int64(period.Seconds())
 	r := []HistogramValue{}
-	body, _, err := sc.do(ctx, node, "GET",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		path.Join("/histogram", strconv.FormatInt(startTS, 10),
 			strconv.FormatInt(endTS, 10),
 			strconv.FormatInt(int64(period.Seconds()), 10), uuid,
@@ -152,6 +154,6 @@ func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
 		return errors.Wrap(err, "failed to encode HistogramData for write")
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/histogram/write", buf, nil)
+	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/histogram/write", buf, nil)
 	return err
 }

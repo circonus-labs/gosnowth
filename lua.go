@@ -132,13 +132,16 @@ func (sc *SnowthClient) GetLuaExtensions(nodes ...*SnowthNode) (LuaExtensions,
 // GetLuaExtensionsContext is the context aware version of GetLuaExtensions.
 func (sc *SnowthClient) GetLuaExtensionsContext(ctx context.Context,
 	nodes ...*SnowthNode) (LuaExtensions, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
+
 	u := sc.getURL(node, "/extension/lua")
 	r := LuaExtensions{}
-	body, _, err := sc.do(ctx, node, "GET", u, nil, nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -168,10 +171,13 @@ func (sc *SnowthClient) ExecLuaExtension(name string,
 func (sc *SnowthClient) ExecLuaExtensionContext(ctx context.Context,
 	name string, params []ExtParam,
 	nodes ...*SnowthNode) (map[string]interface{}, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
+
 	u := sc.getURL(node, "/extension/lua/"+name)
 	if len(params) > 0 {
 		qp := url.Values{}
@@ -183,7 +189,7 @@ func (sc *SnowthClient) ExecLuaExtensionContext(ctx context.Context,
 	}
 
 	r := map[string]interface{}{}
-	body, _, err := sc.do(ctx, node, "GET", u, nil, nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err
 	}

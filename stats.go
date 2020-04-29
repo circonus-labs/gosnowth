@@ -15,13 +15,15 @@ func (sc *SnowthClient) GetStats(nodes ...*SnowthNode) (*Stats, error) {
 // GetStatsContext is the context aware version of GetStats.
 func (sc *SnowthClient) GetStatsContext(ctx context.Context,
 	nodes ...*SnowthNode) (*Stats, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
 
 	r := &Stats{}
-	body, _, err := sc.do(ctx, node, "GET", "/stats.json", nil, nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", "/stats.json", nil, nil)
 	if err != nil {
 		return nil, err
 	}

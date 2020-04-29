@@ -17,13 +17,15 @@ func (sc *SnowthClient) GetNodeState(nodes ...*SnowthNode) (*NodeState, error) {
 // GetNodeStateContext is the context aware version of GetNodeState.
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
 	nodes ...*SnowthNode) (*NodeState, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
 
 	r := &NodeState{}
-	body, _, err := sc.do(ctx, node, "GET", "/state", nil, nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", "/state", nil, nil)
 	if err != nil {
 		return nil, err
 	}

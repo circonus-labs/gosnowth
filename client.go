@@ -97,6 +97,10 @@ type SnowthClient struct {
 	sync.RWMutex
 	c httpClient
 
+	// retries is used to determine weather or not to retry requests which
+	// fail to snowth nodes due to connection problems
+	retries int64
+
 	// in order to keep track of healthy nodes within the cluster,
 	// we have two lists of SnowthNode types, active and inactive.
 	activeNodes   []*SnowthNode
@@ -233,6 +237,30 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 	}
 
 	return sc, nil
+}
+
+// Retires gets the number of retries a SnowthClient will attempt when
+// connection errors occur to a snowth node. When a connection error occurs
+// the affected node will be deactivated, then a retries will happen on
+// another node. A value of -1 will retry until no nodes are available,
+// The watch routine can reactivate nodes that have been deactivated by
+// retries when their connectivity is restored.
+func (sc *SnowthClient) Retries() int64 {
+	sc.RLock()
+	defer sc.RUnlock()
+	return sc.retries
+}
+
+// Retires sets the number of retries a SnowthClient will attempt when
+// connection errors occur to a snowth node. When a connection error occurs
+// the affected node will be deactivated, then a retries will happen on
+// another node. A value of -1 will retry until no nodes are available,
+// The watch routine can reactivate nodes that have been deactivated by
+// retries when their connectivity is restored.
+func (sc *SnowthClient) SetRetries(num int64) {
+	sc.Lock()
+	defer sc.Unlock()
+	sc.retries = num
 }
 
 // SetRequestFunc sets an optional middleware function that is used to modify
@@ -656,15 +684,56 @@ func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
 }
 
 // DoRequest sends a request to IRONdb.
+// If the client is set to retry using other nodes on network failures, this
+// will perform those retries.
 func (sc *SnowthClient) DoRequest(node *SnowthNode,
-	method string, url string, body io.Reader, headers http.Header) (io.Reader, http.Header, error) {
-	return sc.DoRequestContext(context.Background(), node, method, url, body, headers)
+	method string, url string, body io.Reader,
+	headers http.Header) (io.Reader, http.Header, error) {
+	return sc.DoRequestContext(context.Background(), node, method, url,
+		body, headers)
 }
 
 // DoRequestContext is the context aware version of DoRequest.
+// If the client is set to retry using other nodes on network failures, this
+// will perform those retries.
 func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
-	method string, url string, body io.Reader, headers http.Header) (io.Reader, http.Header, error) {
-	return sc.do(ctx, node, method, url, body, headers)
+	method string, url string, body io.Reader,
+	headers http.Header) (io.Reader, http.Header, error) {
+	retries := sc.Retries()
+	sn := node
+	for {
+		body, headers, err := sc.do(ctx, sn, method, url, body, headers)
+		if err == nil {
+			return body, headers, nil
+		}
+
+		// This is a pretty crude way to detect networking errors.
+		// But, it does work. Any broken network errors will contain dial tcp:
+		// and will be from the http.Client.
+		if !strings.Contains(err.Error(), "dial tcp:") {
+			return body, headers, err
+		}
+
+		if retries == 0 {
+			return body, headers, err
+		}
+
+		retries--
+		sc.DeactivateNodes(sn)
+		if len(sc.ListActiveNodes()) < 1 {
+			return body, headers, err
+		}
+
+		u := ""
+		if url != "" {
+			u = strings.Replace(url, sn.GetURL().String(), "", 1)
+		}
+
+		sn = sc.GetActiveNode()
+		if url != "" && u != "" {
+			url = sc.getURL(sn, u)
+		}
+	}
 }
 
 // do sends a request to IRONdb.
@@ -679,9 +748,11 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		return nil, nil, errors.Wrap(err, "failed to create request")
 	}
 
+	sc.RLock()
 	traceReq := sc.traceRequests != "" && (sc.traceRequests == "*" || strings.HasPrefix(r.URL.Path, sc.traceRequests))
 	traceID := time.Now().UTC().Nanosecond()
 	dumpReq := sc.dumpRequests != "" && (sc.dumpRequests == "*" || strings.HasPrefix(r.URL.Path, sc.dumpRequests))
+	sc.RUnlock()
 
 	r.Close = true
 	for key, values := range headers {
@@ -691,7 +762,6 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	r = r.WithContext(ctx)
-
 	sc.RLock()
 	rf := sc.request
 	sc.RUnlock()
@@ -764,7 +834,10 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	sc.LogDebugf("snowth request: %+v", r)
 	var start = time.Now()
-	resp, err := sc.c.Do(r)
+	sc.RLock()
+	cli := sc.c
+	sc.RUnlock()
+	resp, err := cli.Do(r)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "failed to perform request")
 	}
@@ -779,11 +852,13 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	newTopo := resp.Header.Get("X-Topo-0")
+	sc.Lock()
 	if newTopo != "" && (newTopo != sc.currentTopology || newTopo != node.currentTopology) {
 		sc.currentTopology = newTopo
 		node.currentTopology = newTopo
 		sc.currentTopologyCompiled = nil
 	}
+	sc.Unlock()
 
 	if traceReq {
 		msg := string(res[0:64]) + "..."

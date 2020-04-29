@@ -57,13 +57,15 @@ func (sc *SnowthClient) ReadTextValues(uuid, metric string,
 func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	uuid, metric string, start, end time.Time,
 	nodes ...*SnowthNode) ([]TextValue, error) {
-	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	}
 
 	r := TextValueResponse{}
-	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10), uuid, metric), nil, nil)
 	if err != nil {
@@ -106,6 +108,6 @@ func (sc *SnowthClient) WriteTextContext(ctx context.Context,
 		return errors.Wrap(err, "failed to encode TextData for write")
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/write/text", buf, nil)
+	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/write/text", buf, nil)
 	return err
 }

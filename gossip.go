@@ -38,12 +38,15 @@ func (sc *SnowthClient) GetGossipInfo(
 // GetGossipInfoContext is the context aware version of GetGossipInfo.
 func (sc *SnowthClient) GetGossipInfoContext(ctx context.Context,
 	nodes ...*SnowthNode) (*Gossip, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
+
 	r := &Gossip{}
-	body, _, err := sc.do(ctx, node, "GET", "/gossip/json", nil, nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", "/gossip/json", nil, nil)
 	if err != nil {
 		return nil, err
 	}

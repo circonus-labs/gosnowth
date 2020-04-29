@@ -285,10 +285,13 @@ func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 
 // GetTopologyInfo retrieves topology information from a node.
 func (sc *SnowthClient) GetTopologyInfo(nodes ...*SnowthNode) (*Topology, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
+
 	if node == nil {
 		return nil, errors.New("no active nodes")
 	}
@@ -312,10 +315,13 @@ func TopologyLoadXML(xml string) (*Topology, error) {
 func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	nodes ...*SnowthNode) (*Topology, error) {
 	r := &Topology{}
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
+
 	topologyID := node.GetCurrentTopology()
 	if topologyID == "" {
 		return nil, errors.New("no active topology")
@@ -323,7 +329,7 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	if topologyID == sc.currentTopology && sc.currentTopologyCompiled != nil {
 		return sc.currentTopologyCompiled, nil
 	}
-	body, _, err := sc.do(ctx, node, "GET",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		path.Join("/topology/xml", node.GetCurrentTopology()), nil, nil)
 	if err != nil {
 		return nil, err
@@ -344,10 +350,13 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 // LoadTopology loads a new topology on a node without activating it.
 func (sc *SnowthClient) LoadTopology(hash string, t *Topology,
 	nodes ...*SnowthNode) error {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
+
 	return sc.LoadTopologyContext(context.Background(), hash, t, node)
 }
 
@@ -359,7 +368,7 @@ func (sc *SnowthClient) LoadTopologyContext(ctx context.Context, hash string,
 		return errors.Wrap(err, "failed to encode request data")
 	}
 
-	_, _, err = sc.do(ctx, node, "POST", path.Join("/topology", hash), b, nil)
+	_, _, err = sc.DoRequestContext(ctx, node, "POST", path.Join("/topology", hash), b, nil)
 	return err
 }
 
@@ -373,6 +382,6 @@ func (sc *SnowthClient) ActivateTopology(hash string, node *SnowthNode) error {
 // WARNING THIS IS DANGEROUS.
 func (sc *SnowthClient) ActivateTopologyContext(ctx context.Context,
 	hash string, node *SnowthNode) error {
-	_, _, err := sc.do(ctx, node, "GET", path.Join("/activate", hash), nil, nil)
+	_, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/activate", hash), nil, nil)
 	return err
 }

@@ -51,7 +51,7 @@ func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context, uuid stri
 		}
 		node = nodes[0]
 	}
-	body, _, err := sc.do(ctx, node, "GET",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		path.Join("/locate/xml", uuid, metric), nil, nil)
 	if err != nil {
 		return nil, err

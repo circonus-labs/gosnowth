@@ -196,9 +196,11 @@ func (sc *SnowthClient) ReadRollupValues(uuid, metric string, period time.Durati
 func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration, start, end time.Time,
 	dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
-	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	}
 
 	if dataType == "" {
@@ -217,7 +219,7 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
 		int64(period/time.Second)
 	r := []RollupValue{}
-	body, _, err := sc.do(ctx, node, "GET",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=%s",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
 			startTS, endTS, int64(period/time.Second), dataType), nil, nil)
@@ -244,16 +246,18 @@ func (sc *SnowthClient) ReadRollupAllValues(
 func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration,
 	start, end time.Time, nodes ...*SnowthNode) ([]RollupAllValue, error) {
-	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	}
 
 	startTS := start.Unix() - start.Unix()%int64(period/time.Second)
 	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
 		int64(period/time.Second)
 	r := []RollupAllValue{}
-	body, _, err := sc.do(ctx, node, "GET",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=all",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
 			startTS, endTS, int64(period/time.Second)), nil, nil)
