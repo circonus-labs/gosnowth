@@ -129,7 +129,7 @@ func TestFindTags(t *testing.T) {
 		Activity:  1,
 		Latest:    1,
 		CountOnly: 0,
-		Limit:    -1,
+		Limit:     -1,
 	}, node)
 	if err != nil {
 		t.Fatal(err)

@@ -136,11 +136,12 @@ func (sc *SnowthClient) FetchValues(q *FetchQuery, nodes ...*SnowthNode) (*DF4Re
 func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 	q *FetchQuery, nodes ...*SnowthNode) (*DF4Response, error) {
 	var node *SnowthNode
-	if len(nodes) > 0 && nodes[0] != nil {
+	switch {
+	case len(nodes) > 0 && nodes[0] != nil:
 		node = nodes[0]
-	} else if len(q.Streams) > 0 {
+	case len(q.Streams) > 0:
 		node = sc.GetActiveNode(sc.FindMetricNodeIDs(q.Streams[0].UUID, q.Streams[0].Name))
-	} else {
+	default:
 		node = sc.GetActiveNode()
 	}
 
