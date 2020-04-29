@@ -31,6 +31,8 @@ func TestNewConfig(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	cfg.SetRetries(1)
+	cfg.SetConnectRetries(1)
 	if err := cfg.SetWatchInterval(time.Second); err != nil {
 		t.Fatal(err)
 	}
@@ -63,6 +65,14 @@ func TestNewConfig(t *testing.T) {
 	if cfg.Timeout() != time.Second {
 		t.Errorf("Expected timeout: %v, got: %v",
 			time.Second, cfg.Timeout())
+	}
+
+	if cfg.Retries() != 1 {
+		t.Errorf("Expected retries: 1, got: %v", cfg.Retries())
+	}
+
+	if cfg.ConnectRetries() != 1 {
+		t.Errorf("Expected connect retries: 1, got: %v", cfg.ConnectRetries())
 	}
 
 	if cfg.WatchInterval() != time.Second {

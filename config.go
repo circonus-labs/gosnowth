@@ -13,11 +13,13 @@ import (
 // Config values represent configuration information SnowthClient values.
 type Config struct {
 	sync.RWMutex
-	dialTimeout   time.Duration
-	discover      bool
-	servers       []string
-	timeout       time.Duration
-	watchInterval time.Duration
+	dialTimeout    time.Duration
+	discover       bool
+	servers        []string
+	timeout        time.Duration
+	watchInterval  time.Duration
+	retries        int64
+	connectRetries int64
 }
 
 // NewConfig creates and initializes a new SnowthClient configuration value.
@@ -41,11 +43,13 @@ func NewConfig(servers ...string) (*Config, error) {
 func (c *Config) MarshalJSON() ([]byte, error) {
 	c.RLock()
 	m := struct {
-		DialTimeout   string   `json:"dial_timeout,omitempty"`
-		Discover      bool     `json:"discover"`
-		Timeout       string   `json:"timeout,omitempty"`
-		WatchInterval string   `json:"watch_interval,omitempty"`
-		Servers       []string `json:"servers,omitempty"`
+		DialTimeout    string   `json:"dial_timeout,omitempty"`
+		Discover       bool     `json:"discover"`
+		Timeout        string   `json:"timeout,omitempty"`
+		WatchInterval  string   `json:"watch_interval,omitempty"`
+		Retries        int64    `json:"retries,omitempty"`
+		ConnectRetries int64    `json:"connect_retries,omitempty"`
+		Servers        []string `json:"servers,omitempty"`
 	}{}
 
 	if c.dialTimeout != 0 {
@@ -61,6 +65,14 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 		m.WatchInterval = c.watchInterval.String()
 	}
 
+	if c.retries != 0 {
+		m.Retries = c.retries
+	}
+
+	if c.connectRetries != 0 {
+		m.ConnectRetries = c.connectRetries
+	}
+
 	if len(c.servers) > 0 {
 		m.Servers = make([]string, len(c.servers))
 		copy(m.Servers, c.servers)
@@ -73,11 +85,13 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into the Config value.
 func (c *Config) UnmarshalJSON(b []byte) error {
 	m := struct {
-		DialTimeout   string   `json:"dial_timeout,omitempty"`
-		Discover      bool     `json:"discover"`
-		Timeout       string   `json:"timeout,omitempty"`
-		WatchInterval string   `json:"watch_interval,omitempty"`
-		Servers       []string `json:"servers,omitempty"`
+		DialTimeout    string   `json:"dial_timeout,omitempty"`
+		Discover       bool     `json:"discover"`
+		Timeout        string   `json:"timeout,omitempty"`
+		WatchInterval  string   `json:"watch_interval,omitempty"`
+		Retries        int64    `json:"retries,omitempty"`
+		ConnectRetries int64    `json:"connect_retries,omitempty"`
+		Servers        []string `json:"servers,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(b, &m); err != nil {
@@ -116,6 +130,14 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 		if err := c.SetWatchInterval(d); err != nil {
 			return err
 		}
+	}
+
+	if m.Retries != 0 {
+		c.retries = m.Retries
+	}
+
+	if m.ConnectRetries != 0 {
+		c.connectRetries = m.ConnectRetries
 	}
 
 	if len(m.Servers) > 0 {
@@ -181,6 +203,36 @@ func (c *Config) SetTimeout(t time.Duration) error {
 	c.timeout = t
 	c.Unlock()
 	return nil
+}
+
+// Retries gets the number of times requests will be retried.
+func (c *Config) Retries() int64 {
+	c.RLock()
+	defer c.RUnlock()
+	return c.retries
+}
+
+// SetRetries sets the number of times requests will be retried.
+func (c *Config) SetRetries(num int64) {
+	c.Lock()
+	c.retries = num
+	c.Unlock()
+}
+
+// ConnectRetries gets the number of times requests will be retried on
+// other nodes when network errors occur..
+func (c *Config) ConnectRetries() int64 {
+	c.RLock()
+	defer c.RUnlock()
+	return c.connectRetries
+}
+
+// SetConnectRetries sets the number of times requests will be retried on
+// other nodes when network errors occur.
+func (c *Config) SetConnectRetries(num int64) {
+	c.Lock()
+	c.connectRetries = num
+	c.Unlock()
 }
 
 // Servers gets the list of IRONdb node servers to be used by a SnowthClient.

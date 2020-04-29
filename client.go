@@ -186,6 +186,8 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		activeNodes:   []*SnowthNode{},
 		inactiveNodes: []*SnowthNode{},
 		watchInterval: cfg.WatchInterval(),
+		retries:       cfg.Retries(),
+		connRetries:   cfg.ConnectRetries(),
 		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
 		traceRequests: os.Getenv("GOSNOWTH_TRACE_REQUESTS"),
 	}
