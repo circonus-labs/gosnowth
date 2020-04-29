@@ -82,6 +82,10 @@ func encodeJSON(v interface{}) (io.Reader, error) {
 
 // decodeJSON decodes JSON from a reader into an interface.
 func decodeJSON(r io.Reader, v interface{}) error {
+	if r == nil {
+		return errors.New("unable to decode from nil reader")
+	}
+
 	if err := json.NewDecoder(r).Decode(v); err != nil {
 		return errors.Wrap(err, "failed to decode JSON")
 	}

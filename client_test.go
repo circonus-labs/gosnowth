@@ -76,6 +76,7 @@ func TestSnowthClientRequest(t *testing.T) {
 	}
 
 	sc.SetRetries(1)
+	sc.SetConnectRetries(1)
 	sc.SetRequestFunc(func(r *http.Request) error {
 		r.Header.Set("X-Test-Header", "test")
 		return nil

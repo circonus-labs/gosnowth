@@ -98,8 +98,12 @@ type SnowthClient struct {
 	c httpClient
 
 	// retries is used to determine weather or not to retry requests which
-	// fail to snowth nodes due to connection problems
+	// fail due to timeouts or other non-connection problems
 	retries int64
+
+	// connRetries is used to determine weather or not to retry requests which
+	// fail to snowth nodes due to connection problems
+	connRetries int64
 
 	// in order to keep track of healthy nodes within the cluster,
 	// we have two lists of SnowthNode types, active and inactive.
@@ -240,27 +244,47 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 }
 
 // Retires gets the number of retries a SnowthClient will attempt when
-// connection errors occur to a snowth node. When a connection error occurs
-// the affected node will be deactivated, then a retries will happen on
-// another node. A value of -1 will retry until no nodes are available,
-// The watch routine can reactivate nodes that have been deactivated by
-// retries when their connectivity is restored.
+// errors other than connection errors occur with a snowth node.
+// Retires will repeat the request with exponential backoff until this number
+// of retries is reached.
 func (sc *SnowthClient) Retries() int64 {
 	sc.RLock()
 	defer sc.RUnlock()
 	return sc.retries
 }
 
-// Retires sets the number of retries a SnowthClient will attempt when
+// SetRetires gets the number of retries a SnowthClient will attempt when
+// errors other than connection errors occur with a snowth node.
+// Retires will repeat the request with exponential backoff until this number
+// of retries is reached.
+func (sc *SnowthClient) SetRetries(num int64) {
+	sc.Lock()
+	defer sc.Unlock()
+	sc.retries = num
+}
+
+// ConnectRetires gets the number of retries a SnowthClient will attempt when
 // connection errors occur to a snowth node. When a connection error occurs
 // the affected node will be deactivated, then a retries will happen on
 // another node. A value of -1 will retry until no nodes are available,
 // The watch routine can reactivate nodes that have been deactivated by
 // retries when their connectivity is restored.
-func (sc *SnowthClient) SetRetries(num int64) {
+func (sc *SnowthClient) ConnectRetries() int64 {
+	sc.RLock()
+	defer sc.RUnlock()
+	return sc.connRetries
+}
+
+// SetConnectRetires sets the number of retries a SnowthClient will attempt when
+// connection errors occur to a snowth node. When a connection error occurs
+// the affected node will be deactivated, then a retries will happen on
+// another node. A value of -1 will retry until no nodes are available,
+// The watch routine can reactivate nodes that have been deactivated by
+// retries when their connectivity is restored.
+func (sc *SnowthClient) SetConnectRetries(num int64) {
 	sc.Lock()
 	defer sc.Unlock()
-	sc.retries = num
+	sc.connRetries = num
 }
 
 // SetRequestFunc sets an optional middleware function that is used to modify
@@ -700,40 +724,65 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	method string, url string, body io.Reader,
 	headers http.Header) (io.Reader, http.Header, error) {
 	retries := sc.Retries()
-	sn := node
-	for {
-		body, headers, err := sc.do(ctx, sn, method, url, body, headers)
-		if err == nil {
-			return body, headers, nil
-		}
-
-		// This is a pretty crude way to detect networking errors.
-		// But, it does work. Any broken network errors will contain dial tcp:
-		// and will be from the http.Client.
-		if !strings.Contains(err.Error(), "dial tcp:") {
-			return body, headers, err
-		}
-
-		if retries == 0 {
-			return body, headers, err
-		}
-
-		retries--
-		sc.DeactivateNodes(sn)
-		if len(sc.ListActiveNodes()) < 1 {
-			return body, headers, err
-		}
-
-		u := ""
-		if url != "" {
-			u = strings.Replace(url, sn.GetURL().String(), "", 1)
-		}
-
-		sn = sc.GetActiveNode()
-		if url != "" && u != "" {
-			url = sc.getURL(sn, u)
-		}
+	if retries < 0 {
+		retries = 0
 	}
+
+	cr := sc.ConnectRetries()
+	nodes := append([]*SnowthNode{node}, sc.ListActiveNodes()...)
+	var err error
+	var bdy io.Reader
+	var hdr http.Header
+	for r := int64(0); r < retries+1; r++ {
+		connRetries := cr
+		surl := url
+		sn := nodes[0]
+		for n := 0; n < len(nodes); n++ {
+			u := ""
+			if surl != "" {
+				u = strings.Replace(surl, sn.GetURL().String(), "", 1)
+			}
+
+			sn = nodes[n]
+			if sn == nil {
+				continue
+			}
+
+			if surl != "" && u != "" {
+				surl = sc.getURL(sn, u)
+			}
+
+			bdy, hdr, err = sc.do(ctx, sn, method, surl, body, headers)
+			if err == nil {
+				return bdy, hdr, nil
+			}
+
+			// There are likely more types of IRONdb errors that need to be
+			// checked for and included in this section for errors which
+			// indicate that retries would not be helpful.
+			if strings.Contains(err.Error(), "cannot parse") {
+				return bdy, hdr, err
+			}
+
+			// This is a pretty crude way to detect networking errors.
+			// But, it does work. Any broken network errors will contain
+			// 'dial tcp:' and will be from the http.Client.
+			if !strings.Contains(err.Error(), "dial tcp:") {
+				break
+			}
+
+			if connRetries == 0 {
+				break
+			}
+
+			connRetries--
+			sc.DeactivateNodes(sn)
+		}
+
+		time.Sleep(time.Millisecond * time.Duration(100*2^r))
+	}
+
+	return bdy, hdr, err
 }
 
 // do sends a request to IRONdb.

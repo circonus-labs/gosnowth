@@ -6,9 +6,15 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
-* Adds an option, off by default, but can be set with SnowthClient.SetRetries(),
-that allows the client to retry requests to IRONdb that fail due to network
-errors on other available nodes, a specified number of times.
+* Adds an option, not used by default, to retry requests to IRONdb that fail
+for reasons that might be resolved by retrying. The number of attempts can be
+set using the SnowthClient.SetRetries() method. Delay will increase between
+each successive retry attempt.
+* Adds an option, off by default, but can be set with
+SnowthClient.SetConnectRetries(), that allows the client to retry requests 
+to IRONdb that fail due to network errors on other available nodes, up to a 
+specified number of times. This can be used in conjuction with
+SnowthClient.SetRetries() or on its own.
 * Added a `Limit` field to `FindTagsOptions` struct for specifying the maximum
 number of metric results returned from the IRONdb find call.
 
