@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.5.1] - 2020-04-30
+
 * Adds an option, not used by default, to retry requests to IRONdb that fail
 for reasons that might be resolved by retrying. The number of attempts can be
 set using the SnowthClient.SetRetries() method. Delay will increase between
@@ -238,6 +240,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.5.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.1
 [v1.5.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.0
 [v1.4.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.6
 [v1.4.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.5
