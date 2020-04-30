@@ -92,9 +92,11 @@ func (sc *SnowthClient) GetCAQLQuery(q *CAQLQuery,
 // GetCAQLQueryContext is the context aware version of GetCAQLQuery.
 func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 	nodes ...*SnowthNode) (*DF4Response, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
 
 	if q == nil {
@@ -119,7 +121,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 	}
 
 	r := &DF4Response{}
-	body, _, err := sc.do(ctx, node, "POST", u, bytes.NewBuffer(bBuf), nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "POST", u, bytes.NewBuffer(bBuf), nil)
 	if err != nil {
 		if body != nil {
 			cErr := &CAQLError{}

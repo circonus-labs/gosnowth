@@ -136,21 +136,22 @@ func (sc *SnowthClient) FetchValues(q *FetchQuery, nodes ...*SnowthNode) (*DF4Re
 func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 	q *FetchQuery, nodes ...*SnowthNode) (*DF4Response, error) {
 	var node *SnowthNode
-	if len(q.Streams) > 0 {
+	switch {
+	case len(nodes) > 0 && nodes[0] != nil:
+		node = nodes[0]
+	case len(q.Streams) > 0:
 		node = sc.GetActiveNode(sc.FindMetricNodeIDs(q.Streams[0].UUID, q.Streams[0].Name))
-	} else {
+	default:
 		node = sc.GetActiveNode()
 	}
-	if len(nodes) > 0 && nodes[0] != nil {
-		node = nodes[0]
-	}
+
 	buf := &bytes.Buffer{}
 	if err := json.NewEncoder(buf).Encode(&q); err != nil {
 		return nil, err
 	}
 
 	hdrs := http.Header{"Content-Type": {"application/json"}}
-	body, _, err := sc.do(ctx, node, "POST", "/fetch", buf, hdrs)
+	body, _, err := sc.DoRequestContext(ctx, node, "POST", "/fetch", buf, hdrs)
 	if err != nil {
 		return nil, err
 	}
@@ -187,7 +188,7 @@ func (sc *SnowthClient) FetchValuesFbContext(ctx context.Context,
 		"Content-Type": {FetchFlatbufferContentType},
 		"Accept":       {Df4FlatbufferAccept},
 	}
-	body, _, err := sc.do(ctx, node, "POST", "/fetch", buf, hdrs)
+	body, _, err := sc.DoRequestContext(ctx, node, "POST", "/fetch", buf, hdrs)
 	if err != nil {
 		return nil, err
 	}

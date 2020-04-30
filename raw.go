@@ -71,9 +71,11 @@ func (sc *SnowthClient) ReadRawNumericValues(start time.Time, end time.Time,
 func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 	start, end time.Time, uuid, metric string,
 	nodes ...*SnowthNode) ([]RawNumericValue, error) {
-	node := sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(uuid, metric))
 	}
 
 	qp := url.Values{}
@@ -81,7 +83,7 @@ func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 	qp.Add("end_ts", formatTimestamp(end))
 
 	r := &RawNumericValueResponse{}
-	body, _, err := sc.do(ctx, node, "GET", path.Join("/raw",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/raw",
 		uuid, metric)+"?"+qp.Encode(), nil, nil)
 	if err != nil {
 		return nil, err
@@ -103,9 +105,11 @@ func (sc *SnowthClient) WriteRaw(data io.Reader,
 func (sc *SnowthClient) WriteRawContext(ctx context.Context,
 	data io.Reader, fb bool, dataPoints uint64,
 	nodes ...*SnowthNode) (*IRONdbPutResponse, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
 
 	hdrs := http.Header{"X-Snowth-Datapoints": {strconv.FormatUint(dataPoints, 10)}}
@@ -113,7 +117,7 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context,
 		hdrs["Content-Type"] = []string{MetriclistFlatbufferContentType}
 	}
 
-	body, _, err := sc.do(ctx, node, "POST", "/raw", data, hdrs)
+	body, _, err := sc.DoRequestContext(ctx, node, "POST", "/raw", data, hdrs)
 	if err != nil {
 		return nil, err
 	}

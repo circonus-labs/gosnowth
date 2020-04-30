@@ -28,7 +28,7 @@ func (sc *SnowthClient) RebuildActivityContext(ctx context.Context,
 		return nil, err
 	}
 
-	body, _, err := sc.do(ctx, node, "POST", "/surrogate/activity_rebuild", data, nil)
+	body, _, err := sc.DoRequestContext(ctx, node, "POST", "/surrogate/activity_rebuild", data, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -75,12 +75,14 @@ func TestSnowthClientRequest(t *testing.T) {
 		t.Fatal("Unable to create snowth client", err)
 	}
 
+	sc.SetRetries(1)
+	sc.SetConnectRetries(1)
 	sc.SetRequestFunc(func(r *http.Request) error {
 		r.Header.Set("X-Test-Header", "test")
 		return nil
 	})
 
-	u, err := url.Parse(ms.URL)
+	u, err := url.Parse("http://invalid")
 	if err != nil {
 		t.Fatal("Invalid test URL")
 	}

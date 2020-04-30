@@ -162,7 +162,7 @@ func (sc *SnowthClient) WriteNNTContext(ctx context.Context,
 			data[0].Metric))
 	}
 
-	_, _, err := sc.do(ctx, node, "POST", "/write/nnt", buf, nil)
+	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/write/nnt", buf, nil)
 	return err
 }
 
@@ -185,7 +185,7 @@ func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 	}
 
 	r := &NNTValueResponse{}
-	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
 		strconv.FormatInt(period, 10), id, t, metric), nil, nil)
@@ -219,7 +219,7 @@ func (sc *SnowthClient) ReadNNTAllValuesContext(ctx context.Context,
 	}
 
 	r := &NNTAllValueResponse{}
-	body, _, err := sc.do(ctx, node, "GET", path.Join("/read",
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
 		strconv.FormatInt(period, 10), id, "all", metric), nil, nil)

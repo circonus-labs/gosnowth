@@ -198,9 +198,11 @@ func (sc *SnowthClient) FindTags(accountID int64, query string,
 func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	query string, options *FindTagsOptions,
 	nodes ...*SnowthNode) (*FindTagsResult, error) {
-	node := sc.GetActiveNode()
+	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
 	}
 
 	u := fmt.Sprintf("%s?query=%s",
@@ -222,8 +224,9 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	if options.Limit != 0 {
 		hdrs.Set("X-Snowth-Advisory-Limit", strconv.FormatInt(options.Limit, 10))
 	}
+
 	r := &FindTagsResult{}
-	body, header, err := sc.do(ctx, node, "GET", u, nil, hdrs)
+	body, header, err := sc.DoRequestContext(ctx, node, "GET", u, nil, hdrs)
 	if err != nil {
 		return nil, err
 	}
