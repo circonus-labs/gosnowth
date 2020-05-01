@@ -6,6 +6,13 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.5.2] - 2020-05-01
+
+* Adds additional debug logging, if configured, to support better tracking of
+IRONdb request retries.
+* Fixes a bug that would cause failures on POST requests to IRONdb if the
+request needed to be retried on more than one node.
+
 ## [v1.5.1] - 2020-04-30
 
 * Adds an option, not used by default, to retry requests to IRONdb that fail
@@ -240,6 +247,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.5.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.2
 [v1.5.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.1
 [v1.5.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.0
 [v1.4.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.4.6
