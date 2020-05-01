@@ -730,9 +730,20 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 		retries = 0
 	}
 
+	sc.RLock()
+	log := sc.log
+	sc.RUnlock()
+	bBody := []byte{}
+	var err error
+	if body != nil {
+		bBody, err = ioutil.ReadAll(body)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "unable to read request body")
+		}
+	}
+
 	cr := sc.ConnectRetries()
 	nodes := append([]*SnowthNode{node}, sc.ListActiveNodes()...)
-	var err error
 	var bdy io.Reader
 	var hdr http.Header
 	for r := int64(0); r < retries+1; r++ {
@@ -754,7 +765,13 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				surl = sc.getURL(sn, u)
 			}
 
-			bdy, hdr, err = sc.do(ctx, sn, method, surl, body, headers)
+			if log != nil {
+				log.Debugf("gosnowth attempting request: %s %s %v",
+					method, surl, sn)
+			}
+
+			bdy, hdr, err = sc.do(ctx, sn, method, surl,
+				bytes.NewBuffer(bBody), headers)
 			if err == nil {
 				return bdy, hdr, nil
 			}
