@@ -730,9 +730,17 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 		retries = 0
 	}
 
+	bBody := []byte{}
+	var err error
+	if body != nil {
+		bBody, err = ioutil.ReadAll(body)
+		if err != nil {
+			return nil, nil, errors.Wrap(err, "unable to read request body")
+		}
+	}
+
 	cr := sc.ConnectRetries()
 	nodes := append([]*SnowthNode{node}, sc.ListActiveNodes()...)
-	var err error
 	var bdy io.Reader
 	var hdr http.Header
 	for r := int64(0); r < retries+1; r++ {
@@ -754,10 +762,16 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				surl = sc.getURL(sn, u)
 			}
 
-			bdy, hdr, err = sc.do(ctx, sn, method, surl, body, headers)
+			sc.LogDebugf("gosnowth attempting request: %s %s %v",
+				method, surl, sn)
+			bdy, hdr, err = sc.do(ctx, sn, method, surl,
+				bytes.NewBuffer(bBody), headers)
 			if err == nil {
 				return bdy, hdr, nil
 			}
+
+			sc.LogDebugf("gosnowth request error: %s %s %v",
+				method, surl, err)
 
 			// There are likely more types of IRONdb errors that need to be
 			// checked for and included in this section for errors which
@@ -882,7 +896,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		fmt.Println(string(dump))
 	}
 
-	sc.LogDebugf("snowth request: %+v", r)
+	sc.LogDebugf("gosnowth request: %+v", r)
 	var start = time.Now()
 	sc.RLock()
 	cli := sc.c
@@ -918,9 +932,9 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		fmt.Printf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
 	}
 
-	sc.LogDebugf("snowth response: %+v", resp)
-	sc.LogDebugf("snowth response body: %v", string(res))
-	sc.LogDebugf("snowth latency: %+v", time.Since(start))
+	sc.LogDebugf("gosnowth response: %+v", resp)
+	// sc.LogDebugf("gosnowth response body: %v", string(res))
+	sc.LogDebugf("gosnowth latency: %+v", time.Since(start))
 	select {
 	case <-ctx.Done():
 		return nil, nil, errors.Wrap(ctx.Err(), "context terminated")

@@ -59,6 +59,12 @@ func TestGetCAQLQuery(t *testing.T) {
 				return
 			}
 
+			if len(b) == 0 {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(testCAQLError))
+				return
+			}
+
 			if strings.Contains(string(b), "histograms") {
 				w.WriteHeader(502)
 				_, _ = w.Write([]byte(testCAQLError))
@@ -76,7 +82,9 @@ func TestGetCAQLQuery(t *testing.T) {
 		t.Fatal("Unable to create snowth client", err)
 	}
 
-	u, err := url.Parse(ms.URL)
+	sc.SetRetries(1)
+	sc.SetConnectRetries(1)
+	u, err := url.Parse("http://invalid")
 	if err != nil {
 		t.Fatal("Invalid test URL")
 	}

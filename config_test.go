@@ -83,7 +83,8 @@ func TestNewConfig(t *testing.T) {
 
 func TestConfigMarshalJSON(t *testing.T) {
 	s := `{"dial_timeout":"100ms","discover":true,"timeout":"1s",` +
-		`"watch_interval":"5s","servers":["localhost:8112"]}`
+		`"watch_interval":"5s","connect_retries":-1,` +
+		`"servers":["localhost:8112"]}`
 	c, err := NewConfig()
 	if err != nil {
 		t.Fatal(err)
@@ -152,11 +153,30 @@ func TestConfigMarshalJSON(t *testing.T) {
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
-		`"servers":[":invalid"],"timeout":"10s","watch_interval":"30s"}`
+		`"connect_retries":-1,"servers":[":invalid"],"timeout":"10s",` +
+		`"watch_interval":"30s"}`
 	err = json.Unmarshal([]byte(s), c)
 	if err == nil || !strings.Contains(err.Error(),
 		"invalid server address") {
 		t.Error("Expected error not returned.")
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,"retries":"invalid",` +
+		`"connect_retries":"invalid","servers":[":invalid"],"timeout":"10s",` +
+		`"watch_interval":"30s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"unmarshal string into Go struct field .retries of type") {
+		t.Errorf("Expected error not returned, got: %v", err)
+	}
+
+	s = `{"dial_timeout":"100ms","discover":true,` +
+		`"connect_retries":"invalid","servers":[":invalid"],"timeout":"10s",` +
+		`"watch_interval":"30s"}`
+	err = json.Unmarshal([]byte(s), c)
+	if err == nil || !strings.Contains(err.Error(),
+		"unmarshal string into Go struct field .connect_retries of type") {
+		t.Errorf("Expected error not returned, got: %v", err)
 	}
 
 	s = `{$$$}`
