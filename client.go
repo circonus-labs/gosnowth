@@ -896,7 +896,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		fmt.Println(string(dump))
 	}
 
-	sc.LogDebugf("snowth request: %+v", r)
+	sc.LogDebugf("gosnowth request: %+v", r)
 	var start = time.Now()
 	sc.RLock()
 	cli := sc.c
@@ -932,9 +932,9 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		fmt.Printf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
 	}
 
-	sc.LogDebugf("snowth response: %+v", resp)
-	sc.LogDebugf("snowth response body: %v", string(res))
-	sc.LogDebugf("snowth latency: %+v", time.Since(start))
+	sc.LogDebugf("gosnowth response: %+v", resp)
+	// sc.LogDebugf("gosnowth response body: %v", string(res))
+	sc.LogDebugf("gosnowth latency: %+v", time.Since(start))
 	select {
 	case <-ctx.Done():
 		return nil, nil, errors.Wrap(ctx.Err(), "context terminated")
