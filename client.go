@@ -730,9 +730,6 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 		retries = 0
 	}
 
-	sc.RLock()
-	log := sc.log
-	sc.RUnlock()
 	bBody := []byte{}
 	var err error
 	if body != nil {
@@ -765,16 +762,16 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				surl = sc.getURL(sn, u)
 			}
 
-			if log != nil {
-				log.Debugf("gosnowth attempting request: %s %s %v",
-					method, surl, sn)
-			}
-
+			sc.LogDebugf("gosnowth attempting request: %s %s %v",
+				method, surl, sn)
 			bdy, hdr, err = sc.do(ctx, sn, method, surl,
 				bytes.NewBuffer(bBody), headers)
 			if err == nil {
 				return bdy, hdr, nil
 			}
+
+			sc.LogDebugf("gosnowth request error: %s %s %v",
+				method, surl, err)
 
 			// There are likely more types of IRONdb errors that need to be
 			// checked for and included in this section for errors which
