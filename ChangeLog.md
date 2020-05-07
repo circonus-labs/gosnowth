@@ -6,6 +6,10 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+* Fixes an issue with node deactivation upon retry and adds the node discovery
+process to the watch function so that deactivated nodes can become active
+again when they become reachable again.
+
 ## [v1.5.2] - 2020-05-01
 
 * Adds additional debug logging, if configured, to support better tracking of

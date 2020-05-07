@@ -445,6 +445,10 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				return
 			case <-tick.C:
 				sc.LogDebugf("firing watch and update")
+				if err := sc.discoverNodes(); err != nil {
+					sc.LogErrorf("failed to perform watch discovery: %v", err)
+				}
+
 				sc.RLock()
 				wf := sc.watch
 				sc.RUnlock()
@@ -791,7 +795,12 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			connRetries--
-			sc.DeactivateNodes(sn)
+			if nerr, ok := err.(net.Error); ok && nerr.Timeout() &&
+				len(nodes) > 2 {
+				// Don't deactivate the last node, and only deactivate if the
+				// failure is a network timeout / tarpit.
+				sc.DeactivateNodes(sn)
+			}
 		}
 
 		time.Sleep(time.Millisecond * time.Duration(100*2^r))
