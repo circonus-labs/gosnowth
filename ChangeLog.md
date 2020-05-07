@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.5.3] - 2020-05-07
+
 * Fixes an issue with node deactivation upon retry and adds the node discovery
 process to the watch function so that deactivated nodes can become active
 again when they become reachable again.
@@ -251,6 +253,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.5.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.3
 [v1.5.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.2
 [v1.5.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.1
 [v1.5.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.0
