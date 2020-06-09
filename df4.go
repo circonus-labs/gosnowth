@@ -1,7 +1,12 @@
 // Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
-import "encoding/json"
+import (
+	"bytes"
+	"encoding/json"
+	"math"
+	"strconv"
+)
 
 // DF4Response values represent time series data in the DF4 format.
 type DF4Response struct {
@@ -51,4 +56,35 @@ func (dr *DF4Response) Copy() *DF4Response {
 	}
 
 	return b
+}
+
+// ReplaceInf is used to remove infinity and NaN values from DF4 JSON strings
+// prior to attempting to parse them into DF4Response values.
+func ReplaceInf(b []byte) []byte {
+	v := make([]byte, len(b))
+	copy(v, b)
+
+	v = bytes.Replace(v, []byte("+inf,"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("+inf]"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("-inf,"), []byte(
+		strconv.FormatFloat(-math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("-inf]"), []byte(
+		strconv.FormatFloat(-math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("inf,"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("inf]"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+
+	v = bytes.Replace(v, []byte("NaN,"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("NaN]"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("nan,"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+	v = bytes.Replace(v, []byte("nan]"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+
+	return v
 }

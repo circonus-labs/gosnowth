@@ -28,6 +28,37 @@ const fetchTestQuery = `{
 	"reduce": [{"label":"test","method":"test"}]
 }`
 
+const testFetchDF4Response = `{
+	"version": "DF4",
+	"head": {
+		"count": 3,
+		"start": 0,
+		"period": 300,
+		"explain":{
+			"info":{
+				"putype":["none","number"]
+			}
+		}
+	},
+	"meta": [
+		{
+			"kind": "numeric",
+			"label": "test",
+			"tags": [
+				"__check_uuid:11223344-5566-7788-9900-aabbccddeeff",
+				"__name:test"
+			]
+		}
+	],
+	"data": [
+		[
+			1,
+			inf,
+			3
+		]
+	]
+}`
+
 func TestFetchQueryMarshaling(t *testing.T) {
 	v := &FetchQuery{}
 	err := json.NewDecoder(bytes.NewBufferString(fetchTestQuery)).Decode(&v)
@@ -67,7 +98,7 @@ func TestFetchQuery(t *testing.T) {
 
 		if strings.HasPrefix(r.RequestURI,
 			"/fetch") {
-			_, _ = w.Write([]byte(testDF4Response))
+			_, _ = w.Write([]byte(testFetchDF4Response))
 			return
 		}
 	}))
