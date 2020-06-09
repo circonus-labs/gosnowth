@@ -133,7 +133,14 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 		return nil, err
 	}
 
-	if err := decodeJSON(body, &r); err != nil {
+	rb, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read IRONdb response body")
+	}
+
+	rb = ReplaceInf(rb)
+
+	if err := decodeJSON(bytes.NewBuffer(rb), &r); err != nil {
 		return nil, errors.Wrap(err, "unable to decode IRONdb response")
 	}
 

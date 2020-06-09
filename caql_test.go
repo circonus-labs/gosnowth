@@ -71,7 +71,7 @@ func TestGetCAQLQuery(t *testing.T) {
 				return
 			}
 
-			_, _ = w.Write([]byte(testDF4Response))
+			_, _ = w.Write([]byte(testFetchDF4Response))
 			return
 		}
 	}))

@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+* Supports DF4 responses that contain data values of [+/-]inf or NaN.
+
 ## [v1.5.3] - 2020-05-07
 
 * Fixes an issue with node deactivation upon retry and adds the node discovery
