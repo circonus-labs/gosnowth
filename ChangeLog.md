@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.5.4] - 2020-06-20
+
 * Supports DF4 responses that contain data values of [+/-]inf or NaN.
 
 ## [v1.5.3] - 2020-05-07
@@ -255,6 +257,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.5.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.4
 [v1.5.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.3
 [v1.5.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.2
 [v1.5.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.1
