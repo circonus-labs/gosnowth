@@ -156,8 +156,15 @@ func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 		return nil, err
 	}
 
+	rb, err := ioutil.ReadAll(body)
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to read IRONdb response body")
+	}
+
+	rb = ReplaceInf(rb)
+
 	r := &DF4Response{}
-	if err := decodeJSON(body, &r); err != nil {
+	if err := decodeJSON(bytes.NewBuffer(rb), &r); err != nil {
 		return nil, errors.Wrap(err, "unable to decode IRONdb response")
 	}
 
