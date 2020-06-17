@@ -15,13 +15,11 @@ import (
 const tagsTestData = `[
 	{
 		"uuid": "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
-		"check_name": "test",
 		"check_tags": [
 			"test:test",
 			"__check_id:1"
 		],
 		"metric_name": "test",
-		"category": "reconnoiter",
 		"type": "numeric,histogram",
 		"activity": [
 			[
@@ -45,10 +43,8 @@ const tagsTestData = `[
 func TestFindTagsJSON(t *testing.T) {
 	fti := &FindTagsItem{
 		UUID:       "11223344-5566-7788-9900-aabbccddeeff",
-		CheckName:  "test",
 		CheckTags:  []string{"test:test"},
 		MetricName: "test|ST[test:test]",
-		Category:   "reconnoiter",
 		Type:       "numeric",
 		AccountID:  1,
 		Activity:   [][]int64{{1, 1}, {2, 1}},
