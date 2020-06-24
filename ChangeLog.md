@@ -6,6 +6,9 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+* Remove `CheckName` and `Category` fields from `FindTagsItem`. These fields
+will no longer be returned from IRONdb find calls.
+
 ## [v1.5.4] - 2020-06-20
 
 * Supports DF4 responses that contain data values of [+/-]inf or NaN.

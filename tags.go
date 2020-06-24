@@ -16,10 +16,8 @@ import (
 // FindTagsItem values represent results returned from IRONdb tag queries.
 type FindTagsItem struct {
 	UUID       string          `json:"uuid"`
-	CheckName  string          `json:"check_name"`
 	CheckTags  []string        `json:"check_tags,omitempty"`
 	MetricName string          `json:"metric_name"`
-	Category   string          `json:"category"`
 	Type       string          `type:"type"`
 	AccountID  int64           `json:"account_id"`
 	Activity   [][]int64       `json:"activity,omitempty"`
