@@ -43,6 +43,7 @@ type NodeState struct {
 	Current       string   `json:"current"`
 	Next          string   `json:"next"`
 	NNT           Rollup   `json:"nnt"`
+	NNTBS        *Rollup   `json:"nntbs"`
 	Text          Rollup   `json:"text"`
 	Histogram     Rollup   `json:"histogram"`
 	BaseRollup    uint64   `json:"base_rollup"`

@@ -8,6 +8,7 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 * Remove `CheckName` and `Category` fields from `FindTagsItem`. These fields
 will no longer be returned from IRONdb find calls.
+* Add `NNTBS` field to `NodeState` struct.
 
 ## [v1.5.4] - 2020-06-20
 
