@@ -199,7 +199,7 @@ func TestLocateMetricFindMetric(t *testing.T) {
 
 	exp = "3d8ae36d-3d4d-4eda-ab53-c58538985062"
 	if res[1].ID != exp {
-		t.Errorf("Expected ID: %v, got: %v", exp, res[1].ID)
+		t.Errorf("Expected secondary node ID: %v, got: %v", exp, res[1].ID)
 	}
 
 	exp = "1533fc6b-de08-6eac-eb46-d3920a1a18a3"
