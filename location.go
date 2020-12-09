@@ -14,10 +14,12 @@ func (sc *SnowthClient) LocateMetric(uuid string, metric string,
 	if len(node) > 0 {
 		return sc.LocateMetricRemote(uuid, metric, node[0])
 	}
+
 	topo, err := sc.Topology()
 	if err != nil {
 		return nil, err
 	}
+
 	return topo.FindMetric(uuid, metric)
 }
 
@@ -27,30 +29,35 @@ func (sc *SnowthClient) LocateMetricContext(ctx context.Context, uuid string,
 	if len(node) > 0 {
 		return sc.LocateMetricRemoteContext(ctx, uuid, metric, node[0])
 	}
+
 	topo, err := sc.Topology()
 	if err != nil {
 		return nil, err
 	}
+
 	return topo.FindMetric(uuid, metric)
 }
 
 // LocateMetricRemote locates which nodes contain specified metric data.
 func (sc *SnowthClient) LocateMetricRemote(uuid string, metric string,
 	node *SnowthNode) ([]TopologyNode, error) {
-	return sc.LocateMetricRemoteContext(context.Background(), uuid, metric, node)
+	return sc.LocateMetricRemoteContext(context.Background(),
+		uuid, metric, node)
 }
 
 // LocateMetricRemoteContext is the context aware version of LocateMetricRemote.
-func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context, uuid string,
-	metric string, node *SnowthNode) ([]TopologyNode, error) {
+func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context,
+	uuid string, metric string, node *SnowthNode) ([]TopologyNode, error) {
 	r := &Topology{}
 	if node == nil {
 		nodes := sc.ListActiveNodes()
 		if len(nodes) == 0 {
 			return nil, errors.New("no active nodes")
 		}
+
 		node = nodes[0]
 	}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		path.Join("/locate/xml", uuid, metric), nil, nil)
 	if err != nil {
@@ -60,9 +67,11 @@ func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context, uuid stri
 	if err := decodeXML(body, &r); err != nil {
 		return nil, errors.Wrap(err, "unable to decode IRONdb response")
 	}
+
 	if r.WriteCopies == 0 {
 		r.WriteCopies = r.OldWriteCopies
 	}
+
 	r.OldWriteCopies = r.WriteCopies
 
 	return r.Nodes, nil
