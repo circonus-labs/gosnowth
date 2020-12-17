@@ -54,7 +54,9 @@ const testFetchDF4Response = `{
 		[
 			1,
 			inf,
-			3
+			3,
+			NaN,
+			-inf
 		]
 	]
 }`

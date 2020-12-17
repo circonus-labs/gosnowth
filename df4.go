@@ -67,24 +67,34 @@ func ReplaceInf(b []byte) []byte {
 	v = bytes.Replace(v, []byte("+inf,"), []byte(
 		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
 	v = bytes.Replace(v, []byte("+inf]"), []byte(
-		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"]"), -1)
+	v = bytes.Replace(v, []byte("+inf\n"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"\n"), -1)
 	v = bytes.Replace(v, []byte("-inf,"), []byte(
 		strconv.FormatFloat(-math.MaxFloat64, 'g', -1, 64)+","), -1)
 	v = bytes.Replace(v, []byte("-inf]"), []byte(
-		strconv.FormatFloat(-math.MaxFloat64, 'g', -1, 64)+","), -1)
+		strconv.FormatFloat(-math.MaxFloat64, 'g', -1, 64)+"]"), -1)
+	v = bytes.Replace(v, []byte("-inf\n"), []byte(
+		strconv.FormatFloat(-math.MaxFloat64, 'g', -1, 64)+"\n"), -1)
 	v = bytes.Replace(v, []byte("inf,"), []byte(
 		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
 	v = bytes.Replace(v, []byte("inf]"), []byte(
-		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"]"), -1)
+	v = bytes.Replace(v, []byte("inf\n"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"\n"), -1)
 
 	v = bytes.Replace(v, []byte("NaN,"), []byte(
 		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
 	v = bytes.Replace(v, []byte("NaN]"), []byte(
-		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"]"), -1)
+	v = bytes.Replace(v, []byte("NaN\n"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"\n"), -1)
 	v = bytes.Replace(v, []byte("nan,"), []byte(
 		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
 	v = bytes.Replace(v, []byte("nan]"), []byte(
-		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+","), -1)
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"]"), -1)
+	v = bytes.Replace(v, []byte("nan\n"), []byte(
+		strconv.FormatFloat(math.MaxFloat64, 'g', -1, 64)+"\n"), -1)
 
 	return v
 }
