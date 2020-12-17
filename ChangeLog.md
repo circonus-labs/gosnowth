@@ -6,6 +6,10 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.5.6] - 2020-12-17
+
+* Fixes a bug causing gosnowth to sometimes return an error when encountering
++/-inf values in DF4 data responses from IRONdb.
 * Improves the LocateMetric unit tests to include testing the FindMetric
 node hashing logic.
 
@@ -266,6 +270,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.5.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.6
 [v1.5.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.5
 [v1.5.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.4
 [v1.5.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.3
