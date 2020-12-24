@@ -26,8 +26,15 @@ type FindTagsItem struct {
 
 // FindTagsResult values contain the results of a find tags request.
 type FindTagsResult struct {
-	Items []FindTagsItem
-	Count int64
+	Items     []FindTagsItem
+	FindCount FindTagsCount
+	Count     int64
+}
+
+// FindTagsCount values represent results from count only requests.
+type FindTagsCount struct {
+	Count    int64 `json:"count"`
+	Estimate bool  `json:"estimate"`
 }
 
 // FindTagsOptions values contain optional parameters to be passed to the
@@ -229,8 +236,14 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 		return nil, err
 	}
 
-	if err := decodeJSON(body, &r.Items); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+	if options.CountOnly != 0 {
+		if err := decodeJSON(body, &r.FindCount); err != nil {
+			return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		}
+	} else {
+		if err := decodeJSON(body, &r.Items); err != nil {
+			return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		}
 	}
 
 	// Return a results count and capture it from the header , if provided.

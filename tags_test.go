@@ -12,6 +12,8 @@ import (
 	"time"
 )
 
+const tagsCountTestData = `{"count":22,"estimate":false}`
+
 const tagsTestData = `[
 	{
 		"uuid": "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
@@ -100,6 +102,12 @@ func TestFindTags(t *testing.T) {
 			return
 		}
 
+		if strings.Contains(r.RequestURI, "&count_only=1") {
+			w.Header().Set("X-Snowth-Search-Result-Count", "1")
+			_, _ = w.Write([]byte(tagsCountTestData))
+			return
+		}
+
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(tagsTestData))
@@ -120,6 +128,22 @@ func TestFindTags(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.FindTags(1, "test", &FindTagsOptions{
+		Start:     time.Unix(1, 0),
+		End:       time.Unix(2, 0),
+		Activity:  0,
+		Latest:    0,
+		CountOnly: 1,
+		Limit:     -1,
+	}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Count != 1 {
+		t.Fatalf("Expected result count: 1, got: %v", res.Count)
+	}
+
+	res, err = sc.FindTags(1, "test", &FindTagsOptions{
 		Start:     time.Unix(1, 0),
 		End:       time.Unix(2, 0),
 		Activity:  1,
