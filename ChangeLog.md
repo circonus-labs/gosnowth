@@ -6,6 +6,10 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.6.2] - 2020-12-23
+
+* fix: Changed the type of the `_count_only` results type.
+
 ## [v1.6.1] - 2020-12-23
 
 * upd: Added support for `_count_only` requests using the FindTags functions.
@@ -274,6 +278,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.6.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.6.2
 [v1.6.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.6.1
 [v1.5.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.6
 [v1.5.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.5.5

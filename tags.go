@@ -27,7 +27,7 @@ type FindTagsItem struct {
 // FindTagsResult values contain the results of a find tags request.
 type FindTagsResult struct {
 	Items     []FindTagsItem
-	FindCount FindTagsCount
+	FindCount *FindTagsCount
 	Count     int64
 }
 
