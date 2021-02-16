@@ -215,6 +215,59 @@ func TestWriteRawMetricList(t *testing.T) {
 	}
 }
 
+func BenchmarkWriteRawFlatbuffer(b *testing.B) {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	b.StopTimer()
+
+	sc, err := NewSnowthClient(false, host)
+	if err != nil {
+		b.Fatal("Unable to create snowth client", err)
+	}
+
+	builder := flatbuffers.NewBuilder(1024)
+
+	list := &noit.MetricListT{
+		Metrics: []*noit.MetricT{{
+			Timestamp: uint64(time.Now().Unix()) * 1000,
+			CheckName: "gosnowth-benchmark",
+			CheckUuid: "e312a0cb-dbe9-445d-8346-13b0ae6a3382",
+			AccountId: 1,
+			Value: &noit.MetricValueT{
+				Name:      "gosnowth-benchmark",
+				Timestamp: uint64(time.Now().Unix()) * 1000,
+				Value: &noit.MetricValueUnionT{
+					Type: noit.MetricValueUnionIntValue,
+					Value: &noit.IntValueT{
+						Value: 1,
+					},
+				},
+				Generation: 1,
+				StreamTags: []string{"test:test"},
+			},
+		}},
+	}
+
+	builder.Reset()
+
+	offset := noit.MetricListPack(builder, list)
+	builder.FinishWithFileIdentifier(offset, []byte("CIML"))
+
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		reader := bytes.NewReader(builder.FinishedBytes())
+
+		_, err = sc.WriteRaw(reader, true, 1)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
 func BenchmarkWriteRawMetricList(b *testing.B) {
 	host := os.Getenv("SNOWTH_URL")
 	if host == "" {
@@ -228,7 +281,7 @@ func BenchmarkWriteRawMetricList(b *testing.B) {
 		b.Fatal("Unable to create snowth client", err)
 	}
 
-	builder := flatbuffers.NewBuilder(1024 * 1024)
+	builder := flatbuffers.NewBuilder(1024)
 
 	list := &noit.MetricListT{
 		Metrics: []*noit.MetricT{{
