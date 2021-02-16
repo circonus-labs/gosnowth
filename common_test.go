@@ -4,7 +4,7 @@ package gosnowth
 import (
 	"bytes"
 	"encoding/xml"
-	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -46,8 +46,8 @@ func TestMultiError(t *testing.T) {
 		t.Error("Should have no errors yet")
 	}
 
-	me.Add(errors.New("error 1"))
-	me.Add(errors.New("error 2"))
+	me.Add(fmt.Errorf("error 1"))
+	me.Add(fmt.Errorf("error 2"))
 	me.Add(nil)
 	if !me.HasError() {
 		t.Error("Should have errors")

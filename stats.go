@@ -3,8 +3,7 @@ package gosnowth
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // GetStats retrieves the metrics about the status of an IRONdb node.
@@ -29,7 +28,7 @@ func (sc *SnowthClient) GetStatsContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil

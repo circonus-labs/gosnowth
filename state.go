@@ -4,9 +4,8 @@ package gosnowth
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // GetNodeState retrieves the state of an IRONdb node.
@@ -31,7 +30,7 @@ func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil
@@ -43,7 +42,7 @@ type NodeState struct {
 	Current       string   `json:"current"`
 	Next          string   `json:"next"`
 	NNT           Rollup   `json:"nnt"`
-	NNTBS        *Rollup   `json:"nntbs"`
+	NNTBS         *Rollup  `json:"nntbs"`
 	Text          Rollup   `json:"text"`
 	Histogram     Rollup   `json:"histogram"`
 	BaseRollup    uint64   `json:"base_rollup"`

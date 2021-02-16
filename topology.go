@@ -8,11 +8,10 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"encoding/xml"
+	"fmt"
 	"path"
 	"sort"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 type topologyNodeSlot struct {
@@ -98,42 +97,42 @@ func (topo *Topology) compile() error {
 	hash := sha256.New()
 	for _, node := range topo.Nodes {
 		if _, err := hash.Write([]byte(node.ID)); err != nil {
-			return errors.Wrap(err, "unable to write hash")
+			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		if _, err := hash.Write([]byte{0, 0}); err != nil {
-			return errors.Wrap(err, "unable to write hash")
+			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, node.Weight)
 		if _, err := hash.Write(netshort); err != nil {
-			return errors.Wrap(err, "unable to write hash")
+			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, uint16(node.Side))
 			if _, err := hash.Write(netshort); err != nil {
-				return errors.Wrap(err, "unable to write hash")
+				return fmt.Errorf("unable to write hash: %w", err)
 			}
 		}
 	}
 	// This matches the horrible backware compatibility requirements in the C version
 	if topo.WriteCopies != 2 {
 		if _, err := hash.Write(bytes.Repeat([]byte{0}, 38)); err != nil {
-			return errors.Wrap(err, "unable to write hash")
+			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, uint16(topo.WriteCopies))
 		if _, err := hash.Write(netshort); err != nil {
-			return errors.Wrap(err, "unable to write hash")
+			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, 0)
 			if _, err := hash.Write(netshort); err != nil {
-				return errors.Wrap(err, "unable to write hash")
+				return fmt.Errorf("unable to write hash: %w", err)
 			}
 		}
 	}
@@ -142,7 +141,7 @@ func (topo *Topology) compile() error {
 		topo.Hash = sum
 	}
 	if topo.Hash != sum {
-		return errors.New("bad topology hash")
+		return fmt.Errorf("bad topology hash")
 	}
 
 	topo.ring = make([]topologyNodeSlot, nslots)
@@ -239,7 +238,7 @@ func (topo *Topology) FindMetricNodeIDs(uuid, metric string) ([]string, error) {
 	nodes, err := topo.FindN(strings.ToLower(uuid)+"-"+metric, int(topo.WriteCopies))
 	if nodes == nil {
 		if err == nil {
-			err = errors.New("unable to find metric node: FindN failed")
+			err = fmt.Errorf("unable to find metric node: FindN failed")
 		}
 		return nil, err
 	}
@@ -268,7 +267,7 @@ func (topo *Topology) Find(s string) ([]TopologyNode, error) {
 // FindN finds n nodes on which s lives
 func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 	if topo.ring == nil || len(topo.ring) < 1 {
-		return nil, errors.New("unable to find n nodes: empty topology")
+		return nil, fmt.Errorf("unable to find n nodes: empty topology")
 	}
 	location := sha256.Sum256([]byte(s))
 	nodes := make([]TopologyNode, 0)
@@ -293,7 +292,7 @@ func (sc *SnowthClient) GetTopologyInfo(nodes ...*SnowthNode) (*Topology, error)
 	}
 
 	if node == nil {
-		return nil, errors.New("no active nodes")
+		return nil, fmt.Errorf("no active nodes")
 	}
 	return sc.GetTopologyInfoContext(context.Background(), node)
 }
@@ -303,7 +302,7 @@ func TopologyLoadXML(xml string) (*Topology, error) {
 	r := &Topology{}
 
 	if err := decodeXML(strings.NewReader(xml), &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 	if err := r.compile(); err != nil {
 		return nil, err
@@ -324,7 +323,7 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 
 	topologyID := node.GetCurrentTopology()
 	if topologyID == "" {
-		return nil, errors.New("no active topology")
+		return nil, fmt.Errorf("no active topology")
 	}
 	if topologyID == sc.currentTopology && sc.currentTopologyCompiled != nil {
 		return sc.currentTopologyCompiled, nil
@@ -336,7 +335,7 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	}
 
 	if err := decodeXML(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 	if err = r.compile(); err != nil {
 		return nil, err
@@ -365,7 +364,7 @@ func (sc *SnowthClient) LoadTopologyContext(ctx context.Context, hash string,
 	t *Topology, node *SnowthNode) error {
 	b, err := encodeXML(t)
 	if err != nil {
-		return errors.Wrap(err, "failed to encode request data")
+		return fmt.Errorf("failed to encode request data: %w", err)
 	}
 
 	_, _, err = sc.DoRequestContext(ctx, node, "POST", path.Join("/topology", hash), b, nil)

@@ -9,8 +9,6 @@ import (
 	"net/url"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // FindTagsItem values represent results returned from IRONdb tag queries.
@@ -238,11 +236,11 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 
 	if options.CountOnly != 0 {
 		if err := decodeJSON(body, &r.FindCount); err != nil {
-			return nil, errors.Wrap(err, "unable to decode IRONdb response")
+			return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 		}
 	} else {
 		if err := decodeJSON(body, &r.Items); err != nil {
-			return nil, errors.Wrap(err, "unable to decode IRONdb response")
+			return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 		}
 	}
 

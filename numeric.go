@@ -5,11 +5,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // NumericAllValueResponse values represent numeric data responses from IRONdb.
@@ -23,8 +22,8 @@ func (nv *NumericAllValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NumericAllValue{}
 	values := [][]interface{}{}
 	if err := json.Unmarshal(b, &values); err != nil {
-		return errors.Wrap(err,
-			"failed to deserialize numeric average response")
+		return fmt.Errorf("failed to deserialize numeric average response: %w",
+			err)
 	}
 
 	for _, entry := range values {
@@ -32,13 +31,13 @@ func (nv *NumericAllValueResponse) UnmarshalJSON(b []byte) error {
 		if m, ok := entry[1].(map[string]interface{}); ok {
 			valueBytes, err := json.Marshal(m)
 			if err != nil {
-				return errors.Wrap(err,
-					"failed to marshal intermediate value from tuple")
+				return fmt.Errorf(
+					"failed to marshal intermediate value from tuple: %w", err)
 			}
 
 			if err := json.Unmarshal(valueBytes, &nav); err != nil {
-				return errors.Wrap(err,
-					"failed to unmarshal value from tuple")
+				return fmt.Errorf("failed to unmarshal value from tuple: %w",
+					err)
 			}
 		}
 
@@ -79,7 +78,8 @@ func (nv *NumericValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NumericValue{}
 	values := [][]int64{}
 	if err := json.Unmarshal(b, &values); err != nil {
-		return errors.Wrap(err, "failed to deserialize numeric average response")
+		return fmt.Errorf("failed to deserialize numeric average response: %w",
+			err)
 	}
 
 	for _, tuple := range values {
@@ -155,7 +155,7 @@ func (sc *SnowthClient) WriteNumericContext(ctx context.Context,
 	data []NumericWrite, nodes ...*SnowthNode) error {
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
-		return errors.Wrap(err, "failed to encode NumericWrite for write")
+		return fmt.Errorf("failed to encode NumericWrite for write: %w", err)
 	}
 
 	var node *SnowthNode
@@ -199,7 +199,7 @@ func (sc *SnowthClient) ReadNumericValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r.Data, nil
@@ -234,7 +234,7 @@ func (sc *SnowthClient) ReadNumericAllValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 	return r.Data, nil
 }

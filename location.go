@@ -3,9 +3,8 @@ package gosnowth
 
 import (
 	"context"
+	"fmt"
 	"path"
-
-	"github.com/pkg/errors"
 )
 
 // LocateMetric returns a list of nodes owning the specified metric
@@ -52,7 +51,7 @@ func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context,
 	if node == nil {
 		nodes := sc.ListActiveNodes()
 		if len(nodes) == 0 {
-			return nil, errors.New("no active nodes")
+			return nil, fmt.Errorf("no active nodes")
 		}
 
 		node = nodes[0]
@@ -65,7 +64,7 @@ func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context,
 	}
 
 	if err := decodeXML(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	if r.WriteCopies == 0 {

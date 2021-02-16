@@ -3,11 +3,10 @@ package gosnowth
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Config values represent configuration information SnowthClient values.
@@ -97,13 +96,13 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 	}{}
 
 	if err := json.Unmarshal(b, &m); err != nil {
-		return errors.Wrap(err, "unable to unmarshal JSON data")
+		return fmt.Errorf("unable to unmarshal JSON data: %w", err)
 	}
 
 	if m.DialTimeout != "" {
 		d, err := time.ParseDuration(m.DialTimeout)
 		if err != nil {
-			return errors.Wrap(err, "unable to parse dial timeout")
+			return fmt.Errorf("unable to parse dial timeout: %w", err)
 		}
 
 		if err := c.SetDialTimeout(d); err != nil {
@@ -115,7 +114,7 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 	if m.Timeout != "" {
 		d, err := time.ParseDuration(m.Timeout)
 		if err != nil {
-			return errors.Wrap(err, "unable to parse timeout")
+			return fmt.Errorf("unable to parse timeout: %w", err)
 		}
 
 		if err := c.SetTimeout(d); err != nil {
@@ -126,7 +125,7 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 	if m.WatchInterval != "" {
 		d, err := time.ParseDuration(m.WatchInterval)
 		if err != nil {
-			return errors.Wrap(err, "unable to parse watch interval")
+			return fmt.Errorf("unable to parse watch interval: %w", err)
 		}
 
 		if err := c.SetWatchInterval(d); err != nil {
@@ -162,7 +161,7 @@ func (c *Config) DialTimeout() time.Duration {
 // SetDialTimeout sets a new dial timeout value.
 func (c *Config) SetDialTimeout(t time.Duration) error {
 	if t < 0 || t > time.Minute {
-		return errors.New("invalid dial timeout value")
+		return fmt.Errorf("invalid dial timeout value")
 	}
 
 	c.Lock()
@@ -198,7 +197,7 @@ func (c *Config) Timeout() time.Duration {
 // SetTimeout sets a new HTTP timeout duration.
 func (c *Config) SetTimeout(t time.Duration) error {
 	if t < 0 || t > (5*time.Minute) {
-		return errors.New("invalid timeout value")
+		return fmt.Errorf("invalid timeout value")
 	}
 
 	c.Lock()
@@ -252,7 +251,7 @@ func (c *Config) SetServers(servers ...string) error {
 	s := []string{}
 	for _, svr := range servers {
 		if _, err := url.Parse(svr); err != nil {
-			return errors.Wrap(err, "invalid server address "+svr)
+			return fmt.Errorf("invalid server address " + svr)
 		}
 
 		s = append(s, svr)
@@ -275,7 +274,7 @@ func (c *Config) WatchInterval() time.Duration {
 // SetWatchInterval sets a new interval for watch and update functionality.
 func (c *Config) SetWatchInterval(i time.Duration) error {
 	if i < 0 || i > (time.Hour*24) {
-		return errors.New("invalid watch interval value")
+		return fmt.Errorf("invalid watch interval value")
 	}
 
 	c.Lock()

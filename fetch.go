@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
 	"time"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-	"github.com/pkg/errors"
 
 	"github.com/circonus-labs/gosnowth/fb/fetch"
 )
@@ -55,7 +55,7 @@ func (fq *FetchQuery) MarshalJSON() ([]byte, error) {
 	}{}
 	fv, err := strconv.ParseFloat(formatTimestamp(fq.Start), 64)
 	if err != nil {
-		return nil, errors.New("invalid fetch start value: " +
+		return nil, fmt.Errorf("invalid fetch start value: " +
 			formatTimestamp(fq.Start))
 	}
 
@@ -88,7 +88,7 @@ func (fq *FetchQuery) UnmarshalJSON(b []byte) error {
 	}
 
 	if v.Start == 0 {
-		return errors.New("fetch query missing start: " + string(b))
+		return fmt.Errorf("fetch query missing start: " + string(b))
 	}
 
 	fq.Start, err = parseTimestamp(strconv.FormatFloat(v.Start, 'f', 3, 64))
@@ -97,23 +97,23 @@ func (fq *FetchQuery) UnmarshalJSON(b []byte) error {
 	}
 
 	if v.Period == 0 {
-		return errors.New("fetch query missing period: " + string(b))
+		return fmt.Errorf("fetch query missing period: " + string(b))
 	}
 
 	fq.Period = time.Duration(v.Period*1000) * time.Millisecond
 	if v.Count == 0 {
-		return errors.New("fetch query missing count: " + string(b))
+		return fmt.Errorf("fetch query missing count: " + string(b))
 	}
 
 	fq.Count = v.Count
 	if len(v.Streams) < 1 {
-		return errors.New("fetch query requires at least one stream: " +
+		return fmt.Errorf("fetch query requires at least one stream: " +
 			string(b))
 	}
 
 	fq.Streams = v.Streams
 	if len(v.Reduce) < 1 {
-		return errors.New("fetch query requires at least one reduce: " +
+		return fmt.Errorf("fetch query requires at least one reduce: " +
 			string(b))
 	}
 
@@ -158,14 +158,14 @@ func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 
 	rb, err := ioutil.ReadAll(body)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to read IRONdb response body")
+		return nil, fmt.Errorf("unable to read IRONdb response body: %w", err)
 	}
 
 	rb = ReplaceInf(rb)
 
 	r := &DF4Response{}
 	if err := decodeJSON(bytes.NewBuffer(rb), &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil

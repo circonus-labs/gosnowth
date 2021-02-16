@@ -5,9 +5,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
-
-	"github.com/pkg/errors"
 )
 
 // ExtensionParam values contain information about an extension parameter.
@@ -147,7 +146,7 @@ func (sc *SnowthClient) GetLuaExtensionsContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, err
@@ -195,7 +194,7 @@ func (sc *SnowthClient) ExecLuaExtensionContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, err

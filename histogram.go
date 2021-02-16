@@ -5,13 +5,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 	"path"
 	"strconv"
 	"time"
 
 	"github.com/circonus-labs/circonusllhist"
-	"github.com/pkg/errors"
 )
 
 // HistogramValue values are individual data points of a histogram metric.
@@ -26,7 +26,7 @@ func (hv *HistogramValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
 	fv, err := strconv.ParseFloat(formatTimestamp(hv.Time), 64)
 	if err != nil {
-		return nil, errors.New("invalid histogram value time: " +
+		return nil, fmt.Errorf("invalid histogram value time: " +
 			formatTimestamp(hv.Time))
 	}
 
@@ -45,7 +45,7 @@ func (hv *HistogramValue) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(v) != 3 {
-		return errors.New("histogram value should contain three entries: " +
+		return fmt.Errorf("histogram value should contain three entries: " +
 			string(b))
 	}
 
@@ -114,7 +114,7 @@ func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil
@@ -151,7 +151,7 @@ func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
 
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
-		return errors.Wrap(err, "failed to encode HistogramData for write")
+		return fmt.Errorf("failed to encode HistogramData for write: %w", err)
 	}
 
 	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/histogram/write", buf, nil)

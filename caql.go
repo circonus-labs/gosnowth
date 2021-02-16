@@ -5,10 +5,9 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"strings"
-
-	"github.com/pkg/errors"
 )
 
 // CAQLQuery values represent CAQL queries and associated parameters.
@@ -112,7 +111,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 
 	bBuf, err := ioutil.ReadAll(qBuf)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to read request body buffer")
+		return nil, fmt.Errorf("unable to read request body buffer: %w", err)
 	}
 
 	// CAQL extension does not like the JSON in the request body to end with \n.
@@ -135,13 +134,13 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 
 	rb, err := ioutil.ReadAll(body)
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to read IRONdb response body")
+		return nil, fmt.Errorf("unable to read IRONdb response body: %w", err)
 	}
 
 	rb = ReplaceInf(rb)
 
 	if err := decodeJSON(bytes.NewBuffer(rb), &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, err

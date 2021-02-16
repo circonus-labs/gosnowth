@@ -5,11 +5,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // TextValueResponse values represent text data responses.
@@ -20,7 +19,7 @@ func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 	*tvr = TextValueResponse{}
 	values := [][]interface{}{}
 	if err := json.Unmarshal(b, &values); err != nil {
-		return errors.Wrap(err, "failed to decode JSON response")
+		return fmt.Errorf("failed to decode JSON response: %w", err)
 	}
 
 	for _, entry := range values {
@@ -73,7 +72,7 @@ func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil
@@ -105,7 +104,7 @@ func (sc *SnowthClient) WriteTextContext(ctx context.Context,
 
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
-		return errors.Wrap(err, "failed to encode TextData for write")
+		return fmt.Errorf("failed to encode TextData for write: %w", err)
 	}
 
 	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/write/text", buf, nil)

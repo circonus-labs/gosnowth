@@ -11,8 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // IRONdbPutResponse values represent raw IRONdb PUT/POST responses.
@@ -74,7 +72,7 @@ func encodeJSON(v interface{}) (io.Reader, error) {
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(v); err != nil {
-		return nil, errors.Wrap(err, "failed to encode JSON")
+		return nil, fmt.Errorf("failed to encode JSON: %w", err)
 	}
 
 	return buf, nil
@@ -83,11 +81,11 @@ func encodeJSON(v interface{}) (io.Reader, error) {
 // decodeJSON decodes JSON from a reader into an interface.
 func decodeJSON(r io.Reader, v interface{}) error {
 	if r == nil {
-		return errors.New("unable to decode from nil reader")
+		return fmt.Errorf("unable to decode from nil reader")
 	}
 
 	if err := json.NewDecoder(r).Decode(v); err != nil {
-		return errors.Wrap(err, "failed to decode JSON")
+		return fmt.Errorf("failed to decode JSON: %w", err)
 	}
 
 	return nil
@@ -97,7 +95,7 @@ func decodeJSON(r io.Reader, v interface{}) error {
 func encodeXML(v interface{}) (io.Reader, error) {
 	buf := bytes.NewBuffer([]byte{})
 	if err := xml.NewEncoder(buf).Encode(v); err != nil {
-		return nil, errors.Wrap(err, "failed to encode XML")
+		return nil, fmt.Errorf("failed to encode XML: %w", err)
 	}
 
 	return buf, nil
@@ -106,7 +104,7 @@ func encodeXML(v interface{}) (io.Reader, error) {
 // decodeXML decodes XML from a reader into an interface.
 func decodeXML(r io.Reader, v interface{}) error {
 	if err := xml.NewDecoder(r).Decode(v); err != nil {
-		return errors.Wrap(err, "failed to decode XML")
+		return fmt.Errorf("failed to decode XML: %w", err)
 	}
 
 	return nil

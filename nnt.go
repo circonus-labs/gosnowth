@@ -5,11 +5,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"path"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // NNTAllValueResponse values represent NNT data responses from IRONdb.
@@ -22,7 +21,7 @@ func (nv *NNTAllValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NNTAllValue{}
 	values := [][]interface{}{}
 	if err := json.Unmarshal(b, &values); err != nil {
-		return errors.Wrap(err, "failed to deserialize nnt average response")
+		return fmt.Errorf("failed to deserialize nnt average response: %w", err)
 	}
 
 	for _, entry := range values {
@@ -30,13 +29,13 @@ func (nv *NNTAllValueResponse) UnmarshalJSON(b []byte) error {
 		if m, ok := entry[1].(map[string]interface{}); ok {
 			valueBytes, err := json.Marshal(m)
 			if err != nil {
-				return errors.Wrap(err,
-					"failed to marshal intermediate value from tuple")
+				return fmt.Errorf(
+					"failed to marshal intermediate value from tuple: %w", err)
 			}
 
 			if err := json.Unmarshal(valueBytes, &nav); err != nil {
-				return errors.Wrap(err,
-					"failed to unmarshal value from tuple")
+				return fmt.Errorf("failed to unmarshal value from tuple: %w",
+					err)
 			}
 		}
 
@@ -77,7 +76,8 @@ func (nv *NNTValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NNTValue{}
 	values := [][]int64{}
 	if err := json.Unmarshal(b, &values); err != nil {
-		return errors.Wrap(err, "failed to deserialize nnt average response")
+		return fmt.Errorf("failed to deserialize nnt average response: %w",
+			err)
 	}
 
 	for _, tuple := range values {
@@ -151,7 +151,7 @@ func (sc *SnowthClient) WriteNNTContext(ctx context.Context,
 	data []NNTData, nodes ...*SnowthNode) error {
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(data); err != nil {
-		return errors.Wrap(err, "failed to encode NNTData for write")
+		return fmt.Errorf("failed to encode NNTData for write: %w", err)
 	}
 
 	var node *SnowthNode
@@ -194,7 +194,7 @@ func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r.Data, nil
@@ -228,7 +228,7 @@ func (sc *SnowthClient) ReadNNTAllValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 	return r.Data, nil
 }

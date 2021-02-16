@@ -18,8 +18,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // Logger values implement the behavior used by SnowthClient for logging,
@@ -202,7 +200,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		url, err := url.Parse(addr)
 		if err != nil {
 			// This node had an error, put on inactive list.
-			nErr.Add(errors.Wrap(err, "unable to parse server url"))
+			nErr.Add(fmt.Errorf("unable to parse server url: %w", err))
 			continue
 		}
 
@@ -211,7 +209,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		stats, err := sc.GetStats(node)
 		if err != nil {
 			// This node had an error, put on inactive list.
-			nErr.Add(errors.Wrap(err, "unable to get status of node"))
+			nErr.Add(fmt.Errorf("unable to get status of node: %w", err))
 			continue
 		}
 
@@ -226,10 +224,11 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 
 	if numActiveNodes == 0 {
 		if nErr.HasError() {
-			return nil, errors.Wrap(nErr, "no snowth nodes could be activated")
+			return nil, fmt.Errorf("no snowth nodes could be activated: %w",
+				nErr)
 		}
 
-		return nil, errors.New("no snowth nodes could be activated")
+		return nil, fmt.Errorf("no snowth nodes could be activated")
 	}
 
 	if cfg.Discover() {
@@ -237,8 +236,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		// this works by pulling the topology information for given nodes
 		// and adding nodes discovered within the topology into the client.
 		if err := sc.discoverNodes(); err != nil {
-			return nil, errors.Wrap(err,
-				"failed to perform discovery of new nodes")
+			return nil, fmt.Errorf("failed discovery of new nodes: %w", err)
 		}
 	}
 
@@ -497,7 +495,7 @@ func (sc *SnowthClient) discoverNodes() error {
 		// lookup the topology
 		topology, err := sc.GetTopologyInfo(node)
 		if err != nil {
-			mErr.Add(errors.Wrap(err, "error getting topology info: %+v"))
+			mErr.Add(fmt.Errorf("error getting topology info: %w", err))
 			continue
 		}
 
@@ -739,7 +737,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	if body != nil {
 		bBody, err = ioutil.ReadAll(body)
 		if err != nil {
-			return nil, nil, errors.Wrap(err, "unable to read request body")
+			return nil, nil, fmt.Errorf("unable to read request body: %w", err)
 		}
 	}
 
@@ -818,7 +816,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to create request")
+		return nil, nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	sc.RLock()
@@ -840,11 +838,11 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	sc.RUnlock()
 	if rf != nil {
 		if err := rf(r); err != nil {
-			return nil, nil, errors.Wrap(err, "unable to process request")
+			return nil, nil, fmt.Errorf("unable to process request: %w", err)
 		}
 
 		if r == nil {
-			return nil, nil, errors.New("invalid request after processing")
+			return nil, nil, fmt.Errorf("invalid request after processing")
 		}
 	}
 
@@ -912,7 +910,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	sc.RUnlock()
 	resp, err := cli.Do(r)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "failed to perform request")
+		return nil, nil, fmt.Errorf("failed to perform request: %w", err)
 	}
 
 	defer func() {
@@ -921,7 +919,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	res, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "unable to read response body")
+		return nil, nil, fmt.Errorf("unable to read response body: %w", err)
 	}
 
 	newTopo := resp.Header.Get("X-Topo-0")
@@ -946,7 +944,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	sc.LogDebugf("gosnowth latency: %+v", time.Since(start))
 	select {
 	case <-ctx.Done():
-		return nil, nil, errors.Wrap(ctx.Err(), "context terminated")
+		return nil, nil, fmt.Errorf("context terminated: %w", ctx.Err())
 	default:
 	}
 

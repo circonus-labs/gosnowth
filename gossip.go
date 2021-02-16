@@ -3,8 +3,7 @@ package gosnowth
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // Gossip values contain gossip information from a node. This structure includes
@@ -53,7 +52,7 @@ func (sc *SnowthClient) GetGossipInfoContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil

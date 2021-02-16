@@ -9,8 +9,6 @@ import (
 	"path"
 	"strconv"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 // RollupValue values are individual data points of a rollup.
@@ -24,7 +22,7 @@ func (rv *RollupValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
 	fv, err := strconv.ParseFloat(formatTimestamp(rv.Time), 64)
 	if err != nil {
-		return nil, errors.New("invalid rollup value time: " +
+		return nil, fmt.Errorf("invalid rollup value time: " +
 			formatTimestamp(rv.Time))
 	}
 
@@ -42,7 +40,7 @@ func (rv *RollupValue) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(v) != 2 {
-		return errors.New("rollup value should contain two entries: " +
+		return fmt.Errorf("rollup value should contain two entries: " +
 			string(b))
 	}
 
@@ -96,7 +94,7 @@ func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
 	fv, err := strconv.ParseFloat(formatTimestamp(rv.Time), 64)
 	if err != nil {
-		return nil, errors.New("invalid rollup value time: " +
+		return nil, fmt.Errorf("invalid rollup value time: " +
 			formatTimestamp(rv.Time))
 	}
 
@@ -131,7 +129,7 @@ func (rv *RollupAllValue) UnmarshalJSON(b []byte) error {
 	}
 
 	if len(v) != 2 {
-		return errors.New("rollup value should contain two entries: " +
+		return fmt.Errorf("rollup value should contain two entries: " +
 			string(b))
 	}
 
@@ -212,7 +210,7 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 		"derive_stddev", "counter_stddev", "derive2", "counter2",
 		"derive2_stddev", "counter2_stddev":
 	default:
-		return nil, errors.New("invalid rollup data type: " + dataType)
+		return nil, fmt.Errorf("invalid rollup data type: " + dataType)
 	}
 
 	startTS := start.Unix() - start.Unix()%int64(period/time.Second)
@@ -228,7 +226,7 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil
@@ -266,7 +264,7 @@ func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil

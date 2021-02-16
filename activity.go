@@ -3,8 +3,7 @@ package gosnowth
 
 import (
 	"context"
-
-	"github.com/pkg/errors"
+	"fmt"
 )
 
 // RebuildActivityRequest values represent a request to rebuild activity tracking data.
@@ -35,7 +34,7 @@ func (sc *SnowthClient) RebuildActivityContext(ctx context.Context,
 
 	r := &IRONdbPutResponse{}
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil

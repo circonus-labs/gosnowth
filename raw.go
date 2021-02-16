@@ -14,7 +14,6 @@ import (
 	"time"
 
 	flatbuffers "github.com/google/flatbuffers/go"
-	"github.com/pkg/errors"
 
 	"github.com/circonus-labs/gosnowth/fb/noit"
 )
@@ -35,7 +34,7 @@ func (rv *RawNumericValueResponse) UnmarshalJSON(b []byte) error {
 	rv.Data = []RawNumericValue{}
 	values := [][]interface{}{}
 	if err := json.Unmarshal(b, &values); err != nil {
-		return errors.Wrap(err, "failed to deserialize raw numeric response")
+		return fmt.Errorf("failed to deserialize raw numeric response %w", err)
 	}
 
 	for _, entry := range values {
@@ -93,7 +92,7 @@ func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 	}
 
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 	return r.Data, nil
 }
@@ -132,7 +131,7 @@ func (sc *SnowthClient) WriteRawContext(ctx context.Context,
 
 	r := &IRONdbPutResponse{}
 	if err := decodeJSON(body, &r); err != nil {
-		return nil, errors.Wrap(err, "unable to decode IRONdb response")
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
 	return r, nil
