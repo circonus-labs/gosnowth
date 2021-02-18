@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.7.0] - 2021-02-18
+
+* upd: Removed dependecy on old eternal error handling package.
+* add: Added benchmarks for flatbuffer raw write operations.
+* add: Added read and write numeric values API to replace old NNT API.
+
 ## [v1.6.2] - 2020-12-23
 
 * fix: Changed the type of the `_count_only` results type.
