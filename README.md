@@ -1,5 +1,7 @@
 # gosnowth
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/circonus-labs/gosnowth.svg)](https://pkg.go.dev/github.com/circonus-labs/gosnowth)
+
 ## An IRONdb API client package for Go programs
 
 This codebase contains client code for accessing IRONdb API's. IRONdb is
