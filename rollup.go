@@ -1,4 +1,3 @@
-// Package gosnowth contains an IRONdb client library written in Go.
 package gosnowth
 
 import (
