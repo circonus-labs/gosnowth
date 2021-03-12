@@ -243,7 +243,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 	return sc, nil
 }
 
-// Retires gets the number of retries a SnowthClient will attempt when
+// Retries gets the number of retries a SnowthClient will attempt when
 // errors other than connection errors occur with a snowth node.
 // Retires will repeat the request with exponential backoff until this number
 // of retries is reached.
@@ -253,7 +253,7 @@ func (sc *SnowthClient) Retries() int64 {
 	return sc.retries
 }
 
-// SetRetires gets the number of retries a SnowthClient will attempt when
+// SetRetries sets the number of retries a SnowthClient will attempt when
 // errors other than connection errors occur with a snowth node.
 // Retires will repeat the request with exponential backoff until this number
 // of retries is reached.
@@ -263,7 +263,7 @@ func (sc *SnowthClient) SetRetries(num int64) {
 	sc.retries = num
 }
 
-// ConnectRetires gets the number of retries a SnowthClient will attempt when
+// ConnectRetries gets the number of retries a SnowthClient will attempt when
 // connection errors occur to a snowth node. When a connection error occurs
 // the affected node will be deactivated, then a retries will happen on
 // another node. A value of -1 will retry until no nodes are available,
@@ -275,7 +275,7 @@ func (sc *SnowthClient) ConnectRetries() int64 {
 	return sc.connRetries
 }
 
-// SetConnectRetires sets the number of retries a SnowthClient will attempt when
+// SetConnectRetries sets the number of retries a SnowthClient will attempt when
 // connection errors occur to a snowth node. When a connection error occurs
 // the affected node will be deactivated, then a retries will happen on
 // another node. A value of -1 will retry until no nodes are available,

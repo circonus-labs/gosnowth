@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"strconv"
 	"time"
 
@@ -90,4 +91,126 @@ func ExampleReadText() {
 	}
 
 	log.Printf("%+v\n", data)
+}
+
+func ExampleFetchQuery() {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	sc, err := gosnowth.NewSnowthClient(false, host)
+	if err != nil {
+		log.Fatal("Unable to create snowth client", err)
+	}
+
+	metrics, err := sc.FindTags(1, "data-service.*.oneMinuteRate",
+		&gosnowth.FindTagsOptions{
+			Start:     time.Unix(1611696384, 0),
+			End:       time.Unix(1611696584, 0),
+			Activity:  0,
+			Latest:    0,
+			CountOnly: 0,
+			Limit:     -1,
+		})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	responses := []*gosnowth.DF4Response{}
+	for _, metric := range metrics.Items {
+		res, err := sc.FetchValues(&gosnowth.FetchQuery{
+			Start:  time.Unix(1611696384, 0),
+			Period: time.Second,
+			Count:  200,
+			Streams: []gosnowth.FetchStream{{
+				UUID:      metric.UUID,
+				Name:      metric.MetricName,
+				Kind:      metric.Type,
+				Label:     metric.MetricName,
+				Transform: "none",
+			}},
+			Reduce: []gosnowth.FetchReduce{{
+				Label:  "test",
+				Method: "pass",
+			}},
+		})
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		responses = append(responses, res)
+	}
+}
+
+func ExampleFetchQueryMultiStream() {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	sc, err := gosnowth.NewSnowthClient(false, host)
+	if err != nil {
+		log.Fatal("Unable to create snowth client", err)
+	}
+
+	_, err = sc.FetchValues(&gosnowth.FetchQuery{
+		Start:  time.Unix(1611696384, 0),
+		Period: time.Second,
+		Count:  200,
+		Streams: []gosnowth.FetchStream{{
+			UUID:      "11223344-5566-7788-9900-aabbccddeeff",
+			Name:      "cpu.usage",
+			Kind:      "numeric",
+			Label:     "cpu.usage",
+			Transform: "none",
+		}, {
+			UUID:      "11223344-5566-7788-9900-aabbccddeeff",
+			Name:      "cpu_usage",
+			Kind:      "numeric",
+			Label:     "cpu_usage",
+			Transform: "none",
+		}},
+		Reduce: []gosnowth.FetchReduce{{
+			Label:  "test",
+			Method: "average",
+		}},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func ExampleCAQLQuery() {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	sc, err := gosnowth.NewSnowthClient(false, host)
+	if err != nil {
+		log.Fatal("Unable to create snowth client", err)
+	}
+
+	_, err = sc.GetCAQLQuery(&gosnowth.CAQLQuery{
+		AccountID: 1,
+		Query:     `(find("orders_per_second", "and(check_name:zmon.check.123)") | aggregate:sum() ) / 60`,
+		Start:     1611742469,
+		End:       1611753269,
+		Period:    60,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	_, err = sc.GetCAQLQuery(&gosnowth.CAQLQuery{
+		AccountID: 1,
+		Query:     `find("orders_per_second", "and(check_name:zmon.check.123)") | aggregate:mean(2m)`,
+		Start:     1611742469,
+		End:       1611753269,
+		Period:    60,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 }

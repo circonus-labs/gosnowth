@@ -32,12 +32,12 @@ func TestWriteRaw(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/raw") {
-			b, err := ioutil.ReadAll(r.Body)
+			buf, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				t.Error("Unable to read request body")
 			}
 
-			if string(b) == "test" {
+			if string(buf) == "test" {
 				w.WriteHeader(200)
 				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
 				return
@@ -308,6 +308,89 @@ func BenchmarkWriteRawMetricList(b *testing.B) {
 
 	for n := 0; n < b.N; n++ {
 		_, err = sc.WriteRawMetricList(list, builder)
+		if err != nil {
+			b.Fatal(err)
+		}
+	}
+}
+
+func BenchmarkWriteRawMetricListLocal(b *testing.B) {
+	b.StopTimer()
+
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI, "/raw") {
+			buf, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				b.Error("Unable to read request body")
+			}
+
+			if string(buf)[4:8] == "CIML" {
+				w.WriteHeader(200)
+				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
+				return
+			}
+
+			w.WriteHeader(500)
+			_, _ = w.Write([]byte("invalid request body"))
+
+			return
+		}
+
+		b.Errorf("Unexpected request: %v", r)
+		w.WriteHeader(500)
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		b.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		b.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	builder := flatbuffers.NewBuilder(1024)
+
+	list := &noit.MetricListT{
+		Metrics: []*noit.MetricT{{
+			Timestamp: uint64(time.Now().Unix()) * 1000,
+			CheckName: "gosnowth-benchmark",
+			CheckUuid: "e312a0cb-dbe9-445d-8346-13b0ae6a3382",
+			AccountId: 1,
+			Value: &noit.MetricValueT{
+				Name:      "gosnowth-benchmark",
+				Timestamp: uint64(time.Now().Unix()) * 1000,
+				Value: &noit.MetricValueUnionT{
+					Type: noit.MetricValueUnionIntValue,
+					Value: &noit.IntValueT{
+						Value: 1,
+					},
+				},
+				Generation: 1,
+				StreamTags: []string{"test:test"},
+			},
+		}},
+	}
+
+	b.StartTimer()
+
+	for n := 0; n < b.N; n++ {
+		_, err = sc.WriteRawMetricList(list, builder, node)
 		if err != nil {
 			b.Fatal(err)
 		}

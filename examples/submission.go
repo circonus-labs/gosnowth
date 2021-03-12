@@ -2,13 +2,17 @@ package main
 
 import (
 	"log"
+	"os"
 	"strconv"
+	"testing"
 	"time"
 
 	"github.com/circonus-labs/circonusllhist"
+	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/google/uuid"
 
 	"github.com/circonus-labs/gosnowth"
+	"github.com/circonus-labs/gosnowth/fb/noit"
 )
 
 // ExampleSubmitText demonstrates how to submit a text metric to a node.
@@ -109,5 +113,52 @@ func ExampleSubmitHistogram() {
 		Period:    60,
 	}}); err != nil {
 		log.Fatalf("failed to write histogram data: %v", err)
+	}
+}
+
+func ExampleWriteRawMetricList(b *testing.B) {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	sc, err := gosnowth.NewSnowthClient(false, host)
+	if err != nil {
+		log.Fatal("Unable to create snowth client", err)
+	}
+
+	builder := flatbuffers.NewBuilder(1024)
+
+	list := &noit.MetricListT{
+		Metrics: []*noit.MetricT{{
+			Timestamp: 1589198300149,
+			CheckName: "zmon.check.20406",
+			CheckUuid: "e312a0cb-dbe9-445d-8346-13b0ae6a3382",
+			AccountId: 1,
+			Value: &noit.MetricValueT{
+				Name:      "containers.recommender.restarts",
+				Timestamp: 1589198300149,
+				Value: &noit.MetricValueUnionT{
+					Type: noit.MetricValueUnionIntValue,
+					Value: &noit.IntValueT{
+						Value: 0,
+					},
+				},
+				Generation: 1,
+				StreamTags: []string{
+					"alias:gift-cards",
+					"application:vertical-pod-autoscaler",
+					"component:recommender",
+					"namespace:kube-system",
+					"version:v0.6.1-internal.7",
+					"entity:pod-vpa-recommender-5f4fbfdc48-8gbnc-kube-system",
+				},
+			},
+		}},
+	}
+
+	_, err = sc.WriteRawMetricList(list, builder)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
