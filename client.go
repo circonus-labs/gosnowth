@@ -252,7 +252,7 @@ func (sc *SnowthClient) Retries() int64 {
 	return sc.retries
 }
 
-// SetRetries gets the number of retries a SnowthClient will attempt when
+// SetRetries sets the number of retries a SnowthClient will attempt when
 // errors other than connection errors occur with a snowth node.
 // Retires will repeat the request with exponential backoff until this number
 // of retries is reached.
