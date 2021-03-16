@@ -162,3 +162,54 @@ func ExampleWriteRawMetricList(b *testing.B) {
 		log.Fatal(err)
 	}
 }
+
+func ExampleBulkWriteRawMetricList(b *testing.B) {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	sc, err := gosnowth.NewSnowthClient(false, host)
+	if err != nil {
+		log.Fatal("Unable to create snowth client", err)
+	}
+
+	builder := flatbuffers.NewBuilder(1024)
+
+	metrics := []*noit.MetricT{}
+
+	for i := 0; i < 100; i++ {
+		metrics = append(metrics, &noit.MetricT{
+			Timestamp: 1589198300149 + uint64(i),
+			CheckName: "zmon.check.20406",
+			CheckUuid: "e312a0cb-dbe9-445d-8346-13b0ae6a3382",
+			AccountId: 1,
+			Value: &noit.MetricValueT{
+				Name:      "containers.recommender.restarts",
+				Timestamp: 1589198300149 + uint64(i),
+				Value: &noit.MetricValueUnionT{
+					Type: noit.MetricValueUnionIntValue,
+					Value: &noit.IntValueT{
+						Value: int32(i),
+					},
+				},
+				Generation: 1,
+				StreamTags: []string{
+					"alias:gift-cards",
+					"application:vertical-pod-autoscaler",
+					"component:recommender",
+					"namespace:kube-system",
+					"version:v0.6.1-internal.7",
+					"entity:pod-vpa-recommender-5f4fbfdc48-8gbnc-kube-system",
+				},
+			},
+		})
+	}
+
+	list := &noit.MetricListT{Metrics: metrics}
+
+	_, err = sc.WriteRawMetricList(list, builder)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
