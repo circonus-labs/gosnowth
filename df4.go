@@ -57,9 +57,9 @@ func (dr *DF4Response) Copy() *DF4Response {
 	return b
 }
 
-// ReplaceInf is used to remove infinity and NaN values from DF4 JSON strings
+// replaceInf is used to remove infinity and NaN values from DF4 JSON strings
 // prior to attempting to parse them into DF4Response values.
-func ReplaceInf(b []byte) []byte {
+func replaceInf(b []byte) []byte {
 	v := make([]byte, len(b))
 	copy(v, b)
 

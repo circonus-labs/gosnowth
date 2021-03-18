@@ -6,6 +6,17 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.7.2] - 2021-02-18
+
+* fix: Cleans up functions that are not part of the library API.
+* upd: Updates documentation.
+
+## [v1.7.1] - 2021-02-17
+
+* upd: Updates documentation and corrects errors.
+* add: Adds new examples and benchmarks for flat buffer data submission.
+* add: Adds new examples for fetch and CAQL queries.
+
 ## [v1.7.0] - 2021-02-18
 
 * upd: Removed dependecy on old eternal error handling package.
@@ -284,6 +295,8 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.7.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.2
+[v1.7.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.1
 [v1.7.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.0
 [v1.6.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.6.2
 [v1.6.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.6.1
