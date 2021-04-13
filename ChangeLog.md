@@ -8,8 +8,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [v1.8.0] - 2021-04-13
 
-* add: Incorporates a SnowthClient.WriteNNTBS() API for writing flatbuffer
-NNTBS data to IRONdb.
+* add: Incorporates a `SnowthClient.WriteNNTBSFlatbuffer()` API for writing
+flatbuffer NNTBS data to IRONdb.
 
 ## [v1.7.2] - 2021-02-18
 
