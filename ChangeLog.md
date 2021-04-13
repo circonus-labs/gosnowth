@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.8.0] - 2021-04-13
+
+* add: Incorporates a SnowthClient.WriteNNTBS() API for writing flatbuffer
+NNTBS data to IRONdb.
+
 ## [v1.7.2] - 2021-02-18
 
 * fix: Cleans up functions that are not part of the library API.
@@ -295,6 +300,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.8.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.8.0
 [v1.7.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.2
 [v1.7.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.1
 [v1.7.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.0
