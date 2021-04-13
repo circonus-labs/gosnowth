@@ -16,14 +16,16 @@ const metricSourceGraphite = 0x2
 
 var nntMergeFileIdentifier = []byte("CINN")
 
-// WriteNNTBS writes NNTBS data to an IRONdb node.
-func (sc *SnowthClient) WriteNNTBS(merge *nntbs.NNTMergeT,
+// WriteNNTBSFlatbuffer writes flatbuffer format NNTBS data to an IRONdb node.
+func (sc *SnowthClient) WriteNNTBSFlatbuffer(merge *nntbs.NNTMergeT,
 	builder *flatbuffers.Builder, nodes ...*SnowthNode) error {
-	return sc.WriteNNTBSContext(context.Background(), merge, builder, nodes...)
+	return sc.WriteNNTBSFlatbufferContext(context.Background(), merge,
+		builder, nodes...)
 }
 
-// WriteNNTBSContext is the context aware version of WriteNNTBS.
-func (sc *SnowthClient) WriteNNTBSContext(ctx context.Context,
+// WriteNNTBSFlatbufferContext is the context aware version of
+// WriteNNTBSFlatbuffer.
+func (sc *SnowthClient) WriteNNTBSFlatbufferContext(ctx context.Context,
 	merge *nntbs.NNTMergeT, builder *flatbuffers.Builder,
 	nodes ...*SnowthNode) error {
 	if merge == nil {

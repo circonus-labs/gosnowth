@@ -13,7 +13,7 @@ import (
 	"github.com/circonus-labs/gosnowth/fb/nntbs"
 )
 
-func TestWriteNNTBS(t *testing.T) {
+func TestWriteNNTBSFlatbuffer(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {
 		if r.RequestURI == "/state" {
@@ -106,7 +106,7 @@ func TestWriteNNTBS(t *testing.T) {
 		},
 	}
 
-	err = sc.WriteNNTBS(merge, builder, node)
+	err = sc.WriteNNTBSFlatbuffer(merge, builder, node)
 	if err != nil {
 		t.Fatal(err)
 	}
