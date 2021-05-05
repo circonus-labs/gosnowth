@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/circonus-labs/circonusllhist"
 	flatbuffers "github.com/google/flatbuffers/go"
 	"github.com/google/uuid"
+	"github.com/openhistogram/circonusllhist"
 
 	"github.com/circonus-labs/gosnowth"
 	"github.com/circonus-labs/gosnowth/fb/noit"
