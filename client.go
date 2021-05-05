@@ -94,12 +94,15 @@ type SnowthClient struct {
 	sync.RWMutex
 	c httpClient
 
+	// timeout is the maximum duration that a snowth request is allowed to run.
+	timeout time.Duration
+
 	// retries is used to determine weather or not to retry requests which
-	// fail due to timeouts or other non-connection problems
+	// fail due to timeouts or other non-connection problems.
 	retries int64
 
 	// connRetries is used to determine weather or not to retry requests which
-	// fail to snowth nodes due to connection problems
+	// fail to snowth nodes due to connection problems.
 	connRetries int64
 
 	// in order to keep track of healthy nodes within the cluster,
@@ -183,6 +186,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		activeNodes:   []*SnowthNode{},
 		inactiveNodes: []*SnowthNode{},
 		watchInterval: cfg.WatchInterval(),
+		timeout:       cfg.Timeout(),
 		retries:       cfg.Retries(),
 		connRetries:   cfg.ConnectRetries(),
 		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
@@ -808,7 +812,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 // do sends a request to IRONdb.
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
-	method, url string, body io.Reader, headers http.Header) (io.Reader, http.Header, error) {
+	method, url string, body io.Reader, headers http.Header) (io.Reader,
+	http.Header, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -819,15 +824,28 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	sc.RLock()
-	traceReq := sc.traceRequests != "" && (sc.traceRequests == "*" || strings.HasPrefix(r.URL.Path, sc.traceRequests))
+	traceReq := sc.traceRequests != "" && (sc.traceRequests == "*" ||
+		strings.HasPrefix(r.URL.Path, sc.traceRequests))
 	traceID := time.Now().UTC().Nanosecond()
-	dumpReq := sc.dumpRequests != "" && (sc.dumpRequests == "*" || strings.HasPrefix(r.URL.Path, sc.dumpRequests))
+	dumpReq := sc.dumpRequests != "" && (sc.dumpRequests == "*" ||
+		strings.HasPrefix(r.URL.Path, sc.dumpRequests))
 	sc.RUnlock()
 
 	r.Close = true
 	for key, values := range headers {
 		for _, value := range values {
 			r.Header.Add(key, value)
+		}
+	}
+
+	// Send a header telling snowth to use the gosnowth timeout - 1 second.
+	if sc.timeout > 0 {
+		if (sc.timeout - time.Second) > 0 {
+			to := time.Duration(sc.timeout - time.Second)
+
+			r.Header.Set("X-Snowth-Timeout", to.String())
+		} else {
+			r.Header.Set("X-Snowth-Timeout", sc.timeout.String())
 		}
 	}
 
@@ -854,7 +872,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 				fmt.Printf("TRACE-%d: connected %+v\n", traceID, info)
 			},
 			PutIdleConn: func(err error) {
-				fmt.Printf("TRACE-%d: put conn back in idle pool, err: %v\n", traceID, err)
+				fmt.Printf("TRACE-%d: put conn back in idle pool, err: %v\n",
+					traceID, err)
 			},
 			GotFirstResponseByte: func() {
 				fmt.Printf("TRACE-%d: got first byte\n", traceID)
@@ -876,19 +895,24 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 				fmt.Printf("TRACE-%d: dialing %s/%s\n", traceID, network, addr)
 			},
 			ConnectDone: func(network, addr string, err error) {
-				fmt.Printf("TRACE-%d: dial complete %s/%s err: %v\n", traceID, network, addr, err)
+				fmt.Printf("TRACE-%d: dial complete %s/%s err: %v\n",
+					traceID, network, addr, err)
 			},
 			WroteHeaderField: func(key string, values []string) {
-				fmt.Printf("TRACE-%d: wrote header %s: %+v\n", traceID, key, values)
+				fmt.Printf("TRACE-%d: wrote header %s: %+v\n",
+					traceID, key, values)
 			},
 			WroteHeaders: func() {
 				fmt.Printf("TRACE-%d: wrote all headers\n", traceID)
 			},
 			Wait100Continue: func() {
-				fmt.Printf("TRACE-%d: waiting for '100 Continue' from server\n", traceID)
+				fmt.Printf(
+					"TRACE-%d: waiting for '100 Continue' from server\n",
+					traceID)
 			},
 			WroteRequest: func(info httptrace.WroteRequestInfo) {
-				fmt.Printf("TRACE-%d: wrote request %s %s - info: %+v\n", traceID, r.Method, r.URL.Path, info)
+				fmt.Printf("TRACE-%d: wrote request %s %s - info: %+v\n",
+					traceID, r.Method, r.URL.Path, info)
 			},
 		}
 		r = r.WithContext(httptrace.WithClientTrace(r.Context(), ctrace))
@@ -923,7 +947,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	newTopo := resp.Header.Get("X-Topo-0")
 	sc.Lock()
-	if newTopo != "" && (newTopo != sc.currentTopology || newTopo != node.currentTopology) {
+	if newTopo != "" && (newTopo != sc.currentTopology ||
+		newTopo != node.currentTopology) {
 		sc.currentTopology = newTopo
 		node.currentTopology = newTopo
 		sc.currentTopologyCompiled = nil

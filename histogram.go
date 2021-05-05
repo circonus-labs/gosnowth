@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/circonus-labs/circonusllhist"
+	"github.com/openhistogram/circonusllhist"
 )
 
 // HistogramValue values are individual data points of a histogram metric.

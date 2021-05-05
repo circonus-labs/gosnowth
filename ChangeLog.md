@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.8.1] - 2021-05-05
+
+* upd: Requests to IRONdb will now include a X-Snowth-Timeout header. The value
+will be 1 second less than the total request timeout configuration value.
+
 ## [v1.8.0] - 2021-04-13
 
 * add: Incorporates a `SnowthClient.WriteNNTBSFlatbuffer()` API for writing
