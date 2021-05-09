@@ -359,7 +359,7 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 		node = sc.GetActiveNode()
 	}
 
-	old, err := sc.GetCheckTagsContext(ctx, checkUUID)
+	old, err := sc.GetCheckTagsContext(ctx, checkUUID, node)
 	if err != nil {
 		return 0, err
 	}
