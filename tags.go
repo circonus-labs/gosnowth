@@ -1,13 +1,19 @@
 package gosnowth
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // FindTagsItem values represent results returned from IRONdb tag queries.
@@ -255,4 +261,251 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	}
 
 	return r, err
+}
+
+// CheckTags values contain check tag data from IRONdb.
+type CheckTags map[string][]string
+
+// ModifyTags values contain lists of check tags to add and remove.
+type ModifyTags struct {
+	Add    []string `json:"add,omitempty"`
+	Remove []string `json:"remove,omitempty"`
+}
+
+// GetCheckTags retrieves check tags from IRONdb for a specified check.
+func (sc *SnowthClient) GetCheckTags(checkUUID string,
+	nodes ...*SnowthNode) (CheckTags, error) {
+	return sc.GetCheckTagsContext(context.Background(), checkUUID, nodes...)
+}
+
+// GetCheckTagsContext is the context aware version of GetCheckTags.
+func (sc *SnowthClient) GetCheckTagsContext(ctx context.Context,
+	checkUUID string, nodes ...*SnowthNode) (CheckTags, error) {
+	if _, err := uuid.Parse(checkUUID); err != nil {
+		return nil, fmt.Errorf("invalid check uuid: %w", err)
+	}
+
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	u := sc.getURL(node, fmt.Sprintf("/meta/check/tag/%s", checkUUID))
+
+	r := CheckTags{}
+
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
+	return r, err
+}
+
+// DeleteCheckTags removes check tags from IRONdb for a specified check.
+func (sc *SnowthClient) DeleteCheckTags(checkUUID string,
+	nodes ...*SnowthNode) error {
+	return sc.DeleteCheckTagsContext(context.Background(), checkUUID, nodes...)
+}
+
+// DeleteCheckTagsContext is the context aware version of DeleteCheckTags.
+func (sc *SnowthClient) DeleteCheckTagsContext(ctx context.Context,
+	checkUUID string, nodes ...*SnowthNode) error {
+	if _, err := uuid.Parse(checkUUID); err != nil {
+		return fmt.Errorf("invalid check uuid: %w", err)
+	}
+
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	u := sc.getURL(node, fmt.Sprintf("/meta/check/tag/%s", checkUUID))
+
+	_, _, err := sc.DoRequestContext(ctx, node, "DELETE", u, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateCheckTags adds and removes tags for a specified check.
+func (sc *SnowthClient) UpdateCheckTags(checkUUID string,
+	tags []string, nodes ...*SnowthNode) (int64, error) {
+	return sc.UpdateCheckTagsContext(context.Background(), checkUUID, tags,
+		nodes...)
+}
+
+// UpdateCheckTagsContext is the context aware version of UpdateCheckTags.
+func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
+	checkUUID string, tags []string, nodes ...*SnowthNode) (int64, error) {
+	if _, err := uuid.Parse(checkUUID); err != nil {
+		return 0, fmt.Errorf("invalid check uuid: %w", err)
+	}
+
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	old, err := sc.GetCheckTagsContext(ctx, checkUUID)
+	if err != nil {
+		return 0, err
+	}
+
+	ex, ok := old[checkUUID]
+	if !ok {
+		return 0, fmt.Errorf("failed to retrive existing check tags: %v",
+			checkUUID)
+	}
+
+	if len(tags) == 0 {
+		sc.DeleteCheckTagsContext(ctx, checkUUID)
+
+		return 0, nil
+	}
+
+	tags, err = encodeTags(tags)
+	if err != nil {
+		return 0, err
+	}
+
+	del := []string{}
+	add := []string{}
+
+	for _, oldTag := range ex {
+		d := true
+
+		for _, newTag := range tags {
+			if oldTag == newTag {
+				d = false
+				break
+			}
+		}
+
+		if d {
+			del = append(del, oldTag)
+		}
+	}
+
+	for _, newTag := range tags {
+		a := true
+
+		for _, oldTag := range ex {
+			if oldTag == newTag {
+				a = false
+				break
+			}
+		}
+
+		if a {
+			add = append(add, newTag)
+		}
+	}
+
+	if len(add) == 0 && len(del) == 0 {
+		return 0, nil
+	}
+
+	mod := ModifyTags{
+		Add:    add,
+		Remove: del,
+	}
+
+	buf := &bytes.Buffer{}
+	if err := json.NewEncoder(buf).Encode(&mod); err != nil {
+		return 0, fmt.Errorf("unable to encode payload: %w", err)
+	}
+
+	u := sc.getURL(node, fmt.Sprintf("/meta/check/tag/%s", checkUUID))
+
+	_, _, err = sc.DoRequestContext(ctx, node, "POST", u, buf, nil)
+	if err != nil {
+		return 0, fmt.Errorf("unable to post tags update: %w", err)
+	}
+
+	return int64(len(add) + len(del)), nil
+}
+
+// encodeTags performs base64 encoding on tags when needed.
+func encodeTags(tags []string) ([]string, error) {
+	keyTest, err := regexp.Compile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-]*$")
+	if err != nil {
+		return nil, fmt.Errorf("unable to compile key test regexp: %w", err)
+	}
+
+	valTest, err := regexp.Compile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-:=]*$")
+	if err != nil {
+		return nil, fmt.Errorf("unable to compile value test regexp: %w", err)
+	}
+
+	res := []string{}
+
+	for _, tag := range tags {
+		if tag == "" {
+			continue
+		}
+
+		rk, rv := "", ""
+
+		parts := strings.SplitN(tag, ":", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid tag passed: %v", tag)
+		}
+
+		key := parts[0]
+		if strings.HasPrefix(key, `b"`) && strings.HasSuffix(key, `"`) {
+			key = strings.TrimPrefix(strings.TrimSuffix(key, `"`), `b"`)
+
+			key, err := base64.StdEncoding.DecodeString(key)
+			if err != nil {
+				return nil, fmt.Errorf("invalid base64 tag key: %v %w",
+					key, err)
+			}
+
+			rk = string(key)
+
+			if keyTest.Match([]byte(key)) {
+				rk = `b"` + base64.StdEncoding.EncodeToString([]byte(key)) +
+					`"`
+			}
+		} else {
+			rk = key
+		}
+
+		val := parts[1]
+		if strings.HasPrefix(val, `b"`) && strings.HasSuffix(val, `"`) {
+			val = strings.TrimPrefix(strings.TrimSuffix(val, `"`), `b"`)
+
+			val, err := base64.StdEncoding.DecodeString(val)
+			if err != nil {
+				return nil, fmt.Errorf("invalid base64 tag value: %v %w",
+					val, err)
+			}
+
+			rv = string(val)
+
+			if valTest.Match([]byte(val)) {
+				rv = `b"` + base64.StdEncoding.EncodeToString([]byte(val)) +
+					`"`
+			}
+		} else {
+			rv = val
+		}
+
+		res = append(res, rk+":"+rv)
+	}
+
+	return res, nil
 }

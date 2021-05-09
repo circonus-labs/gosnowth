@@ -214,3 +214,20 @@ func ExampleCAQLQuery() {
 		log.Fatal(err)
 	}
 }
+
+func ExampleGetCheckTags() {
+	host := os.Getenv("SNOWTH_URL")
+	if host == "" {
+		return
+	}
+
+	sc, err := gosnowth.NewSnowthClient(false, host)
+	if err != nil {
+		log.Fatal("Unable to create snowth client", err)
+	}
+
+	_, err = sc.GetCheckTags("e312a0cb-dbe9-445d-8346-13b0ae6a3382")
+	if err != nil {
+		log.Fatal(err)
+	}
+}
