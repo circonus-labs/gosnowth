@@ -8,9 +8,9 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [v1.9.0] - 2021-05-10
 
-* add: Added functions to allow interactivity with IRONdb check tag meta data.
-These functions allow retrival, deletion, and updating of IRONdb check tag meta
-data.
+* add: Added functions to allow interactivity with IRONdb check tag metadata.
+These functions allow for retireval, deletion, and updating of IRONdb check tag
+metadata.
 
 ## [v1.8.1] - 2021-05-05
 
