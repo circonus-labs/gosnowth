@@ -339,6 +339,9 @@ func (sc *SnowthClient) DeleteCheckTagsContext(ctx context.Context,
 }
 
 // UpdateCheckTags adds and removes tags for a specified check.
+// DANGER: Ths function should not be used to set IRONdb check tags
+// independently of the Circonus API. Doing so could result in tag data
+// corruption, and malfunctioning metric searches.
 func (sc *SnowthClient) UpdateCheckTags(checkUUID string,
 	tags []string, nodes ...*SnowthNode) (int64, error) {
 	return sc.UpdateCheckTagsContext(context.Background(), checkUUID, tags,
