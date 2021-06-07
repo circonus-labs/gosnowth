@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -171,6 +169,8 @@ func BenchmarkLookup1(b *testing.B) {
 			"this.is.a.metric|ST[nice:andhappy,with:tags]")
 	}
 }
+
+/*
 func TestLiveNode(t *testing.T) {
 	base := os.Getenv("SNOWTH_URL")
 	if base == "" {
@@ -191,6 +191,7 @@ func TestLiveNode(t *testing.T) {
 		}
 	}
 }
+*/
 
 func TestTopology(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,

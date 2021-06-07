@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.9.0] - 2021-05-10
+
+* add: Added functions to allow interactivity with IRONdb check tag metadata.
+These functions allow for retireval, deletion, and updating of IRONdb check tag
+metadata.
+
 ## [v1.8.1] - 2021-05-05
 
 * upd: Requests to IRONdb will now include a X-Snowth-Timeout header. The value

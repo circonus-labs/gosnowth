@@ -33,4 +33,5 @@ func main() {
 	ExampleSubmitHistogram()
 	ExampleReadNNT()
 	ExampleReadText()
+	ExampleGetCheckTags()
 }

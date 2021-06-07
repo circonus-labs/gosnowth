@@ -13,6 +13,10 @@ import (
 
 const tagsCountTestData = `{"count":22,"estimate":false}`
 
+const getCheckTagsTestData = `{
+	"11223344-5566-7788-9900-aabbccddeeff":["test:test"]
+}`
+
 const tagsTestData = `[
 	{
 		"uuid": "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
@@ -235,5 +239,135 @@ func TestFindTags(t *testing.T) {
 	if res.Items[0].Activity[1][1] != 1561848300 {
 		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
 			res.Items[0].Activity[1][1])
+	}
+}
+
+func TestGetCheckTags(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
+			_, _ = w.Write([]byte(getCheckTagsTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	res, err := sc.GetCheckTags("11223344-5566-7788-9900-aabbccddeeff", node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res == nil {
+		t.Fatal("Expected result got: nil")
+	}
+
+	if res["11223344-5566-7788-9900-aabbccddeeff"][0] != "test:test" {
+		t.Fatalf("Expected tag: test:test, got: %v", res)
+	}
+}
+
+func TestDeleteCheckTags(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
+			_, _ = w.Write([]byte("test"))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	err = sc.DeleteCheckTags("11223344-5566-7788-9900-aabbccddeeff", node)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestUpdateCheckTags(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
+			_, _ = w.Write([]byte(getCheckTagsTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	r, err := sc.UpdateCheckTags("11223344-5566-7788-9900-aabbccddeeff",
+		[]string{
+			"test:test",
+			"dGVzdA==:dGVzdA==",
+		}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if r != 1 {
+		t.Fatalf("expecting return: 1, got: %v", r)
 	}
 }

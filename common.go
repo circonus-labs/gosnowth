@@ -23,6 +23,7 @@ type IRONdbPutResponse struct {
 // resolveURL resolves the address of a URL plus a string reference.
 func resolveURL(baseURL *url.URL, ref string) string {
 	refURL, _ := url.Parse(ref)
+
 	return baseURL.ResolveReference(refURL).String()
 }
 
