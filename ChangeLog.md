@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.9.1] - 2021-06-11
+
+* add: Added functions implementing access to the IRONdb find /tag_cats, and
+find /tag_vals API's.
+
 ## [v1.9.0] - 2021-05-10
 
 * add: Added functions to allow interactivity with IRONdb check tag metadata.

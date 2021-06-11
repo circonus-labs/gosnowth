@@ -263,6 +263,77 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	return r, err
 }
 
+// FindTagCats retrieves tag categories that are associated with the
+// provided query.
+func (sc *SnowthClient) FindTagCats(accountID int64, query string,
+	nodes ...*SnowthNode) ([]string, error) {
+	return sc.FindTagCatsContext(context.Background(), accountID, query,
+		nodes...)
+}
+
+// FindTagCatsContext is the context aware version of FindTagCats.
+func (sc *SnowthClient) FindTagCatsContext(ctx context.Context,
+	accountID int64, query string, nodes ...*SnowthNode) ([]string, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	u := fmt.Sprintf("%s?query=%s",
+		sc.getURL(node, fmt.Sprintf("/find/%d/tag_cats", accountID)),
+		url.QueryEscape(query))
+
+	r := []string{}
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
+	return r, err
+}
+
+// FindTagVals retrieves tag values that are associated with the
+// provided query.
+func (sc *SnowthClient) FindTagVals(accountID int64, query, category string,
+	nodes ...*SnowthNode) ([]string, error) {
+	return sc.FindTagValsContext(context.Background(), accountID, query,
+		category, nodes...)
+}
+
+// FindTagValsContext is the context aware version of FindTagVals.
+func (sc *SnowthClient) FindTagValsContext(ctx context.Context,
+	accountID int64, query, category string,
+	nodes ...*SnowthNode) ([]string, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	u := fmt.Sprintf("%s?query=%s&category=%s",
+		sc.getURL(node, fmt.Sprintf("/find/%d/tag_vals", accountID)),
+		url.QueryEscape(query), url.QueryEscape(category))
+
+	r := []string{}
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
+	return r, err
+}
+
 // CheckTags values contain check tag data from IRONdb.
 type CheckTags map[string][]string
 
