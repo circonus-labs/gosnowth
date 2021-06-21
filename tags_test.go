@@ -17,6 +17,11 @@ const getCheckTagsTestData = `{
 	"11223344-5566-7788-9900-aabbccddeeff":["test:test"]
 }`
 
+const tagCatsValsTestData = `[
+	"test",
+	"test1"
+]`
+
 const tagsTestData = `[
 	{
 		"uuid": "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
@@ -239,6 +244,99 @@ func TestFindTags(t *testing.T) {
 	if res.Items[0].Activity[1][1] != 1561848300 {
 		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
 			res.Items[0].Activity[1][1])
+	}
+}
+
+func TestFindTagCats(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI, "/find/1/tag_cats?query=test") {
+			_, _ = w.Write([]byte(tagCatsValsTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	res, err := sc.FindTagCats(1, "test", node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 2 {
+		t.Fatalf("Expected result length: 2, got: %v", len(res))
+	}
+
+	if res[0] != "test" {
+		t.Errorf("Expected value: test, got: %v", res[0])
+	}
+}
+
+func TestFindTagVals(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		if strings.HasPrefix(r.RequestURI,
+			"/find/1/tag_vals?query=test&category=test") {
+			_, _ = w.Write([]byte(tagCatsValsTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	res, err := sc.FindTagVals(1, "test", "test", node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 2 {
+		t.Fatalf("Expected result length: 2, got: %v", len(res))
+	}
+
+	if res[0] != "test" {
+		t.Errorf("Expected value: test, got: %v", res[0])
 	}
 }
 

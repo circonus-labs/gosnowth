@@ -6,6 +6,13 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.0] - 2021-06-14
+
+* add: Added functions implementing access to the IRONdb read graphite API:
+GraphiteFindMetrics(), GraphiteFindTags(), and GraphiteGetDatapoints().
+* add: Added functions implementing access to the IRONdb find /tag_cats, and
+find /tag_vals API's.
+
 ## [v1.9.0] - 2021-05-10
 
 * add: Added functions to allow interactivity with IRONdb check tag metadata.
@@ -311,6 +318,9 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.0
+[v1.9.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.9.0
+[v1.8.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.8.1
 [v1.8.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.8.0
 [v1.7.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.2
 [v1.7.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.7.1
