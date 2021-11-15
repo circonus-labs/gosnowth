@@ -92,8 +92,8 @@ func TestMarshalDF4Response(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exp := strings.Replace(strings.Replace(strings.Replace(testDF4Response,
-		"\n", "", -1), " ", "", -1), "\t", "", -1) + "\n"
+	exp := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
+		testDF4Response, "\n", ""), " ", ""), "\t", "") + "\n"
 	if buf.String() != exp {
 		t.Errorf("Expected JSON: %s, got: %s", exp, buf.String())
 	}

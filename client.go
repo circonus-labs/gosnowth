@@ -699,9 +699,11 @@ func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
+
 	if len(sc.activeNodes) == 0 {
 		return nil
 	}
+
 	for _, ids := range idsets {
 		for _, id := range ids {
 			for _, node := range sc.activeNodes {
@@ -711,7 +713,8 @@ func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
 			}
 		}
 	}
-	return sc.activeNodes[rand.Intn(len(sc.activeNodes))]
+
+	return sc.activeNodes[rand.Intn(len(sc.activeNodes))] // nolint gosec
 }
 
 // DoRequest sends a request to IRONdb.
@@ -841,7 +844,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	// Send a header telling snowth to use the gosnowth timeout - 1 second.
 	if sc.timeout > 0 {
 		if (sc.timeout - time.Second) > 0 {
-			to := time.Duration(sc.timeout - time.Second)
+			to := sc.timeout - time.Second
 
 			r.Header.Set("X-Snowth-Timeout", to.String())
 		} else {

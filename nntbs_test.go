@@ -66,7 +66,7 @@ func TestWriteNNTBSFlatbuffer(t *testing.T) {
 
 	merge := &nntbs.NNTMergeT{
 		Ops: []*nntbs.NNTMergeOpT{
-			&nntbs.NNTMergeOpT{
+			{
 				Metric: &nntbs.MetricInfoT{
 					MetricLocator: &nntbs.MetricLocatorT{
 						CheckUuid:  []byte("11223344-5566-7788-9900-aabbccddeeff"),
@@ -77,12 +77,12 @@ func TestWriteNNTBSFlatbuffer(t *testing.T) {
 					CheckCategory: metricSourceGraphite,
 				},
 				Nnt: []*nntbs.NNTT{
-					&nntbs.NNTT{
+					{
 						Epoch:      uint64(0),
 						Apocalypse: uint64(300),
 						Period:     uint32(60),
 						Blocks: []*nntbs.NNTBlockT{
-							&nntbs.NNTBlockT{
+							{
 								Data: []*nntbs.NNTDatumT{{
 									Zero:             false,
 									Count:            0,

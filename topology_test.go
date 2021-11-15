@@ -135,6 +135,7 @@ func TestTopologyXMLSerialization(t *testing.T) {
 	}
 }
 
+/*
 func checkLocationAgainstNode(t *testing.T, sc *SnowthClient, uuid string, metric string) {
 	intnodes, err := sc.LocateMetric(uuid, metric)
 	if err != nil {
@@ -156,19 +157,7 @@ func checkLocationAgainstNode(t *testing.T, sc *SnowthClient, uuid string, metri
 		}
 	}
 }
-func BenchmarkLookup1(b *testing.B) {
-	b.StopTimer()
-	id := uuid.New().String()
-	topo, err := TopologyLoadXML(topologyXMLTestData)
-	if err != nil {
-		b.Fatal("cannot load topology for benchmark")
-	}
-	b.StartTimer()
-	for n := 0; n < b.N; n++ {
-		_, _ = topo.FindMetric(id,
-			"this.is.a.metric|ST[nice:andhappy,with:tags]")
-	}
-}
+*/
 
 /*
 func TestLiveNode(t *testing.T) {
@@ -192,6 +181,20 @@ func TestLiveNode(t *testing.T) {
 	}
 }
 */
+
+func BenchmarkLookup1(b *testing.B) {
+	b.StopTimer()
+	id := uuid.New().String()
+	topo, err := TopologyLoadXML(topologyXMLTestData)
+	if err != nil {
+		b.Fatal("cannot load topology for benchmark")
+	}
+	b.StartTimer()
+	for n := 0; n < b.N; n++ {
+		_, _ = topo.FindMetric(id,
+			"this.is.a.metric|ST[nice:andhappy,with:tags]")
+	}
+}
 
 func TestTopology(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,

@@ -18,20 +18,20 @@ const testCAQLError = `{
 	},
 	"status": "520 (User facing error)",
 	"arguments": {
-		"format": "DF4",
-		"q": "find:histograms(\"latency\",\"and(service:api)\")",
+		"ignore_duration_limits": false,
+		"_debug": 0,
 		"period": 300,
 		"_id": 33545929,
-		"ignore_duration_limits": false,
-		"prepare_results": "JSON",
 		"account_id": "1",
-		"method": "fetch",
 		"start_time": 1567500000,
 		"_timeout": 15,
 		"min_prefill": 0,
-		"_debug": 0,
-		"expansion": [],
-		"end_time": 1567566000
+		"end_time": 1567566000,
+		"format": "DF4",
+		"q": "find:histograms(\"latency\",\"and(service:api)\")",
+		"prepare_results": "JSON",
+		"method": "fetch",
+		"expansion": []
 	},
 	"success": false
 }`
@@ -138,7 +138,7 @@ func TestGetCAQLQuery(t *testing.T) {
 
 	vErr, ok := err.(*CAQLError)
 	if !ok {
-		t.Fatalf("Expected error type: CAQLError, got: %T", err)
+		t.Fatalf("Expected error type: CAQLError, got: %T: %v", err, err)
 	}
 
 	exp := "Function not found: histograms"
@@ -147,10 +147,10 @@ func TestGetCAQLQuery(t *testing.T) {
 			vErr.UserError.Message)
 	}
 
-	exp = strings.Replace(strings.Replace(strings.Replace(testCAQLError,
-		" ", "", -1), "\t", "", -1), "\n", "", -1)
-	val := strings.Replace(strings.Replace(strings.Replace(vErr.Error(),
-		" ", "", -1), "\t", "", -1), "\n", "", -1)
+	exp = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
+		testCAQLError, " ", ""), "\t", ""), "\n", "")
+	val := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
+		vErr.Error(), " ", ""), "\t", ""), "\n", "")
 	if val != exp {
 		t.Errorf("Expected error JSON: %v, got: %v", exp, val)
 	}

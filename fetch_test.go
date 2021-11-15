@@ -77,8 +77,8 @@ func TestFetchQueryMarshaling(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exp := strings.Replace(strings.Replace(strings.Replace(fetchTestQuery,
-		" ", "", -1), "\n", "", -1), "\t", "", -1) + "\n"
+	exp := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
+		fetchTestQuery, " ", ""), "\n", ""), "\t", "") + "\n"
 	if buf.String() != exp {
 		t.Errorf("Expected JSON: %v, got: %v", exp, buf.String())
 	}

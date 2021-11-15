@@ -152,8 +152,8 @@ func TestFindTags(t *testing.T) {
 	}
 
 	res, err = sc.FindTags(1, "test", &FindTagsOptions{
-		Start:     time.Unix(1, 0),
-		End:       time.Unix(2, 0),
+		StartStr:  "now-1d",
+		EndStr:    "now",
 		Activity:  1,
 		Latest:    1,
 		CountOnly: 0,
