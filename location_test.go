@@ -25,6 +25,7 @@ const locateXMLTestData = `<nodes n="2">
 		side="both"/>
 </nodes>`
 
+/*
 const locateTopologyXMLTestData = `<nodes n="3">
 	<node id="5c32c076-ffeb-cfdd-a541-97e25c028dd6"
 		address="10.0.0.100"
@@ -87,6 +88,7 @@ const locateTopologyXMLTestData = `<nodes n="3">
 		weight="51"
 		side="b"/>
 </nodes>`
+*/
 
 func TestDataLocationXMLDeserialization(t *testing.T) {
 	dec := xml.NewDecoder(bytes.NewBufferString(locateXMLTestData))

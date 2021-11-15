@@ -149,8 +149,8 @@ func TestRollupAllValueMarshaling(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exp := strings.Replace(strings.Replace(strings.Replace(rollupAllTestData,
-		" ", "", -1), "\n", "", -1), "\t", "", -1) + "\n"
+	exp := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
+		rollupAllTestData, " ", ""), "\n", ""), "\t", "") + "\n"
 	if buf.String() != exp {
 		t.Errorf("Expected JSON: %v, got: %v", exp, buf.String())
 	}

@@ -152,8 +152,32 @@ func TestFindTags(t *testing.T) {
 	}
 
 	res, err = sc.FindTags(1, "test", &FindTagsOptions{
-		Start:     time.Unix(1, 0),
-		End:       time.Unix(2, 0),
+		StartStr:  "now - 1mon",
+		EndStr:    "now - 1d",
+		Activity:  1,
+		Latest:    1,
+		CountOnly: 0,
+		Limit:     -1,
+	}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Count != 1 {
+		t.Fatalf("Expected result count: 1, got: %v", res.Count)
+	}
+
+	if len(res.Items) != 1 {
+		t.Fatalf("Expected result length: 1, got: %v", len(res.Items))
+	}
+
+	if res.Items[0].MetricName != "test" {
+		t.Errorf("Expected metric name: test, got: %v", res.Items[0].MetricName)
+	}
+
+	res, err = sc.FindTags(1, "test", &FindTagsOptions{
+		StartStr:  "now-1d",
+		EndStr:    "now",
 		Activity:  1,
 		Latest:    1,
 		CountOnly: 0,
