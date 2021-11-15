@@ -229,11 +229,11 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	}
 
 	if options.StartStr != "" {
-		starts = options.StartStr
+		starts = url.QueryEscape(options.StartStr)
 	}
 
 	if options.EndStr != "" {
-		ends = options.EndStr
+		ends = url.QueryEscape(options.EndStr)
 	}
 
 	if starts != "" {
@@ -253,7 +253,8 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 
 	hdrs := http.Header{}
 	if options.Limit != 0 {
-		hdrs.Set("X-Snowth-Advisory-Limit", strconv.FormatInt(options.Limit, 10))
+		hdrs.Set("X-Snowth-Advisory-Limit",
+			strconv.FormatInt(options.Limit, 10))
 	}
 
 	r := &FindTagsResult{}
