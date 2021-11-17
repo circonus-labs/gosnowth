@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -102,6 +103,28 @@ func TestReadTextValues(t *testing.T) {
 	node := &SnowthNode{url: u}
 	res, err := sc.ReadTextValues("3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
 		"test", time.Unix(1, 0), time.Unix(2, 0), node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 2 {
+		t.Fatalf("Expected result length: 2, got: %v", len(res))
+	}
+
+	if res[0].Value == nil {
+		t.Fatal("Expected value: not nil, got: nil")
+	}
+
+	if *res[0].Value != "hello" {
+		t.Errorf("Expected value: hello, got: %v", *res[0].Value)
+	}
+
+	res, err = sc.ReadTextValuesOpts(context.Background(), &TextOptions{
+		UUID:   "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
+		Metric: "test",
+		Start:  "1",
+		End:    "2",
+	}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

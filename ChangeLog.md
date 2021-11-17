@@ -6,6 +6,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+* add: Added support for start and end time strings to the rollup and
+histogram API's through use of the new Opts functions.
 * add: Added support for start and end time strings to the tags API.
 
 ## [v1.10.0] - 2021-06-14

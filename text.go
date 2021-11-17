@@ -77,6 +77,38 @@ func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	return r, nil
 }
 
+// TextOptions values represent options for text data reads.
+type TextOptions struct {
+	UUID   string `json:"uuid"`
+	Metric string `json:"metric"`
+	Start  string `json:"start"`
+	End    string `json:"end"`
+}
+
+// ReadTextValuesOpts reads text data values from an IRONdb node.
+func (sc *SnowthClient) ReadTextValuesOpts(ctx context.Context,
+	opts *TextOptions, nodes ...*SnowthNode) ([]TextValue, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(opts.UUID, opts.Metric))
+	}
+
+	r := TextValueResponse{}
+	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
+		opts.Start, opts.End, opts.UUID, opts.Metric), nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
+	return r, nil
+}
+
 // TextData values represent text data to be written to IRONdb.
 type TextData struct {
 	Metric string `json:"metric"`

@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -265,5 +266,108 @@ func TestReadRollupAllValues(t *testing.T) {
 
 	if res[0].Data.Value != 0 {
 		t.Errorf("Expected value: 0, got: %v", res[0].Data.Value)
+	}
+}
+
+func TestReadRollupValuesOpts(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		u := "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
+			"online?start_ts=now-1d&end_ts=now&rollup_span=1s" +
+			"&type=average"
+		if strings.HasPrefix(r.RequestURI, u) {
+			_, _ = w.Write([]byte(rollupTestData))
+			return
+		}
+
+		u = "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
+			"online?start_ts=now-1d&end_ts=now&rollup_span=1s" +
+			"&type=all"
+		if strings.HasPrefix(r.RequestURI, u) {
+			_, _ = w.Write([]byte(rollupAllTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+	res, err := sc.ReadRollupValuesOpts(context.Background(), &RollupOptions{
+		UUID:   "fc85e0ab-f568-45e6-86ee-d7443be8277d",
+		Metric: "online",
+		Type:   "all",
+		Period: "1s",
+		Start:  "now-1d",
+		End:    "now",
+	}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.AllValues == nil {
+		t.Fatal("Expected all values: not nil, got: nil")
+	}
+
+	if len(res.AllValues) != 3 {
+		t.Fatalf("Expected length: 3, got: %v", len(res.AllValues))
+	}
+
+	if res.AllValues[0].Data == nil {
+		t.Fatal("Expected data: not nil, got: nil")
+	}
+
+	if res.AllValues[0].Data.Count != 1 {
+		t.Errorf("Expected count: 1, got: %v", res.AllValues[0].Data.Count)
+	}
+
+	if res.AllValues[0].Data.Value != 0 {
+		t.Errorf("Expected value: 0, got: %v", res.AllValues[0].Data.Value)
+	}
+
+	res, err = sc.ReadRollupValuesOpts(context.Background(), &RollupOptions{
+		UUID:   "fc85e0ab-f568-45e6-86ee-d7443be8277d",
+		Metric: "online",
+		Type:   "average",
+		Period: "1s",
+		Start:  "now-1d",
+		End:    "now",
+	}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Values == nil {
+		t.Fatal("Expected values: not nil, got: nil")
+	}
+
+	if len(res.Values) != 1 {
+		t.Fatalf("Expected length: 1, got: %v", len(res.Values))
+	}
+
+	if res.Values[0].Value == nil {
+		t.Fatal("Expected value: not nil, got: nil")
+	}
+
+	if *res.Values[0].Value != 1 {
+		t.Errorf("Expected value: 1, got: %v", *res.Values[0].Value)
 	}
 }

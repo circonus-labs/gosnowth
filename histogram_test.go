@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -117,6 +118,68 @@ func TestReadHistogramValues(t *testing.T) {
 		"ae0f7f90-2a6b-481c-9cf5-21a31837020e", "example1",
 		300*time.Second, time.Unix(1556290800, 0),
 		time.Unix(1556291200, 0), node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(res) != 2 {
+		t.Fatalf("Expected length: 1, got: %v", len(res))
+	}
+
+	if res[0].Timestamp() != "1556290800" {
+		t.Errorf("Expected timestamp: 1556290800, got: %v", res[0].Timestamp())
+	}
+
+	if res[0].Period.Seconds() != 300.0 {
+		t.Errorf("Expected seconds: 300, got: %v", res[0].Period.Seconds())
+	}
+
+	if res[0].Data["+23e-004"] != 1 {
+		t.Errorf("Expected data: 1, got: %v", res[0].Data["+23e-004"])
+	}
+}
+
+func TestReadHistogramValuesOpts(t *testing.T) {
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+			return
+		}
+
+		u := "/histogram/now-1d/now/300s/" +
+			"ae0f7f90-2a6b-481c-9cf5-21a31837020e/example1"
+		if strings.HasPrefix(r.RequestURI, u) {
+			_, _ = w.Write([]byte(histogramTestData))
+			return
+		}
+	}))
+
+	defer ms.Close()
+	sc, err := NewSnowthClient(false, ms.URL)
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+	res, err := sc.ReadHistogramValuesOpts(context.Background(),
+		&HistogramOptions{
+			UUID:   "ae0f7f90-2a6b-481c-9cf5-21a31837020e",
+			Metric: "example1",
+			Period: "300s",
+			Start:  "now-1d",
+			End:    "now",
+		}, node)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -267,4 +268,58 @@ func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	}
 
 	return r, nil
+}
+
+// RollupOptions values represent options for rollup data reads.
+type RollupOptions struct {
+	UUID   string `json:"uuid"`
+	Metric string `json:"metric"`
+	Type   string `json:"type"`
+	Period string `json:"period"`
+	Start  string `json:"start"`
+	End    string `json:"end"`
+}
+
+// RollupResults values contain the data from a rollup read operation.
+type RollupResults struct {
+	Values    []RollupValue    `json:"values,omitempty"`
+	AllValues []RollupAllValue `json:"all_values,omitempty"`
+}
+
+// ReadRollupValuesOpts reads rollup data values from an IRONdb node.
+func (sc *SnowthClient) ReadRollupValuesOpts(ctx context.Context,
+	opts *RollupOptions, nodes ...*SnowthNode) (*RollupResults, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(opts.UUID, opts.Metric))
+	}
+
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
+		fmt.Sprintf("%s?start_ts=%s&end_ts=%s&rollup_span=%s&type=%s",
+			path.Join("/rollup", url.QueryEscape(opts.UUID),
+				url.QueryEscape(opts.Metric)),
+			url.QueryEscape(opts.Start), url.QueryEscape(opts.End),
+			url.QueryEscape(opts.Period), url.QueryEscape(opts.Type)),
+		nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if strings.ToLower(opts.Type) == "all" {
+		r := []RollupAllValue{}
+		if err := decodeJSON(body, &r); err != nil {
+			return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+		}
+
+		return &RollupResults{AllValues: r}, nil
+	}
+
+	r := []RollupValue{}
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
+	return &RollupResults{Values: r}, nil
 }

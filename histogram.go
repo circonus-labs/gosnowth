@@ -119,6 +119,42 @@ func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 	return r, nil
 }
 
+// HistogramOptions values represent options for histogram data reads.
+type HistogramOptions struct {
+	UUID   string `json:"uuid"`
+	Metric string `json:"metric"`
+	Period string `json:"period"`
+	Start  string `json:"start"`
+	End    string `json:"end"`
+}
+
+// ReadHistogramValuesOpts reads histogram data values from an IRONdb node.
+func (sc *SnowthClient) ReadHistogramValuesOpts(ctx context.Context,
+	opts *HistogramOptions, nodes ...*SnowthNode) ([]HistogramValue, error) {
+	var node *SnowthNode
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode(sc.FindMetricNodeIDs(opts.UUID, opts.Metric))
+	}
+
+	body, _, err := sc.DoRequestContext(ctx, node, "GET",
+		path.Join("/histogram", url.QueryEscape(opts.Start),
+			url.QueryEscape(opts.End), url.QueryEscape(opts.Period),
+			url.QueryEscape(opts.UUID), url.QueryEscape(opts.Metric)),
+		nil, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	r := []HistogramValue{}
+	if err := decodeJSON(body, &r); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
+	return r, nil
+}
+
 // HistogramData values represent histogram data records in IRONdb.
 type HistogramData struct {
 	AccountID int64                     `json:"account_id"`
