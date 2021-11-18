@@ -284,7 +284,7 @@ func TestReadRollupValuesOpts(t *testing.T) {
 
 		u := "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
 			"online?start_ts=now-1d&end_ts=now&rollup_span=1s" +
-			"&type=average"
+			"&type=average&get_engine=recalc"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(rollupTestData))
 			return
@@ -292,7 +292,7 @@ func TestReadRollupValuesOpts(t *testing.T) {
 
 		u = "/rollup/fc85e0ab-f568-45e6-86ee-d7443be8277d/" +
 			"online?start_ts=now-1d&end_ts=now&rollup_span=1s" +
-			"&type=all"
+			"&type=all&get_engine=dispatch"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(rollupAllTestData))
 			return
@@ -312,12 +312,13 @@ func TestReadRollupValuesOpts(t *testing.T) {
 
 	node := &SnowthNode{url: u}
 	res, err := sc.ReadRollupValuesOpts(context.Background(), &RollupOptions{
-		UUID:   "fc85e0ab-f568-45e6-86ee-d7443be8277d",
-		Metric: "online",
-		Type:   "all",
-		Period: "1s",
-		Start:  "now-1d",
-		End:    "now",
+		UUID:      "fc85e0ab-f568-45e6-86ee-d7443be8277d",
+		Metric:    "online",
+		Type:      "all",
+		Period:    "1s",
+		Start:     "now-1d",
+		End:       "now",
+		GetEngine: "dispatch",
 	}, node)
 	if err != nil {
 		t.Fatal(err)
@@ -344,12 +345,13 @@ func TestReadRollupValuesOpts(t *testing.T) {
 	}
 
 	res, err = sc.ReadRollupValuesOpts(context.Background(), &RollupOptions{
-		UUID:   "fc85e0ab-f568-45e6-86ee-d7443be8277d",
-		Metric: "online",
-		Type:   "average",
-		Period: "1s",
-		Start:  "now-1d",
-		End:    "now",
+		UUID:      "fc85e0ab-f568-45e6-86ee-d7443be8277d",
+		Metric:    "online",
+		Type:      "average",
+		Period:    "1s",
+		Start:     "now-1d",
+		End:       "now",
+		GetEngine: "recalc",
 	}, node)
 	if err != nil {
 		t.Fatal(err)

@@ -6,8 +6,14 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.2] - 2021-11-18
+
+* add: Added support for the get_engine parameter to rollup API requests.
 * add: Added support for start and end time strings to the rollup and
 histogram API's through use of the new Opts functions.
+
+## [v1.10.1] - 2021-11-16
+
 * add: Added support for start and end time strings to the tags API.
 
 ## [v1.10.0] - 2021-06-14
@@ -322,6 +328,8 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.2
+[v1.10.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.1
 [v1.10.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.0
 [v1.9.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.9.0
 [v1.8.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.8.1

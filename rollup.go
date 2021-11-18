@@ -218,7 +218,8 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 		int64(period/time.Second)
 	r := []RollupValue{}
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
-		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=%s",
+		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=%s"+
+			"&get_engine=dispatch",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
 			startTS, endTS, int64(period/time.Second), dataType), nil, nil)
 	if err != nil {
@@ -256,7 +257,8 @@ func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 		int64(period/time.Second)
 	r := []RollupAllValue{}
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
-		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=all",
+		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=all"+
+			"&get_engine=dispatch",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
 			startTS, endTS, int64(period/time.Second)), nil, nil)
 	if err != nil {
@@ -272,12 +274,13 @@ func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 
 // RollupOptions values represent options for rollup data reads.
 type RollupOptions struct {
-	UUID   string `json:"uuid"`
-	Metric string `json:"metric"`
-	Type   string `json:"type"`
-	Period string `json:"period"`
-	Start  string `json:"start"`
-	End    string `json:"end"`
+	UUID      string `json:"uuid"`
+	Metric    string `json:"metric"`
+	Type      string `json:"type"`
+	Period    string `json:"period"`
+	Start     string `json:"start"`
+	End       string `json:"end"`
+	GetEngine string `json:"get_engine"`
 }
 
 // RollupResults values contain the data from a rollup read operation.
@@ -297,11 +300,12 @@ func (sc *SnowthClient) ReadRollupValuesOpts(ctx context.Context,
 	}
 
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
-		fmt.Sprintf("%s?start_ts=%s&end_ts=%s&rollup_span=%s&type=%s",
-			path.Join("/rollup", url.QueryEscape(opts.UUID),
-				url.QueryEscape(opts.Metric)),
+		fmt.Sprintf("%s?start_ts=%s&end_ts=%s&rollup_span=%s&type=%s"+
+			"&get_engine=%s", path.Join("/rollup", url.QueryEscape(opts.UUID),
+			url.QueryEscape(opts.Metric)),
 			url.QueryEscape(opts.Start), url.QueryEscape(opts.End),
-			url.QueryEscape(opts.Period), url.QueryEscape(opts.Type)),
+			url.QueryEscape(opts.Period), url.QueryEscape(opts.Type),
+			url.QueryEscape(opts.GetEngine)),
 		nil, nil)
 	if err != nil {
 		return nil, err
