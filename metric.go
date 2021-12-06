@@ -17,16 +17,10 @@ type scanToken uint
 const (
 	tokenEOF scanToken = iota
 	tokenIllegal
-	tokenB64 // Base64 encoding marker
-	tokenWS  // Whitespace
-	tokenOP  // Open parenthesis
-	tokenCP  // Close parenthesis
-	tokenOB  // Open bracket
-	tokenCB  // Close bracket
+	tokenOB // Open bracket
+	tokenCB // Close bracket
 	tokenColon
 	tokenComma
-	tokenQuote
-	tokenKeyword
 	tokenTagCat
 	tokenTagVal
 	tokenMetric
@@ -95,10 +89,6 @@ func (ms *metricScanner) scan() (tok scanToken, lit string) {
 		return tokenOB, string(ch)
 	case ']':
 		return tokenCB, string(ch)
-	case '"':
-		return tokenQuote, string(ch)
-	case 'b':
-		return tokenB64, string(ch)
 	case ':':
 		return tokenColon, string(ch)
 	case ',':
@@ -203,8 +193,9 @@ func (ms *metricScanner) scanMetricName() (scanToken, string, error) {
 }
 
 // scanTagName attempts to read a tag name token from the scan buffer.
-func (ms *metricScanner) scanTagName() (scanToken, string, error) {
+func (ms *metricScanner) scanTagName() (scanToken, string, string, error) {
 	var buf bytes.Buffer
+	var can bytes.Buffer
 	quoted := false
 
 loop:
@@ -215,39 +206,107 @@ loop:
 			quoted = !quoted
 
 			if _, err := buf.WriteRune(ch); err != nil {
-				return tokenIllegal, "", fmt.Errorf(
+				return tokenIllegal, "", "", fmt.Errorf(
 					"unable to write to tag name buffer: %w", err)
+			}
+
+			if _, err := can.WriteRune(ch); err != nil {
+				return tokenIllegal, "", "", fmt.Errorf(
+					"unable to write to tag name canonical buffer: %w", err)
+			}
+		case '\\':
+			if quoted {
+				ch2 := ms.read()
+				if ch2 == '"' || ch2 == '\\' {
+					if _, err := buf.WriteRune(ch2); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name buffer: %w", err)
+					}
+
+					if _, err := can.WriteRune(ch); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name canonical buffer: %w", err)
+					}
+
+					if _, err := can.WriteRune(ch2); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name canonical buffer: %w", err)
+					}
+				} else {
+					if err := ms.unread(); err != nil {
+						if _, err := buf.WriteRune(ch); err != nil {
+							return tokenIllegal, "", "", fmt.Errorf(
+								"unable to unread rune from tag name: %w", err)
+						}
+
+						if _, err := can.WriteRune(ch); err != nil {
+							return tokenIllegal, "", "", fmt.Errorf(
+								"unable to write to tag name canonical buffer: %w", err)
+						}
+					}
+
+					if _, err := buf.WriteRune(ch); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name buffer: %w", err)
+					}
+
+					if _, err := can.WriteRune(ch); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name canonical buffer: %w", err)
+					}
+				}
+			} else {
+				if _, err := buf.WriteRune(ch); err != nil {
+					return tokenIllegal, "", "", fmt.Errorf(
+						"unable to write to tag name buffer: %w", err)
+				}
+
+				if _, err := can.WriteRune(ch); err != nil {
+					return tokenIllegal, "", "", fmt.Errorf(
+						"unable to write to tag name canonical buffer: %w", err)
+				}
 			}
 		case ':':
 			if !quoted {
 				if err := ms.unread(); err != nil {
-					return tokenIllegal, "", fmt.Errorf(
+					return tokenIllegal, "", "", fmt.Errorf(
 						"unable to unread to scan buffer: %w", err)
 				}
 
 				break loop
 			} else {
 				if _, err := buf.WriteRune(ch); err != nil {
-					return tokenIllegal, "", fmt.Errorf(
+					return tokenIllegal, "", "", fmt.Errorf(
 						"unable to write to tag name buffer: %w", err)
+				}
+
+				if _, err := can.WriteRune(ch); err != nil {
+					return tokenIllegal, "", "", fmt.Errorf(
+						"unable to write to tag name canonical buffer: %w", err)
 				}
 			}
 		case rune(0): // EOF
 			break loop
 		default:
 			if _, err := buf.WriteRune(ch); err != nil {
-				return tokenIllegal, "", fmt.Errorf(
+				return tokenIllegal, "", "", fmt.Errorf(
 					"unable to write to tag name buffer: %w", err)
+			}
+
+			if _, err := can.WriteRune(ch); err != nil {
+				return tokenIllegal, "", "", fmt.Errorf(
+					"unable to write to tag name canonical buffer: %w", err)
 			}
 		}
 	}
 
-	return tokenTagCat, buf.String(), nil
+	return tokenTagCat, buf.String(), can.String(), nil
 }
 
 // scanTagValue attempts to read a tag value token from the scan buffer.
-func (ms *metricScanner) scanTagValue() (scanToken, string, error) {
+func (ms *metricScanner) scanTagValue() (scanToken, string, string, error) {
 	var buf bytes.Buffer
+	var can bytes.Buffer
 	quoted := false
 
 loop:
@@ -258,34 +317,101 @@ loop:
 			quoted = !quoted
 
 			if _, err := buf.WriteRune(ch); err != nil {
-				return tokenIllegal, "", fmt.Errorf(
+				return tokenIllegal, "", "", fmt.Errorf(
 					"unable to write to tag name buffer: %w", err)
+			}
+
+			if _, err := can.WriteRune(ch); err != nil {
+				return tokenIllegal, "", "", fmt.Errorf(
+					"unable to write to canonical tag name buffer: %w", err)
+			}
+		case '\\':
+			if quoted {
+				ch2 := ms.read()
+				if ch2 == '"' || ch2 == '\\' {
+					if _, err := buf.WriteRune(ch2); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name buffer: %w", err)
+					}
+
+					if _, err := can.WriteRune(ch); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to canonical tag name buffer: %w", err)
+					}
+
+					if _, err := can.WriteRune(ch2); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to canonical tag name buffer: %w", err)
+					}
+				} else {
+					if err := ms.unread(); err != nil {
+						if _, err := buf.WriteRune(ch); err != nil {
+							return tokenIllegal, "", "", fmt.Errorf(
+								"unable to unread rune from tag name: %w", err)
+						}
+
+						if _, err := can.WriteRune(ch); err != nil {
+							return tokenIllegal, "", "", fmt.Errorf(
+								"unable to write to canonical tag name buffer: %w", err)
+						}
+					}
+
+					if _, err := buf.WriteRune(ch); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to tag name buffer: %w", err)
+					}
+
+					if _, err := can.WriteRune(ch); err != nil {
+						return tokenIllegal, "", "", fmt.Errorf(
+							"unable to write to canonical tag name buffer: %w", err)
+					}
+				}
+			} else {
+				if _, err := buf.WriteRune(ch); err != nil {
+					return tokenIllegal, "", "", fmt.Errorf(
+						"unable to write to tag name buffer: %w", err)
+				}
+
+				if _, err := can.WriteRune(ch); err != nil {
+					return tokenIllegal, "", "", fmt.Errorf(
+						"unable to write to canonical tag name buffer: %w", err)
+				}
 			}
 		case ',', ']':
 			if !quoted {
 				if err := ms.unread(); err != nil {
-					return tokenIllegal, "", fmt.Errorf(
+					return tokenIllegal, "", "", fmt.Errorf(
 						"unable to unread to scan buffer: %w", err)
 				}
 
 				break loop
 			} else {
 				if _, err := buf.WriteRune(ch); err != nil {
-					return tokenIllegal, "", fmt.Errorf(
+					return tokenIllegal, "", "", fmt.Errorf(
 						"unable to write to tag name buffer: %w", err)
+				}
+
+				if _, err := can.WriteRune(ch); err != nil {
+					return tokenIllegal, "", "", fmt.Errorf(
+						"unable to write to canonical tag name buffer: %w", err)
 				}
 			}
 		case rune(0): // EOF
 			break loop
 		default:
 			if _, err := buf.WriteRune(ch); err != nil {
-				return tokenIllegal, "", fmt.Errorf(
+				return tokenIllegal, "", "", fmt.Errorf(
 					"unable to write to tag name buffer: %w", err)
+			}
+
+			if _, err := can.WriteRune(ch); err != nil {
+				return tokenIllegal, "", "", fmt.Errorf(
+					"unable to write to canonical tag name buffer: %w", err)
 			}
 		}
 	}
 
-	return tokenTagVal, buf.String(), nil
+	return tokenTagVal, buf.String(), can.String(), nil
 }
 
 // MetricParser values are used to parse metric names and stream tags.
@@ -313,7 +439,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 	}
 
 	var tok scanToken
-	var lit string
+	var lit, can string
 	var err error
 
 	if tok, lit = mp.s.scan(); tok != tokenOB {
@@ -323,7 +449,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 	for {
 		var tag = Tag{}
 
-		tok, lit, err = mp.s.scanTagName()
+		tok, lit, can, err = mp.s.scanTagName()
 		if err != nil {
 			return "", nil,
 				fmt.Errorf("unable to parse stream tag name: %w", err)
@@ -352,7 +478,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 			tag.Category = strings.Trim(tag.Category, `"`)
 		}
 
-		canonical.WriteString(lit)
+		canonical.WriteString(can)
 
 		if tok, lit = mp.s.scan(); tok != tokenColon {
 			return "", nil,
@@ -361,7 +487,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 
 		canonical.WriteString(":")
 
-		tok, lit, err = mp.s.scanTagValue()
+		tok, lit, can, err = mp.s.scanTagValue()
 		if err != nil {
 			return "", nil,
 				fmt.Errorf("unable to parse stream tag value: %w", err)
@@ -391,7 +517,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 			tag.Value = strings.Trim(tag.Value, `"`)
 		}
 
-		canonical.WriteString(lit)
+		canonical.WriteString(can)
 
 		tags = append(tags, tag)
 

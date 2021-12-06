@@ -97,6 +97,7 @@ func TestFindTagsJSON(t *testing.T) {
 	}
 }
 
+// nolint: gocyclo
 func TestFindTags(t *testing.T) {
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
 		r *http.Request) {

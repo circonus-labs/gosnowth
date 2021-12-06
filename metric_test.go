@@ -232,6 +232,18 @@ func TestMetricParser(t *testing.T) {
 			numMT: 2,
 			lit:   "testing",
 		},
+		{
+			input: `testing|ST["quote\"slash\\":bar]`,
+			numST: 1,
+			numMT: 0,
+			lit:   "testing",
+		},
+		{
+			input: `testing|ST["quote\"slash\\":bar]|MT["q\\\"\\:":bar]`,
+			numST: 1,
+			numMT: 1,
+			lit:   "testing",
+		},
 	}
 
 	for _, c := range cases {
@@ -256,8 +268,8 @@ func TestMetricParser(t *testing.T) {
 		}
 
 		if len(metricName.MeasurementTags) != c.numMT {
-			t.Error("incorrect number of stream tags: ", c.numMT,
-				len(metricName.StreamTags))
+			t.Error("incorrect number of measurement tags: ", c.numMT,
+				len(metricName.MeasurementTags))
 		}
 	}
 }
