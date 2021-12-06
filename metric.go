@@ -44,8 +44,8 @@ const (
 
 // Tag values represent stream or measurment tags.
 type Tag struct {
-	Key   string
-	Value string
+	Category string
+	Value    string
 }
 
 // MetricName values represent metric names.
@@ -333,10 +333,10 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 			return "", nil, fmt.Errorf("expected stream tag name, got: %s", lit)
 		}
 
-		tag.Key = lit
-		if strings.HasPrefix(tag.Key, `b"`) &&
-			strings.HasSuffix(tag.Key, `"`) {
-			val := strings.Trim(tag.Key[1:], `"`)
+		tag.Category = lit
+		if strings.HasPrefix(tag.Category, `b"`) &&
+			strings.HasSuffix(tag.Category, `"`) {
+			val := strings.Trim(tag.Category[1:], `"`)
 			b, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding,
 				bytes.NewBufferString(val)))
 			if err != nil {
@@ -344,11 +344,12 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 					"unable to parse base64 stream tag category: %w", err)
 			}
 
-			tag.Key = string(b)
+			tag.Category = string(b)
 		}
 
-		if strings.HasPrefix(tag.Key, `"`) && strings.HasSuffix(tag.Key, `"`) {
-			tag.Key = strings.Trim(tag.Key, `"`)
+		if strings.HasPrefix(tag.Category, `"`) &&
+			strings.HasSuffix(tag.Category, `"`) {
+			tag.Category = strings.Trim(tag.Category, `"`)
 		}
 
 		canonical.WriteString(lit)
