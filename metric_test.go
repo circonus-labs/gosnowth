@@ -126,57 +126,110 @@ func TestScanTagSep(t *testing.T) {
 func TestMetricParser(t *testing.T) {
 	var cases = []struct {
 		input string // input
-		num   int    // number of derived stream tags
+		numST int    // number of derived stream tags
+		numMT int    // number of derived measurement tags
 		lit   string // metric name literal
 	}{
 		{
 			input: "testing",
-			num:   0,
+			numST: 0,
+			numMT: 0,
 			lit:   "testing",
 		},
 		{
 			input: "testing*",
-			num:   0,
+			numST: 0,
+			numMT: 0,
 			lit:   "testing*",
 		},
 		{
 			input: "testing|ST[blah:blah]",
-			num:   1,
+			numST: 1,
+			numMT: 0,
 			lit:   "testing",
 		},
 		{
 			input: "t|esting|ST[blah:blah]",
-			num:   1,
+			numST: 1,
+			numMT: 0,
 			lit:   "t|esting",
 		},
 		{
 			input: "t|Sesting|ST[blah:blah]",
-			num:   1,
+			numST: 1,
+			numMT: 0,
 			lit:   "t|Sesting",
 		},
 		{
 			input: "tel|a|M|Ssting|ST[blah:blah]",
-			num:   1,
+			numST: 1,
+			numMT: 0,
 			lit:   "tel|a|M|Ssting",
 		},
 		{
 			input: "testing|ST[blah:blah]",
-			num:   1,
+			numST: 1,
+			numMT: 0,
 			lit:   "testing",
 		},
 		{
 			input: "testing|ST[blah:blah,blah1:blah,blah2:blah]",
-			num:   3,
+			numST: 3,
+			numMT: 0,
 			lit:   "testing",
 		},
 		{
 			input: `testing|ST[b"QUFB":blah,blah1:b"QkJCQgo=",b"YWFh":b"YmJi"]`,
-			num:   3,
+			numST: 3,
+			numMT: 0,
 			lit:   "testing",
 		},
 		{
 			input: "testing|ST[blah:blah:blah:blah]",
-			num:   1,
+			numST: 1,
+			numMT: 0,
+			lit:   "testing",
+		},
+		{
+			input: "testing|ST[blah:blah]|ST[blah:blah]",
+			numST: 2,
+			numMT: 0,
+			lit:   "testing",
+		},
+		{
+			input: "testing|MT[blah:blah]",
+			numST: 0,
+			numMT: 1,
+			lit:   "testing",
+		},
+		{
+			input: "testing|ST[blah:blah]|MT[blah:blah]",
+			numST: 1,
+			numMT: 1,
+			lit:   "testing",
+		},
+		{
+			input: "testing|ST[blah:blah]|MT[blah:blah]|ST[blah:blah]",
+			numST: 2,
+			numMT: 1,
+			lit:   "testing",
+		},
+		{
+			input: `testing|ST["blah:|ST[]":blah]|MT[blah:",]:|MTblah"]`,
+			numST: 1,
+			numMT: 1,
+			lit:   "testing",
+		},
+		{
+			input: `testing|ST["blah:|ST[]":blah]|MT[blah:",]:|MTblah"]`,
+			numST: 1,
+			numMT: 1,
+			lit:   "testing",
+		},
+		{
+			input: `testing|ST["b:|ST[]":b]|MT[b:",]:|MTb"]|ST[a:b]|MT[c:d]`,
+			numST: 2,
+			numMT: 2,
 			lit:   "testing",
 		},
 	}
@@ -194,11 +247,17 @@ func TestMetricParser(t *testing.T) {
 		}
 
 		if metricName.CanonicalName != c.input {
-			t.Error("incorrect canonical: ", c.lit, metricName.CanonicalName)
+			t.Error("incorrect canonical: ", c.input, metricName.CanonicalName)
 		}
 
-		if len(metricName.StreamTags) != c.num {
-			t.Error("incorrect number of stream tags: ", c.num, len(metricName.StreamTags))
+		if len(metricName.StreamTags) != c.numST {
+			t.Error("incorrect number of stream tags: ", c.numST,
+				len(metricName.StreamTags))
+		}
+
+		if len(metricName.MeasurementTags) != c.numMT {
+			t.Error("incorrect number of stream tags: ", c.numMT,
+				len(metricName.StreamTags))
 		}
 	}
 }
