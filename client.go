@@ -748,7 +748,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	}
 
 	cr := sc.ConnectRetries()
-	nodes := sc.ListActiveNodes()
+	nodes := append([]*SnowthNode{node}, sc.ListActiveNodes()...)
 	var bdy io.Reader
 	var hdr http.Header
 
