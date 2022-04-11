@@ -3,6 +3,7 @@ package gosnowth
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -192,6 +193,8 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
 		traceRequests: os.Getenv("GOSNOWTH_TRACE_REQUESTS"),
 	}
+
+	rand.Seed(time.Now().UnixNano())
 
 	// For each of the addrs we need to parse the connection string,
 	// then create a node for that connection string, poll the state
@@ -748,7 +751,15 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	}
 
 	cr := sc.ConnectRetries()
-	nodes := append([]*SnowthNode{node}, sc.ListActiveNodes()...)
+
+	// Create a randomized list of nodes to retry.
+	nodes := sc.ListActiveNodes()
+	rand.Shuffle(len(nodes), func(i, j int) {
+		nodes[i], nodes[j] = nodes[j], nodes[i]
+	})
+
+	nodes = append([]*SnowthNode{node}, nodes...)
+
 	var bdy io.Reader
 	var hdr http.Header
 	for r := int64(0); r < retries+1; r++ {
@@ -790,7 +801,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 			// Stop retrying other nodes if this is not a network connection
 			// error.
-			if nerr, ok := err.(net.Error); ok && !nerr.Temporary() {
+			nerr, ok := err.(net.Error)
+			if !ok {
 				break
 			}
 
@@ -799,10 +811,10 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			connRetries--
-			if nerr, ok := err.(net.Error); ok && nerr.Timeout() &&
+			if nerr.Timeout() && !errors.Is(nerr, context.DeadlineExceeded) &&
 				len(nodes) > 2 {
 				// Don't deactivate the last node, and only deactivate if the
-				// failure is a network timeout / tarpit.
+				// failure is a network timeout / tarpit not a context timeout.
 				sc.DeactivateNodes(sn)
 			}
 		}
