@@ -819,7 +819,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 		}
 
-		time.Sleep(time.Millisecond * time.Duration(100*2^r))
+		if r < retries {
+			time.Sleep(time.Millisecond * time.Duration(100*2^r))
+		}
 	}
 
 	return bdy, hdr, err
