@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -193,8 +192,6 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
 		traceRequests: os.Getenv("GOSNOWTH_TRACE_REQUESTS"),
 	}
-
-	rand.Seed(time.Now().UnixNano())
 
 	// For each of the addrs we need to parse the connection string,
 	// then create a node for that connection string, poll the state
@@ -717,7 +714,7 @@ func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
 		}
 	}
 
-	return sc.activeNodes[rand.Intn(len(sc.activeNodes))] // nolint gosec
+	return sc.activeNodes[time.Now().UnixNano()%int64(len(sc.activeNodes))]
 }
 
 // DoRequest sends a request to IRONdb.
@@ -751,30 +748,26 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	}
 
 	cr := sc.ConnectRetries()
-
-	// Create a randomized list of nodes to retry.
 	nodes := sc.ListActiveNodes()
-	rand.Shuffle(len(nodes), func(i, j int) {
-		nodes[i], nodes[j] = nodes[j], nodes[i]
-	})
-
-	nodes = append([]*SnowthNode{node}, nodes...)
-
 	var bdy io.Reader
 	var hdr http.Header
+
 	for r := int64(0); r < retries+1; r++ {
 		connRetries := cr
 		surl := url
-		sn := nodes[0]
-		for n := 0; n < len(nodes); n++ {
+		sns := nodes
+		for len(sns) > 0 {
+			n := time.Now().UnixNano() % int64(len(sns))
+			sn := sns[n]
+			sns[n] = sns[len(sns)-1]
+			sns = sns[:len(sns)-1]
+			if sn == nil {
+				continue
+			}
+
 			u := ""
 			if surl != "" {
 				u = strings.Replace(surl, sn.GetURL().String(), "", 1)
-			}
-
-			sn = nodes[n]
-			if sn == nil {
-				continue
 			}
 
 			if surl != "" && u != "" {
@@ -800,9 +793,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			// Stop retrying other nodes if this is not a network connection
-			// error.
+			// error of if the context deadline was reached.
 			nerr, ok := err.(net.Error)
-			if !ok {
+			if !ok || errors.Is(nerr, context.DeadlineExceeded) {
 				break
 			}
 
@@ -811,10 +804,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			connRetries--
-			if nerr.Timeout() && !errors.Is(nerr, context.DeadlineExceeded) &&
-				len(nodes) > 2 {
+			if nerr.Timeout() && len(nodes) > 2 {
 				// Don't deactivate the last node, and only deactivate if the
-				// failure is a network timeout / tarpit not a context timeout.
+				// failure is a network timeout / tarpit.
 				sc.DeactivateNodes(sn)
 			}
 		}
