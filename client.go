@@ -774,16 +774,19 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				surl = sc.getURL(sn, u)
 			}
 
-			sc.LogDebugf("gosnowth attempting request: %s %s %v",
-				method, surl, sn)
+			traceID := time.Now().UnixNano()
+			sc.LogDebugf("gosnowth attempting request "+
+				"[retry: %d, connRetry: %d]: %s %s %v traceID: %d",
+				r, (cr - connRetries), method, surl, sn, traceID)
 			bdy, hdr, err = sc.do(ctx, sn, method, surl,
-				bytes.NewBuffer(bBody), headers)
+				bytes.NewBuffer(bBody), headers, traceID)
 			if err == nil {
 				return bdy, hdr, nil
 			}
 
-			sc.LogDebugf("gosnowth request error: %s %s %v",
-				method, surl, err)
+			sc.LogDebugf("gosnowth request error "+
+				"[retry: %d, connRetry: %d]: %s %s %v traceID: %d",
+				r, (cr - connRetries), method, surl, err, traceID)
 
 			// There are likely more types of IRONdb errors that need to be
 			// checked for and included in this section for errors which
@@ -821,8 +824,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 // do sends a request to IRONdb.
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
-	method, url string, body io.Reader, headers http.Header) (io.Reader,
-	http.Header, error) {
+	method, url string, body io.Reader, headers http.Header,
+	traceID int64) (io.Reader, http.Header, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -835,7 +838,6 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	sc.RLock()
 	traceReq := sc.traceRequests != "" && (sc.traceRequests == "*" ||
 		strings.HasPrefix(r.URL.Path, sc.traceRequests))
-	traceID := time.Now().UTC().Nanosecond()
 	dumpReq := sc.dumpRequests != "" && (sc.dumpRequests == "*" ||
 		strings.HasPrefix(r.URL.Path, sc.dumpRequests))
 	sc.RUnlock()
@@ -930,12 +932,12 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if dumpReq {
 		dump, err := httputil.DumpRequestOut(r, true)
 		if err != nil {
-			sc.LogErrorf("%v", err)
+			sc.LogErrorf("%v traceID: %d", err, traceID)
 		}
 		fmt.Println(string(dump))
 	}
 
-	sc.LogDebugf("gosnowth request: %+v", r)
+	sc.LogDebugf("gosnowth request: %+v traceID: %d", r, traceID)
 	var start = time.Now()
 	sc.RLock()
 	cli := sc.c
@@ -972,9 +974,11 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		fmt.Printf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
 	}
 
-	sc.LogDebugf("gosnowth response: %+v", resp)
+	sc.LogDebugf("gosnowth response: %+v traceID: %d", resp, traceID)
 	// sc.LogDebugf("gosnowth response body: %v", string(res))
-	sc.LogDebugf("gosnowth latency: %+v", time.Since(start))
+	sc.LogDebugf("gosnowth latency: %+v traceID: %d", time.Since(start),
+		traceID)
+
 	select {
 	case <-ctx.Done():
 		return nil, nil, fmt.Errorf("context terminated: %w", ctx.Err())
@@ -982,8 +986,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		sc.LogWarnf("error returned from IRONdb: [%d] %s",
-			resp.StatusCode, string(res))
+		sc.LogWarnf("error returned from IRONdb: [%d] %s traceID: %d",
+			resp.StatusCode, string(res), traceID)
 		return bytes.NewBuffer(res), resp.Header,
 			fmt.Errorf("error returned from IRONdb (%s): [%d] %s",
 				r.URL.Host, resp.StatusCode, string(res))

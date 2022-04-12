@@ -6,8 +6,9 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
-## [v1.10.3] - 2022-04-11
+## [v1.10.3] - 2022-04-12
 
+* upd: Adds retry number and trace ID to request debug log entries.
 * upd: Randomizes the IRONdb cluster nodes that will be retried in cases of
 network connection failure.
 
