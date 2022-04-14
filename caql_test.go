@@ -83,7 +83,8 @@ func TestGetCAQLQuery(t *testing.T) {
 
 	sc.SetRetries(1)
 	sc.SetConnectRetries(1)
-	u, err := url.Parse("http://invalid")
+
+	u, err := url.Parse(ms.URL)
 	if err != nil {
 		t.Fatal("Invalid test URL")
 	}

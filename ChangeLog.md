@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.4] - 2022-04-14
+
+* upd: NewClient() now requires a context when being called. This allows for
+context terminations to happen during the process of creating and initializing
+a new SnowthClient.
+
 ## [v1.10.3] - 2022-04-12
 
 * upd: Adds retry number and trace ID to request debug log entries.
