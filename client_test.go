@@ -41,6 +41,25 @@ func TestNewSnowthClient(t *testing.T) {
 	}
 }
 
+func TestNewClientTimeout(t *testing.T) {
+	ctx := context.Background()
+	ctx, _ = context.WithTimeout(ctx, 1)
+
+	cfg, err := NewConfig("http://localhost")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = NewClient(ctx, cfg)
+	if err == nil {
+		t.Error("Error expected for new client timeout test")
+	}
+
+	if !strings.Contains(err.Error(), "context deadline exceeded") {
+		t.Errorf("Expected context error, got: %v", err.Error())
+	}
+}
+
 func TestIsNodeActive(t *testing.T) {
 	// mock out GetNodeState, GetGossipInfo
 }
@@ -81,7 +100,7 @@ func TestSnowthClientRequest(t *testing.T) {
 		return nil
 	})
 
-	u, err := url.Parse("http://invalid")
+	u, err := url.Parse(ms.URL)
 	if err != nil {
 		t.Fatal("Invalid test URL")
 	}
@@ -197,7 +216,7 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	sc.watchInterval = 100 * time.Millisecond
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	sc.WatchAndUpdate(ctx)
+
 	sc.AddNodes(node)
 	sc.ActivateNodes(node)
 	if !sc.isNodeActive(node) {
@@ -209,13 +228,14 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 		return nil
 	})
 
-	time.Sleep(150 * time.Millisecond)
+	sc.WatchAndUpdate(ctx)
+	time.Sleep(200 * time.Millisecond)
 	if sc.isNodeActive(node) {
 		t.Errorf("Expected node to be inactive")
 	}
 
 	sc.SetRequestFunc(nil)
-	time.Sleep(150 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 	if !sc.isNodeActive(node) {
 		t.Errorf("Expected node to be active")
 	}

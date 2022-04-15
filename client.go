@@ -156,11 +156,11 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 		return nil, err
 	}
 
-	return NewClient(cfg)
+	return NewClient(context.Background(), cfg)
 }
 
 // NewClient creates and performs initial setup of a new SnowthClient.
-func NewClient(cfg *Config) (*SnowthClient, error) {
+func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 	client := &http.Client{
 		Timeout: cfg.Timeout(),
 		Transport: &http.Transport{
@@ -209,7 +209,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 
 		// Call get stats to populate the id of this node.
 		node := &SnowthNode{url: url}
-		stats, err := sc.GetStats(node)
+		stats, err := sc.GetStatsContext(ctx, node)
 		if err != nil {
 			// This node had an error, put on inactive list.
 			nErr.Add(fmt.Errorf("unable to get status of node: %w", err))
@@ -238,7 +238,7 @@ func NewClient(cfg *Config) (*SnowthClient, error) {
 		// For robustness, we will perform a discovery of associated nodes
 		// this works by pulling the topology information for given nodes
 		// and adding nodes discovered within the topology into the client.
-		if err := sc.discoverNodes(); err != nil {
+		if err := sc.discoverNodes(ctx); err != nil {
 			return nil, fmt.Errorf("failed discovery of new nodes: %w", err)
 		}
 	}
@@ -446,7 +446,7 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				return
 			case <-tick.C:
 				sc.LogDebugf("firing watch and update")
-				if err := sc.discoverNodes(); err != nil {
+				if err := sc.discoverNodes(ctx); err != nil {
 					sc.LogErrorf("failed to perform watch discovery: %v", err)
 				}
 
@@ -491,12 +491,12 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 // This function will go through the active nodes and get the topology
 // information which shows all other nodes included in the cluster, then adds
 // them as nodes to this client's active node pool.
-func (sc *SnowthClient) discoverNodes() error {
+func (sc *SnowthClient) discoverNodes(ctx context.Context) error {
 	success := false
 	mErr := newMultiError()
 	for _, node := range sc.ListActiveNodes() {
 		// lookup the topology
-		topology, err := sc.GetTopologyInfo(node)
+		topology, err := sc.GetTopologyInfoContext(ctx, node)
 		if err != nil {
 			mErr.Add(fmt.Errorf("error getting topology info: %w", err))
 			continue
