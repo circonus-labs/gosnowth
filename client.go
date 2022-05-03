@@ -757,7 +757,11 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 		surl := url
 		sns := nodes
 		for len(sns) > 0 {
-			n := time.Now().UnixNano() % int64(len(sns))
+			n := int64(0)
+			if connRetries != cr {
+				n = time.Now().UnixNano() % int64(len(sns))
+			}
+
 			sn := sns[n]
 			sns[n] = sns[len(sns)-1]
 			sns = sns[:len(sns)-1]

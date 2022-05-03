@@ -6,6 +6,14 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.5] - 2022-05-03
+
+* fix: Fixes the metric name parser to correctly use curly brackets when
+parsing measurement tags.
+* fix: Fixes connetion retries to always try the specified node first then
+randomly pick from active cluster nodes for retries.
+* fix: Fixes broken examples code.
+
 ## [v1.10.4] - 2022-04-14
 
 * upd: NewClient() now requires a context when being called. This allows for

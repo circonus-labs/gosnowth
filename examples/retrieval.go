@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"strconv"
@@ -20,7 +21,7 @@ func ExampleReadNNT() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -68,7 +69,7 @@ func ExampleReadText() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}

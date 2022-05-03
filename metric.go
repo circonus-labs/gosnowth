@@ -17,8 +17,10 @@ type scanToken uint
 const (
 	tokenEOF scanToken = iota
 	tokenIllegal
-	tokenOB // Open bracket
-	tokenCB // Close bracket
+	tokenOB  // Open bracket
+	tokenCB  // Close bracket
+	tokenOCB // Open curly bracket
+	tokenCCB // Close curly bracket
 	tokenColon
 	tokenComma
 	tokenTagCat
@@ -89,6 +91,10 @@ func (ms *metricScanner) scan() (tok scanToken, lit string) {
 		return tokenOB, string(ch)
 	case ']':
 		return tokenCB, string(ch)
+	case '{':
+		return tokenOCB, string(ch)
+	case '}':
+		return tokenCCB, string(ch)
 	case ':':
 		return tokenColon, string(ch)
 	case ',':
@@ -304,7 +310,8 @@ loop:
 }
 
 // scanTagValue attempts to read a tag value token from the scan buffer.
-func (ms *metricScanner) scanTagValue() (scanToken, string, string, error) {
+func (ms *metricScanner) scanTagValue(
+	tt tagType) (scanToken, string, string, error) {
 	var buf bytes.Buffer
 	var can bytes.Buffer
 	quoted := false
@@ -377,8 +384,9 @@ loop:
 						"unable to write to canonical tag name buffer: %w", err)
 				}
 			}
-		case ',', ']':
-			if !quoted {
+		case ',', ']', '}':
+			if !quoted && (ch == ',' || (ch == ']' && tt == tagStreamTag) ||
+				(ch == '}' && tt == tagMeasurementTag)) {
 				if err := ms.unread(); err != nil {
 					return tokenIllegal, "", "", fmt.Errorf(
 						"unable to unread to scan buffer: %w", err)
@@ -433,7 +441,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 	case tagStreamTag:
 		canonical.WriteString("|ST[")
 	case tagMeasurementTag:
-		canonical.WriteString("|MT[")
+		canonical.WriteString("|MT{")
 	default:
 		return "", nil, fmt.Errorf("invalid tag type: %v", tt)
 	}
@@ -442,8 +450,9 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 	var lit, can string
 	var err error
 
-	if tok, lit = mp.s.scan(); tok != tokenOB {
-		return "", nil, fmt.Errorf("parse failure, expecting '[' got: %s", lit)
+	if tok, lit = mp.s.scan(); tok != tokenOB && tok != tokenOCB {
+		return "", nil, fmt.Errorf(
+			"parse failure, expecting '[' or '{', got: %s", lit)
 	}
 
 	for {
@@ -452,11 +461,11 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 		tok, lit, can, err = mp.s.scanTagName()
 		if err != nil {
 			return "", nil,
-				fmt.Errorf("unable to parse stream tag name: %w", err)
+				fmt.Errorf("unable to parse tag name: %w", err)
 		}
 
 		if tok != tokenTagCat {
-			return "", nil, fmt.Errorf("expected stream tag name, got: %s", lit)
+			return "", nil, fmt.Errorf("expected tag name, got: %s", lit)
 		}
 
 		tag.Category = lit
@@ -467,7 +476,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 				bytes.NewBufferString(val)))
 			if err != nil {
 				return "", nil, fmt.Errorf(
-					"unable to parse base64 stream tag category: %w", err)
+					"unable to parse base64 tag category: %w", err)
 			}
 
 			tag.Category = string(b)
@@ -487,15 +496,15 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 
 		canonical.WriteString(":")
 
-		tok, lit, can, err = mp.s.scanTagValue()
+		tok, lit, can, err = mp.s.scanTagValue(tt)
 		if err != nil {
 			return "", nil,
-				fmt.Errorf("unable to parse stream tag value: %w", err)
+				fmt.Errorf("unable to parse tag value: %w", err)
 		}
 
 		if tok != tokenTagVal {
 			return "", nil,
-				fmt.Errorf("expected stream tag value, got: %s", lit)
+				fmt.Errorf("expected tag value, got: %s", lit)
 		}
 
 		tag.Value = lit
@@ -528,13 +537,20 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 			continue
 		}
 
-		if tok == tokenCB {
-			// done with tags
+		if tt == tagStreamTag && tok == tokenCB {
+			// done with stream tags
 			canonical.WriteString("]")
 			break
 		}
 
-		return "", nil, fmt.Errorf("should have , or ], got: %s", lit)
+		if tt == tagMeasurementTag && tok == tokenCCB {
+			// done with measurement tags
+			canonical.WriteString("}")
+			break
+		}
+
+		return "", nil, fmt.Errorf(
+			"should have ',' or ']', or '}', got: %s", lit)
 	}
 
 	return canonical.String(), tags, nil

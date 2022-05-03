@@ -46,6 +46,16 @@ func TestScanMetricName(t *testing.T) {
 			tok:   tokenMetric,
 			lit:   "testing",
 		},
+		{
+			input: "testing|MT{test:test}",
+			tok:   tokenMetric,
+			lit:   "testing",
+		},
+		{
+			input: "testing|ST[blah:blah]|MT{test:test}",
+			tok:   tokenMetric,
+			lit:   "testing",
+		},
 	}
 
 	for _, c := range cases {
@@ -94,7 +104,7 @@ func TestScanTagSep(t *testing.T) {
 		t.Error("incorrect literal scanned: ", lit)
 	}
 
-	mtBuf := bytes.NewBufferString("|MT[blah:blah]")
+	mtBuf := bytes.NewBufferString("|MT{blah:blah}")
 	s = newMetricScanner(mtBuf)
 	tok, lit, err = s.peekTagSep()
 	if err != nil {
@@ -197,37 +207,37 @@ func TestMetricParser(t *testing.T) {
 			lit:   "testing",
 		},
 		{
-			input: "testing|MT[blah:blah]",
+			input: "testing|MT{blah:blah}",
 			numST: 0,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: "testing|ST[blah:blah]|MT[blah:blah]",
+			input: "testing|ST[blah:blah]|MT{blah:blah}",
 			numST: 1,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: "testing|ST[blah:blah]|MT[blah:blah]|ST[blah:blah]",
+			input: "testing|ST[blah:blah]|MT{blah:blah}|ST[blah:blah]",
 			numST: 2,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["blah:|ST[]":blah]|MT[blah:",]:|MTblah"]`,
+			input: `testing|ST["blah:|ST[]":blah]|MT{blah:",}:|MTblah"}`,
 			numST: 1,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["blah:|ST[]":blah]|MT[blah:",]:|MTblah"]`,
+			input: `testing|ST["blah:|ST[]":blah]|MT{blah:",}:|MTblah"}`,
 			numST: 1,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["b:|ST[]":b]|MT[b:",]:|MTb"]|ST[a:b]|MT[c:d]`,
+			input: `testing|ST["b:|ST[]":b]|MT{b:",}:|MTb"}|ST[a:b]|MT{c:d}`,
 			numST: 2,
 			numMT: 2,
 			lit:   "testing",
@@ -239,7 +249,7 @@ func TestMetricParser(t *testing.T) {
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["quote\"slash\\":bar]|MT["q\\\"\\:":bar]`,
+			input: `testing|ST["quote\"slash\\":bar]|MT{"q\\\"\\:":bar}`,
 			numST: 1,
 			numMT: 1,
 			lit:   "testing",
