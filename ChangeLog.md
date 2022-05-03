@@ -10,7 +10,7 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 * fix: Fixes the metric name parser to correctly use curly brackets when
 parsing measurement tags.
-* fix: Fixes connetion retries to always try the specified node first then
+* fix: Fixes connection retries to always try the specified node first then
 randomly pick from active cluster nodes for retries.
 * fix: Fixes broken examples code.
 
@@ -347,6 +347,9 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.5
+[v1.10.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.4
+[v1.10.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.3
 [v1.10.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.2
 [v1.10.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.1
 [v1.10.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.0
