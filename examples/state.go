@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 
 	"github.com/circonus-labs/gosnowth"
@@ -16,7 +17,7 @@ func ExampleGetNodeState() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -41,7 +42,7 @@ func ExampleGetNodeGossip() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -66,7 +67,7 @@ func ExampleGetTopology() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}

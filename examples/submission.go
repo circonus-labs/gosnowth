@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"strconv"
@@ -24,7 +25,7 @@ func ExampleSubmitText() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -51,7 +52,7 @@ func ExampleSubmitNNT() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
@@ -87,7 +88,7 @@ func ExampleSubmitHistogram() {
 	}
 
 	cfg.SetDiscover(true)
-	client, err := gosnowth.NewClient(cfg)
+	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
 	}
