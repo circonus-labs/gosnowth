@@ -4,7 +4,7 @@ run:
         - pkg/pb
     skip-files:
         - internal/api/static.go
-    modules-download-mode: vendor
+    modules-download-mode: readonly
 linters-settings:
     golint:
         min-confidence: 0
