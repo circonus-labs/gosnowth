@@ -61,6 +61,7 @@ func TestGraphiteFindMetrics(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -116,6 +117,7 @@ func TestGraphiteFindTags(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -171,6 +173,7 @@ func TestGraphiteGetDatapoints(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

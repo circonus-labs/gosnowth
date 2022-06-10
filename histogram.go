@@ -23,6 +23,7 @@ type HistogramValue struct {
 // MarshalJSON encodes a HistogramValue value into a JSON format byte slice.
 func (hv *HistogramValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
+
 	fv, err := strconv.ParseFloat(formatTimestamp(hv.Time), 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid histogram value time: " +
@@ -39,6 +40,7 @@ func (hv *HistogramValue) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into a HistogramValue value.
 func (hv *HistogramValue) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
+
 	err := json.Unmarshal(b, &v)
 	if err != nil {
 		return err
@@ -64,6 +66,7 @@ func (hv *HistogramValue) UnmarshalJSON(b []byte) error {
 
 	if m, ok := v[2].(map[string]interface{}); ok {
 		hv.Data = make(map[string]int64, len(m))
+
 		for k, iv := range m {
 			if fv, ok := iv.(float64); ok {
 				hv.Data[k] = int64(fv)
@@ -106,6 +109,7 @@ func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 	endTS := end.Unix() - end.Unix()%int64(period.Seconds()) +
 		int64(period.Seconds())
 	r := []HistogramValue{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		path.Join("/histogram", strconv.FormatInt(startTS, 10),
 			strconv.FormatInt(endTS, 10),

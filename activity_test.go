@@ -52,6 +52,7 @@ func TestRebuildActivity(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -63,6 +64,7 @@ func TestRebuildActivity(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	_, err = sc.RebuildActivity(node, []RebuildActivityRequest{})
 	if err != nil {
 		t.Fatal(err)
@@ -70,6 +72,7 @@ func TestRebuildActivity(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
+
 	_, err = sc.RebuildActivityContext(ctx, node, []RebuildActivityRequest{})
 	if err == nil {
 		t.Fatal("Expected error response")

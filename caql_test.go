@@ -85,6 +85,7 @@ func TestGetCAQLQuery(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -99,6 +100,7 @@ func TestGetCAQLQuery(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetCAQLQuery(&CAQLQuery{
 		AccountID: 1,
 		Query:     "test",
@@ -161,6 +163,7 @@ func TestGetCAQLQuery(t *testing.T) {
 		testCAQLError, " ", ""), "\t", ""), "\n", "")
 	val := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
 		vErr.Error(), " ", ""), "\t", ""), "\n", "")
+
 	if val != exp {
 		t.Errorf("Expected error JSON: %v, got: %v", exp, val)
 	}

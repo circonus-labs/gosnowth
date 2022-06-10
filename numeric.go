@@ -20,6 +20,7 @@ type NumericAllValueResponse struct {
 func (nv *NumericAllValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NumericAllValue{}
 	values := [][]interface{}{}
+
 	if err := json.Unmarshal(b, &values); err != nil {
 		return fmt.Errorf("failed to deserialize numeric average response: %w",
 			err)
@@ -27,6 +28,7 @@ func (nv *NumericAllValueResponse) UnmarshalJSON(b []byte) error {
 
 	for _, entry := range values {
 		nav := NumericAllValue{}
+
 		if m, ok := entry[1].(map[string]interface{}); ok {
 			valueBytes, err := json.Marshal(m)
 			if err != nil {
@@ -76,6 +78,7 @@ type NumericValueResponse struct {
 func (nv *NumericValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NumericValue{}
 	values := [][]int64{}
+
 	if err := json.Unmarshal(b, &values); err != nil {
 		return fmt.Errorf("failed to deserialize numeric average response: %w",
 			err)
@@ -136,6 +139,7 @@ func (p *NumericParts) MarshalJSON() ([]byte, error) {
 	tuple = append(tuple, p.Period, p.Data)
 	buf := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(buf)
+
 	if err := enc.Encode(tuple); err != nil {
 		return buf.Bytes(), err
 	}
@@ -194,6 +198,7 @@ func (sc *SnowthClient) ReadNumericValuesContext(ctx context.Context,
 	}
 
 	r := &NumericValueResponse{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),
@@ -231,6 +236,7 @@ func (sc *SnowthClient) ReadNumericAllValuesContext(ctx context.Context,
 	}
 
 	r := &NumericAllValueResponse{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),

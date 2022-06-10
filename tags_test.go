@@ -68,14 +68,14 @@ func TestFindTagsJSON(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err := json.NewEncoder(buf).Encode(&fti)
-	if err != nil {
+
+	if err := json.NewEncoder(buf).Encode(&fti); err != nil {
 		t.Fatal(err)
 	}
 
 	var r *FindTagsItem
-	err = json.NewDecoder(buf).Decode(&r)
-	if err != nil {
+
+	if err := json.NewDecoder(buf).Decode(&r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -134,6 +134,7 @@ func TestFindTags(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -145,6 +146,7 @@ func TestFindTags(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.FindTags(1, "test", &FindTagsOptions{
 		Start:     time.Unix(1, 0),
 		End:       time.Unix(2, 0),
@@ -307,6 +309,7 @@ func TestFindTagCats(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -360,6 +363,7 @@ func TestFindTagVals(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -412,6 +416,7 @@ func TestGetCheckTags(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -464,6 +469,7 @@ func TestDeleteCheckTags(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -508,6 +514,7 @@ func TestUpdateCheckTags(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

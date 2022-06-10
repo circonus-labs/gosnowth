@@ -141,6 +141,7 @@ func (sc *SnowthClient) GetLuaExtensionsContext(ctx context.Context,
 
 	u := "/extension/lua"
 	r := LuaExtensions{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err
@@ -181,6 +182,7 @@ func (sc *SnowthClient) ExecLuaExtensionContext(ctx context.Context,
 	}
 
 	u := "/extension/lua/" + name
+
 	if len(params) > 0 {
 		qp := url.Values{}
 		for _, p := range params {
@@ -191,6 +193,7 @@ func (sc *SnowthClient) ExecLuaExtensionContext(ctx context.Context,
 	}
 
 	r := map[string]interface{}{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err

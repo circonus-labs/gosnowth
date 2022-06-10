@@ -110,6 +110,7 @@ func TestGossipDeserialization(t *testing.T) {
 
 	dec := json.NewDecoder(bytes.NewBufferString(gossipTestData))
 	dec.UseNumber()
+
 	gossip := new(Gossip)
 
 	if err := dec.Decode(gossip); err != nil {
@@ -122,6 +123,7 @@ func TestGossipDeserialization(t *testing.T) {
 
 	res := []GossipDetail(*gossip)[0].Time
 	exp := float64(1409082055.744880)
+
 	if res != exp {
 		t.Errorf("Expected time: %v, got: %v", exp, res)
 	}
@@ -157,6 +159,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -168,6 +171,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetGossipInfo(node)
 	if err != nil {
 		t.Fatal(err)
@@ -183,6 +187,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+
 	res, err = sc.GetGossipInfoContext(ctx, node)
 	if err != nil {
 		t.Fatal(err)
@@ -198,6 +203,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	cancel()
+
 	_, err = sc.GetGossipInfoContext(ctx, node)
 	if err == nil || !strings.Contains(err.Error(), "context") {
 		t.Error("Expected context error.", err)

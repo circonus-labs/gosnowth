@@ -111,6 +111,7 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 	}
 
 	c.SetDiscover(m.Discover)
+
 	if m.Timeout != "" {
 		d, err := time.ParseDuration(m.Timeout)
 		if err != nil {
@@ -257,6 +258,7 @@ func (c *Config) Servers() []string {
 // updated configuration value.
 func (c *Config) SetServers(servers ...string) error {
 	s := []string{}
+
 	for _, svr := range servers {
 		if _, err := url.Parse(svr); err != nil {
 			return fmt.Errorf("invalid server address " + svr)

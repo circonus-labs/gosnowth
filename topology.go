@@ -59,6 +59,7 @@ func (i *TopoSide) UnmarshalXMLAttr(attr xml.Attr) error {
 // MarshalXMLAttr handle side integral to enum transformation.
 func (i TopoSide) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 	var s string
+
 	switch i {
 	default:
 		s = "both"
@@ -85,6 +86,7 @@ type TopologyNode struct {
 
 func (topo *Topology) compile() error {
 	nslots := 0
+
 	if topo.WriteCopies == 0 {
 		topo.WriteCopies = topo.OldWriteCopies
 	}
@@ -111,12 +113,14 @@ func (topo *Topology) compile() error {
 
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, node.Weight)
+
 		if _, err := hash.Write(netshort); err != nil {
 			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, uint16(node.Side))
+
 			if _, err := hash.Write(netshort); err != nil {
 				return fmt.Errorf("unable to write hash: %w", err)
 			}
@@ -186,6 +190,7 @@ func (topo *Topology) binSearchNext(location [sha256.Size]byte) (int, int) {
 	start := 0
 	end := len(topo.ring) - 1
 	mid := len(topo.ring) / 2
+
 	var cmp int
 
 	for start <= end {
@@ -306,6 +311,7 @@ func (topo *Topology) FindN(s string, n int) ([]TopologyNode, error) {
 
 	location := sha256.Sum256([]byte(s))
 	nodes := make([]TopologyNode, 0)
+
 	for i := 0; i < n; i++ {
 		node := topo.findNext(location, nodes)
 		if node == nil {
@@ -355,6 +361,7 @@ func (sc *SnowthClient) GetTopologyInfoContext(ctx context.Context,
 	nodes ...*SnowthNode,
 ) (*Topology, error) {
 	r := &Topology{}
+
 	var node *SnowthNode
 
 	if len(nodes) > 0 && nodes[0] != nil {

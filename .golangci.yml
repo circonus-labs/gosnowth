@@ -22,4 +22,3 @@ linters:
       - nolintlint
       - tagliatelle
       - testpackage
-      - wsl

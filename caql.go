@@ -105,6 +105,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 
 	u := "/extension/lua/public/caql_v1"
 	q.Format = "DF4"
+
 	qBuf, err := encodeJSON(q)
 	if err != nil {
 		return nil, err
@@ -121,6 +122,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 	}
 
 	r := &DF4Response{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "POST", u,
 		bytes.NewBuffer(bBuf), nil)
 	if err != nil {

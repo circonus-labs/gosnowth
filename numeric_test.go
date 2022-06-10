@@ -170,6 +170,7 @@ func TestNumericReadWrite(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -181,6 +182,7 @@ func TestNumericReadWrite(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ReadNumericValues(time.Unix(1529509020, 0),
 		time.Unix(1529509200, 0), 1, "count",
 		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "test", node)
@@ -212,8 +214,9 @@ func TestNumericReadWrite(t *testing.T) {
 	}
 
 	nv := []NumericWrite{}
-	err = json.NewDecoder(bytes.NewBufferString(numericTestWriteData)).Decode(&nv)
-	if err != nil {
+
+	if err = json.NewDecoder(bytes.NewBufferString(
+		numericTestWriteData)).Decode(&nv); err != nil {
 		t.Fatal(err)
 	}
 

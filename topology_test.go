@@ -66,7 +66,9 @@ func TestTopologyJSONDeserialization(t *testing.T) {
 
 	dec := json.NewDecoder(bytes.NewBufferString(topologyTestData))
 	dec.UseNumber()
+
 	topo := []TopologyNode{}
+
 	if err := dec.Decode(&topo); err != nil {
 		t.Errorf("failed to decode topology, %s\n", err.Error())
 	}
@@ -188,12 +190,16 @@ func TestLiveNode(t *testing.T) {
 
 func BenchmarkLookup1(b *testing.B) {
 	b.StopTimer()
+
 	id := uuid.New().String()
+
 	topo, err := TopologyLoadXML(topologyXMLTestData)
 	if err != nil {
 		b.Fatal("cannot load topology for benchmark")
 	}
+
 	b.StartTimer()
+
 	for n := 0; n < b.N; n++ {
 		_, _ = topo.FindMetric(id,
 			"this.is.a.metric|ST[nice:andhappy,with:tags]")
@@ -243,6 +249,7 @@ func TestTopology(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -254,6 +261,7 @@ func TestTopology(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetTopologyInfo(nil)
 	if err != nil {
 		t.Fatal(err)

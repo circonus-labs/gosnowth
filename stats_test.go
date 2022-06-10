@@ -63,6 +63,7 @@ func TestGetStats(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -74,6 +75,7 @@ func TestGetStats(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetStats(node)
 	if err != nil {
 		t.Fatal(err)

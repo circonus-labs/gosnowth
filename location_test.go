@@ -132,6 +132,7 @@ func TestLocateMetric(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -143,6 +144,7 @@ func TestLocateMetric(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.LocateMetric("1f846f26-0cfd-4df5-b4f1-e0930604e577",
 		"test", node)
 	if err != nil {
@@ -193,6 +195,7 @@ func TestLocateMetricFindMetric(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

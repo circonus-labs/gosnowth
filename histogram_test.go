@@ -48,8 +48,9 @@ func TestHistogramValueMarshaling(t *testing.T) {
 	t.Parallel()
 
 	v := []HistogramValue{}
-	err := json.NewDecoder(bytes.NewBufferString(histogramTestData)).Decode(&v)
-	if err != nil {
+
+	if err := json.NewDecoder(bytes.NewBufferString(
+		histogramTestData)).Decode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -70,8 +71,8 @@ func TestHistogramValueMarshaling(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err = json.NewEncoder(buf).Encode(&v)
-	if err != nil {
+
+	if err := json.NewEncoder(buf).Encode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -110,6 +111,7 @@ func TestReadHistogramValues(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -121,6 +123,7 @@ func TestReadHistogramValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ReadHistogramValues(
 		"ae0f7f90-2a6b-481c-9cf5-21a31837020e", "example1",
 		300*time.Second, time.Unix(1556290800, 0),
@@ -195,6 +198,7 @@ func TestWriteHistogram(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -206,14 +210,15 @@ func TestWriteHistogram(t *testing.T) {
 	}
 
 	v := []HistogramData{}
-	err = json.NewDecoder(bytes.NewBufferString(histTestData)).Decode(&v)
-	if err != nil {
+
+	if err = json.NewDecoder(bytes.NewBufferString(
+		histTestData)).Decode(&v); err != nil {
 		t.Fatalf("Unable to encode JSON %v", err)
 	}
 
 	node := &SnowthNode{url: u}
-	err = sc.WriteHistogram(v, node)
-	if err != nil {
+
+	if err = sc.WriteHistogram(v, node); err != nil {
 		t.Fatal(err)
 	}
 }

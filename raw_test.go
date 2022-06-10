@@ -60,6 +60,7 @@ func TestWriteRaw(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -71,12 +72,14 @@ func TestWriteRaw(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	_, err = sc.WriteRaw(bytes.NewBufferString("test"), true, 1, node)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	sc.SetRequestFunc(func(r *http.Request) error { return nil })
+
 	_, err = sc.WriteRaw(bytes.NewBufferString("error"), true, 1, node)
 	if err == nil {
 		t.Fatal("Expected error response")
@@ -88,6 +91,7 @@ func TestWriteRaw(t *testing.T) {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
+
 	_, err = sc.WriteRawContext(ctx, bytes.NewBufferString("test"), true, 1, node)
 	if err == nil {
 		t.Fatal("Expected error response")
@@ -129,6 +133,7 @@ func TestReadRawNumericValues(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -140,6 +145,7 @@ func TestReadRawNumericValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	_, err = sc.ReadRawNumericValues(
 		time.Unix(1529509020, 0),
 		time.Unix(1529509200, 0),
@@ -194,6 +200,7 @@ func TestWriteRawMetricList(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -377,6 +384,7 @@ func BenchmarkWriteRawMetricListLocal(b *testing.B) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		b.Fatal("Unable to create snowth client", err)

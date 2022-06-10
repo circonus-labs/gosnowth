@@ -39,6 +39,7 @@ func TestNewSnowthClient(t *testing.T) {
 
 	// crude test to ensure err is returned for invalid snowth url
 	badAddr := "foobar"
+
 	_, err := NewSnowthClient(false, badAddr)
 	if err == nil {
 		t.Errorf("Error not encountered on invalid snowth addr %v", badAddr)
@@ -64,12 +65,6 @@ func TestNewClientTimeout(t *testing.T) {
 	if !strings.Contains(err.Error(), "context deadline exceeded") {
 		t.Errorf("Expected context error, got: %v", err.Error())
 	}
-}
-
-func TestIsNodeActive(t *testing.T) {
-	t.Parallel()
-
-	// mock out GetNodeState, GetGossipInfo
 }
 
 func TestSnowthClientRequest(t *testing.T) {
@@ -102,6 +97,7 @@ func TestSnowthClientRequest(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -121,6 +117,7 @@ func TestSnowthClientRequest(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.FindTags(1, "test", &FindTagsOptions{
 		Start: time.Unix(1, 0),
 		End:   time.Unix(2, 0),
@@ -147,8 +144,8 @@ func TestSnowthClientRequest(t *testing.T) {
 	}
 
 	r := map[string]map[string]interface{}{}
-	err = decodeJSON(body, &r)
-	if err != nil {
+
+	if err = decodeJSON(body, &r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -200,6 +197,7 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(true, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -237,11 +235,13 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 	}
 
 	sc.watchInterval = 100 * time.Millisecond
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	sc.AddNodes(node)
 	sc.ActivateNodes(node)
+
 	if !sc.isNodeActive(ctx, node) {
 		t.Errorf("Expected node to be active")
 	}
@@ -254,19 +254,23 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 
 	sc.WatchAndUpdate(ctx)
 	time.Sleep(200 * time.Millisecond)
+
 	if sc.isNodeActive(ctx, node) {
 		t.Errorf("Expected node to be inactive")
 	}
 
 	sc.SetRequestFunc(nil)
 	time.Sleep(200 * time.Millisecond)
+
 	if !sc.isNodeActive(ctx, node) {
 		t.Errorf("Expected node to be active")
 	}
 
 	cancel()
 	time.Sleep(50 * time.Millisecond)
+
 	sc.watchInterval = 0
+
 	sc.WatchAndUpdate(ctx)
 }
 
@@ -322,6 +326,7 @@ func TestSnowthClientLog(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(true, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -330,24 +335,28 @@ func TestSnowthClientLog(t *testing.T) {
 	ml := &mockLog{}
 	sc.SetLog(ml)
 	sc.LogDebugf("test %d", 1)
+
 	exp := "DEBUG test 1"
 	if ml.last != exp {
 		t.Errorf("Expected log entry: %v, got: %v", exp, ml.last)
 	}
 
 	sc.LogErrorf("test %d", 1)
+
 	exp = "ERROR test 1"
 	if ml.last != exp {
 		t.Errorf("Expected log entry: %v, got: %v", exp, ml.last)
 	}
 
 	sc.LogInfof("test %d", 1)
+
 	exp = "INFO test 1"
 	if ml.last != exp {
 		t.Errorf("Expected log entry: %v, got: %v", exp, ml.last)
 	}
 
 	sc.LogWarnf("test %d", 1)
+
 	exp = "WARN test 1"
 	if ml.last != exp {
 		t.Errorf("Expected log entry: %v, got: %v", exp, ml.last)
@@ -384,6 +393,7 @@ func TestSnowthClientSetWatch(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -406,6 +416,7 @@ func TestSnowthClientSetWatch(t *testing.T) {
 
 	sc.WatchAndUpdate(context.Background())
 	time.Sleep(150 * time.Millisecond)
+
 	nodes = sc.ListActiveNodes()
 	if len(nodes) > 0 {
 		t.Fatalf("Expected length nodes: 0, got: %d", len(nodes))

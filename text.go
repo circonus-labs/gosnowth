@@ -17,6 +17,7 @@ type TextValueResponse []TextValue
 func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 	*tvr = TextValueResponse{}
 	values := [][]interface{}{}
+
 	if err := json.Unmarshal(b, &values); err != nil {
 		return fmt.Errorf("failed to decode JSON response: %w", err)
 	}
@@ -65,6 +66,7 @@ func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	}
 
 	r := TextValueResponse{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10), uuid, metric), nil, nil)

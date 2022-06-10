@@ -78,14 +78,14 @@ func (ftl *FindTagsLatestNumeric) MarshalJSON() ([]byte, error) {
 // value.
 func (ftl *FindTagsLatestNumeric) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
+
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 
 	if len(v) != 2 {
 		return fmt.Errorf("unable to decode latest numeric value, "+
-			"invalid length: %v: %v", string(b), err)
+			"invalid length: %v", string(b))
 	}
 
 	if fv, ok := v[0].(float64); ok {
@@ -124,14 +124,14 @@ func (ftl *FindTagsLatestText) MarshalJSON() ([]byte, error) {
 // value.
 func (ftl *FindTagsLatestText) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
+
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 
 	if len(v) != 2 {
 		return fmt.Errorf("unable to decode latest text value, "+
-			"invalid length: %v: %v", string(b), err)
+			"invalid length: %v", string(b))
 	}
 
 	if fv, ok := v[0].(float64); ok {
@@ -171,14 +171,14 @@ func (ftl *FindTagsLatestHistogram) MarshalJSON() ([]byte, error) {
 // FindTagsLatestHistogram value.
 func (ftl *FindTagsLatestHistogram) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
+
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 
 	if len(v) != 2 {
 		return fmt.Errorf("unable to decode latest histogram value, "+
-			"invalid length: %v: %v", string(b), err)
+			"invalid length: %v", string(b))
 	}
 
 	if fv, ok := v[0].(float64); ok {
@@ -263,6 +263,7 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	}
 
 	r := &FindTagsResult{}
+
 	body, header, err := sc.DoRequestContext(ctx, node, "GET", u, nil, hdrs)
 	if err != nil {
 		return nil, err
@@ -280,6 +281,7 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 
 	// Return a results count and capture it from the header , if provided.
 	r.Count = int64(len(r.Items))
+
 	if header != nil {
 		c := header.Get("X-Snowth-Search-Result-Count")
 		if c != "" {
@@ -317,6 +319,7 @@ func (sc *SnowthClient) FindTagCatsContext(ctx context.Context,
 		url.QueryEscape(query))
 
 	r := []string{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err
@@ -355,6 +358,7 @@ func (sc *SnowthClient) FindTagValsContext(ctx context.Context,
 		url.QueryEscape(query), url.QueryEscape(category))
 
 	r := []string{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", u, nil, nil)
 	if err != nil {
 		return nil, err

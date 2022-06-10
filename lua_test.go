@@ -83,6 +83,7 @@ func TestGetLuaExtension(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -94,6 +95,7 @@ func TestGetLuaExtension(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetLuaExtensions(node)
 	if err != nil {
 		t.Fatal(err)
@@ -169,6 +171,7 @@ func TestExecLuaExtensionContext(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -180,6 +183,7 @@ func TestExecLuaExtensionContext(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ExecLuaExtension("test",
 		[]ExtParam{{Name: "test", Value: "1"}}, node)
 	if err != nil {

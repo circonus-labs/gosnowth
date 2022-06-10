@@ -92,8 +92,8 @@ func TestMarshalDF4Response(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err := json.NewEncoder(buf).Encode(&v)
-	if err != nil {
+
+	if err := json.NewEncoder(buf).Encode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -108,8 +108,9 @@ func TestUnmarshalDF4Timeseries(t *testing.T) {
 	t.Parallel()
 
 	var v *DF4Response
-	err := json.NewDecoder(bytes.NewBufferString(testDF4Response)).Decode(&v)
-	if err != nil {
+
+	if err := json.NewDecoder(bytes.NewBufferString(
+		testDF4Response)).Decode(&v); err != nil {
 		t.Fatal(err)
 	}
 

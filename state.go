@@ -24,6 +24,7 @@ func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
 	}
 
 	r := &NodeState{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", "/state", nil, nil)
 	if err != nil {
 		return nil, err
@@ -81,8 +82,8 @@ type Rollup struct {
 // UnmarshalJSON populates a rollup value from a JSON format byte slice.
 func (r *Rollup) UnmarshalJSON(b []byte) error {
 	m := make(map[string]interface{})
-	err := json.Unmarshal(b, &m)
-	if err != nil {
+
+	if err := json.Unmarshal(b, &m); err != nil {
 		return err
 	}
 
@@ -99,14 +100,17 @@ func (r *Rollup) UnmarshalJSON(b []byte) error {
 
 	if aggregate, ok := m["aggregate"].(RollupDetails); ok {
 		r.Aggregate = aggregate
+
 		delete(m, "aggregate")
 	}
 
 	rr := make(map[string]RollupDetails)
+
 	for k, v := range m {
 		if strings.HasPrefix(k, "rollup_") {
 			b, _ := json.Marshal(v)
 			rd := new(RollupDetails)
+
 			if err := json.Unmarshal(b, rd); err != nil {
 				return err
 			}

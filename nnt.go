@@ -19,12 +19,14 @@ type NNTAllValueResponse struct {
 func (nv *NNTAllValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NNTAllValue{}
 	values := [][]interface{}{}
+
 	if err := json.Unmarshal(b, &values); err != nil {
 		return fmt.Errorf("failed to deserialize nnt average response: %w", err)
 	}
 
 	for _, entry := range values {
 		nav := NNTAllValue{}
+
 		if m, ok := entry[1].(map[string]interface{}); ok {
 			valueBytes, err := json.Marshal(m)
 			if err != nil {
@@ -74,6 +76,7 @@ type NNTValueResponse struct {
 func (nv *NNTValueResponse) UnmarshalJSON(b []byte) error {
 	nv.Data = []NNTValue{}
 	values := [][]int64{}
+
 	if err := json.Unmarshal(b, &values); err != nil {
 		return fmt.Errorf("failed to deserialize nnt average response: %w",
 			err)
@@ -133,6 +136,7 @@ func (p *Parts) MarshalJSON() ([]byte, error) {
 	tuple = append(tuple, p.Period, p.Data)
 	buf := bytes.NewBuffer([]byte{})
 	enc := json.NewEncoder(buf)
+
 	if err := enc.Encode(tuple); err != nil {
 		return buf.Bytes(), err
 	}
@@ -188,6 +192,7 @@ func (sc *SnowthClient) ReadNNTValuesContext(ctx context.Context,
 	}
 
 	r := &NNTValueResponse{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/read",
 		strconv.FormatInt(start.Unix(), 10),
 		strconv.FormatInt(end.Unix(), 10),

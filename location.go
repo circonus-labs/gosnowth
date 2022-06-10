@@ -51,6 +51,7 @@ func (sc *SnowthClient) LocateMetricRemoteContext(ctx context.Context,
 	uuid string, metric string, node *SnowthNode,
 ) ([]TopologyNode, error) {
 	r := &Topology{}
+
 	if node == nil {
 		nodes := sc.ListActiveNodes()
 		if len(nodes) == 0 {

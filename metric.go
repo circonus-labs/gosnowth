@@ -163,6 +163,7 @@ func (ms *metricScanner) peekTagSep() (scanToken, string, error) {
 // scanMetricName consumes the current rune and all contiguous ident runes.
 func (ms *metricScanner) scanMetricName() (scanToken, string, error) {
 	var buf bytes.Buffer
+
 	for {
 		ch := ms.read()
 		if ch == '|' { //nolint nestif
@@ -202,7 +203,9 @@ func (ms *metricScanner) scanMetricName() (scanToken, string, error) {
 // scanTagName attempts to read a tag name token from the scan buffer.
 func (ms *metricScanner) scanTagName() (scanToken, string, string, error) {
 	var buf bytes.Buffer
+
 	var can bytes.Buffer
+
 	quoted := false
 
 loop:
@@ -450,7 +453,9 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 	}
 
 	var tok scanToken
+
 	var lit, can string
+
 	var err error
 
 	if tok, lit = mp.s.scan(); tok != tokenOB && tok != tokenOCB {
@@ -475,6 +480,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 		if strings.HasPrefix(tag.Category, `b"`) &&
 			strings.HasSuffix(tag.Category, `"`) {
 			val := strings.Trim(tag.Category[1:], `"`)
+
 			b, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding,
 				bytes.NewBufferString(val)))
 			if err != nil {
@@ -514,6 +520,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 		if strings.HasPrefix(tag.Value, `b"`) &&
 			strings.HasSuffix(tag.Value, `"`) {
 			val := strings.Trim(tag.Value[1:], `"`)
+
 			b, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding,
 				bytes.NewBufferString(val)))
 			if err != nil {
@@ -597,6 +604,7 @@ func (mp *MetricParser) Parse() (*MetricName, error) {
 			}
 
 			canonical.WriteString(can)
+
 			metricName.StreamTags = append(metricName.StreamTags, tags...)
 		} else if tok == tokenMeasurementTag {
 			can, tags, err := mp.parseTagSet(tagMeasurementTag)

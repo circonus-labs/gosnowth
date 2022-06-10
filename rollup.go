@@ -19,6 +19,7 @@ type RollupValue struct {
 // MarshalJSON encodes a RollupValue value into a JSON format byte slice.
 func (rv *RollupValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
+
 	fv, err := strconv.ParseFloat(formatTimestamp(rv.Time), 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid rollup value time: " +
@@ -34,8 +35,8 @@ func (rv *RollupValue) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into a RollupValue value.
 func (rv *RollupValue) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
+
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 
@@ -92,6 +93,7 @@ type RollupAllValue struct {
 // MarshalJSON encodes a RollupValue value into a JSON format byte slice.
 func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 	v := []interface{}{}
+
 	fv, err := strconv.ParseFloat(formatTimestamp(rv.Time), 64)
 	if err != nil {
 		return nil, fmt.Errorf("invalid rollup value time: " +
@@ -123,8 +125,8 @@ func (rv *RollupAllValue) MarshalJSON() ([]byte, error) {
 // UnmarshalJSON decodes a JSON format byte slice into a RollupValue value.
 func (rv *RollupAllValue) UnmarshalJSON(b []byte) error {
 	v := []interface{}{}
-	err := json.Unmarshal(b, &v)
-	if err != nil {
+
+	if err := json.Unmarshal(b, &v); err != nil {
 		return err
 	}
 
@@ -144,6 +146,7 @@ func (rv *RollupAllValue) UnmarshalJSON(b []byte) error {
 
 	if m, ok := v[1].(map[string]interface{}); ok {
 		rv.Data = &RollupAllData{}
+
 		for key, val := range m {
 			if fv, ok := val.(float64); ok {
 				switch key {
@@ -219,6 +222,7 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
 		int64(period/time.Second)
 	r := []RollupValue{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=%s",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),
@@ -259,6 +263,7 @@ func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	endTS := end.Unix() - end.Unix()%int64(period/time.Second) +
 		int64(period/time.Second)
 	r := []RollupAllValue{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET",
 		fmt.Sprintf("%s?start_ts=%d&end_ts=%d&rollup_span=%ds&type=all",
 			path.Join("/rollup", uuid, url.QueryEscape(metric)),

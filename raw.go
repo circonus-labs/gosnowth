@@ -32,6 +32,7 @@ type RawNumericValueResponse struct {
 func (rv *RawNumericValueResponse) UnmarshalJSON(b []byte) error {
 	rv.Data = []RawNumericValue{}
 	values := [][]interface{}{}
+
 	if err := json.Unmarshal(b, &values); err != nil {
 		return fmt.Errorf("failed to deserialize raw numeric response %w", err)
 	}
@@ -86,6 +87,7 @@ func (sc *SnowthClient) ReadRawNumericValuesContext(ctx context.Context,
 	qp.Add("end_ts", formatTimestamp(end))
 
 	r := &RawNumericValueResponse{}
+
 	body, _, err := sc.DoRequestContext(ctx, node, "GET", path.Join("/raw",
 		uuid, metric)+"?"+qp.Encode(), nil, nil)
 	if err != nil {

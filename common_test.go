@@ -36,6 +36,7 @@ func TestResolveURL(t *testing.T) {
 
 	base, _ := url.Parse("http://localhost:1234")
 	result := resolveURL(base, "/a/resource/path")
+
 	exp := "http://localhost:1234/a/resource/path"
 	if result != exp {
 		t.Errorf("Expected result: %v, got: %v", exp, result)
@@ -53,6 +54,7 @@ func TestMultiError(t *testing.T) {
 	me.Add(fmt.Errorf("error 1"))
 	me.Add(fmt.Errorf("error 2"))
 	me.Add(nil)
+
 	if !me.HasError() {
 		t.Error("Should have errors")
 	}
@@ -76,8 +78,8 @@ func TestDecodeJSON(t *testing.T) {
 	}
 
 	v := make(map[string]int)
-	err := decodeJSON(resp.Body, &v)
-	if err != nil {
+
+	if err := decodeJSON(resp.Body, &v); err != nil {
 		t.Error("error encountered from decode function: ", err)
 	}
 
@@ -107,8 +109,8 @@ func TestDecodeXML(t *testing.T) {
 	}
 
 	decoded := &data{}
-	err := decodeXML(resp.Body, decoded)
-	if err != nil {
+
+	if err := decodeXML(resp.Body, decoded); err != nil {
 		t.Error("error encountered from decode function: ", err)
 	}
 
@@ -152,6 +154,7 @@ func TestFormatTimestamp(t *testing.T) {
 	tm := time.Unix(123456789, int64(time.Millisecond))
 	exp := "123456789.001"
 	res := formatTimestamp(tm)
+
 	if res != exp {
 		t.Errorf("Expected string: %v, got: %v", exp, res)
 	}
@@ -159,6 +162,7 @@ func TestFormatTimestamp(t *testing.T) {
 	tm = time.Unix(123456789, 0)
 	exp = "123456789"
 	res = formatTimestamp(tm)
+
 	if res != exp {
 		t.Errorf("Expected string: %v, got: %v", exp, res)
 	}

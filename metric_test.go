@@ -63,6 +63,7 @@ func TestScanMetricName(t *testing.T) {
 	for _, c := range cases {
 		buf := bytes.NewBufferString(c.input)
 		s := newMetricScanner(buf)
+
 		tok, lit, err := s.scanMetricName()
 		if err != nil {
 			t.Fatal(err)
@@ -71,6 +72,7 @@ func TestScanMetricName(t *testing.T) {
 		if tok != c.tok {
 			t.Error("failed to find the metric ident")
 		}
+
 		if lit != c.lit {
 			t.Error("incorrect literal scanned: ", c.lit, lit)
 		}
@@ -82,6 +84,7 @@ func TestScanTagSep(t *testing.T) {
 
 	stBuf := bytes.NewBufferString("|ST[blah:blah]")
 	s := newMetricScanner(stBuf)
+
 	tok, lit, err := s.peekTagSep()
 	if err != nil {
 		t.Fatal(err)
@@ -110,6 +113,7 @@ func TestScanTagSep(t *testing.T) {
 
 	mtBuf := bytes.NewBufferString("|MT{blah:blah}")
 	s = newMetricScanner(mtBuf)
+
 	tok, lit, err = s.peekTagSep()
 	if err != nil {
 		t.Fatal(err)
@@ -265,6 +269,7 @@ func TestMetricParser(t *testing.T) {
 	for _, c := range cases {
 		buf := bytes.NewBufferString(c.input)
 		p := NewMetricParser(buf)
+
 		metricName, err := p.Parse()
 		if err != nil {
 			t.Fatal("failed to parse the metric name", err)

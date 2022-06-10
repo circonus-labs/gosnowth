@@ -50,6 +50,7 @@ func TestReadTextValuesFindMetricNode(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -103,6 +104,7 @@ func TestReadTextValues(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -114,6 +116,7 @@ func TestReadTextValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ReadTextValues("3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
 		"test", time.Unix(1, 0), time.Unix(2, 0), node)
 	if err != nil {
@@ -162,6 +165,7 @@ func TestWriteText(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -173,6 +177,7 @@ func TestWriteText(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	err = sc.WriteText([]TextData{{
 		Metric: "test",
 		ID:     "3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d",
