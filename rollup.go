@@ -27,6 +27,7 @@ func (rv *RollupValue) MarshalJSON() ([]byte, error) {
 
 	v = append(v, fv)
 	v = append(v, rv.Value)
+
 	return json.Marshal(v)
 }
 
@@ -184,7 +185,8 @@ func (rv *RollupAllValue) Timestamp() string {
 
 // ReadRollupValues reads rollup data from a node.
 func (sc *SnowthClient) ReadRollupValues(uuid, metric string, period time.Duration,
-	start, end time.Time, dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
+	start, end time.Time, dataType string, nodes ...*SnowthNode,
+) ([]RollupValue, error) {
 	return sc.ReadRollupValuesContext(context.Background(), uuid, metric,
 		period, start, end, dataType, nodes...)
 }
@@ -192,7 +194,8 @@ func (sc *SnowthClient) ReadRollupValues(uuid, metric string, period time.Durati
 // ReadRollupValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration, start, end time.Time,
-	dataType string, nodes ...*SnowthNode) ([]RollupValue, error) {
+	dataType string, nodes ...*SnowthNode,
+) ([]RollupValue, error) {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -234,7 +237,8 @@ func (sc *SnowthClient) ReadRollupValuesContext(ctx context.Context,
 // ReadRollupAllValues reads rollup data from a node.
 func (sc *SnowthClient) ReadRollupAllValues(
 	uuid, metric string, period time.Duration,
-	start, end time.Time, nodes ...*SnowthNode) ([]RollupAllValue, error) {
+	start, end time.Time, nodes ...*SnowthNode,
+) ([]RollupAllValue, error) {
 	return sc.ReadRollupAllValuesContext(context.Background(), uuid,
 		metric, period, start, end, nodes...)
 }
@@ -242,7 +246,8 @@ func (sc *SnowthClient) ReadRollupAllValues(
 // ReadRollupAllValuesContext is the context aware version of ReadRollupValues.
 func (sc *SnowthClient) ReadRollupAllValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration,
-	start, end time.Time, nodes ...*SnowthNode) ([]RollupAllValue, error) {
+	start, end time.Time, nodes ...*SnowthNode,
+) ([]RollupAllValue, error) {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]

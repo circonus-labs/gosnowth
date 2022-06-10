@@ -176,8 +176,8 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 			MaxIdleConns:          10,
 			MaxIdleConnsPerHost:   1,
 			IdleConnTimeout:       5 * time.Second,
-			TLSHandshakeTimeout:   10 * time.Second,
-			ExpectContinueTimeout: 10 * time.Second,
+			TLSHandshakeTimeout:   cfg.DialTimeout(),
+			ExpectContinueTimeout: cfg.DialTimeout(),
 		},
 	}
 
@@ -204,15 +204,18 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 		if err != nil {
 			// This node had an error, put on inactive list.
 			nErr.Add(fmt.Errorf("unable to parse server url: %w", err))
+
 			continue
 		}
 
 		// Call get stats to populate the id of this node.
 		node := &SnowthNode{url: url}
-		stats, err := sc.GetStatsContext(ctx, node)
+		stats, err := sc.GetStatsNodeContext(ctx, node)
 		if err != nil {
 			// This node had an error, put on inactive list.
+			sc.AddNodes(node)
 			nErr.Add(fmt.Errorf("unable to get status of node: %w", err))
+
 			continue
 		}
 
@@ -220,6 +223,7 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 		node.currentTopology = stats.CurrentTopology()
 		sc.currentTopology = node.currentTopology
 		node.semVer = stats.SemVer()
+
 		sc.AddNodes(node)
 		sc.ActivateNodes(node)
 		numActiveNodes++
@@ -253,6 +257,7 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 func (sc *SnowthClient) Retries() int64 {
 	sc.RLock()
 	defer sc.RUnlock()
+
 	return sc.retries
 }
 
@@ -275,6 +280,7 @@ func (sc *SnowthClient) SetRetries(num int64) {
 func (sc *SnowthClient) ConnectRetries() int64 {
 	sc.RLock()
 	defer sc.RUnlock()
+
 	return sc.connRetries
 }
 
@@ -351,32 +357,38 @@ func (sc *SnowthClient) LogDebugf(format string, args ...interface{}) {
 	}
 }
 
-// Topology returns the currently active topology
+// Topology returns the currently active topology.
 func (sc *SnowthClient) Topology() (*Topology, error) {
 	if sc.currentTopologyCompiled != nil {
 		return sc.currentTopologyCompiled, nil
 	}
 
 	var lasterr error = nil
+
 	for _, node := range sc.ListActiveNodes() {
 		if topology, lasterr := sc.GetTopologyInfo(node); lasterr == nil {
 			sc.currentTopologyCompiled = topology
+
 			return topology, nil
 		}
 	}
+
 	return nil, lasterr
 }
 
-// FindMetricNodeIDs returns (possibly) as list of uuid node identifiers that own the metric
+// FindMetricNodeIDs returns (possibly) as list of uuid node identifiers that
+// own the metric.
 func (sc *SnowthClient) FindMetricNodeIDs(uuid, metric string) []string {
 	topo, err := sc.Topology()
 	if topo == nil || err != nil {
 		return make([]string, 0)
 	}
+
 	results, err := topo.FindMetricNodeIDs(uuid, metric)
 	if results == nil || err != nil {
 		return make([]string, 0)
 	}
+
 	return results
 }
 
@@ -384,14 +396,16 @@ func (sc *SnowthClient) FindMetricNodeIDs(uuid, metric string) []string {
 // account the ability to get the node state, gossip information and the gossip
 // age of the node. If the age is larger than 10 the node is considered
 // inactive.
-func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
+func (sc *SnowthClient) isNodeActive(ctx context.Context,
+	node *SnowthNode,
+) bool {
 	if node.identifier == "" || node.semVer == "" {
 		// go get state to figure out identity
-		stats, err := sc.GetStats(node)
+		stats, err := sc.GetStatsNodeContext(ctx, node)
 		if err != nil {
 			// error means we failed, node is not active
-			sc.LogWarnf("unable to get the state of the node: %s",
-				err.Error())
+			sc.LogWarnf("unable to get the state of the node: %s", err.Error())
+
 			return false
 		}
 
@@ -405,6 +419,7 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 	if err != nil {
 		sc.LogWarnf("unable to get the gossip info of the node: %s",
 			err.Error())
+
 		return false
 	}
 
@@ -412,12 +427,14 @@ func (sc *SnowthClient) isNodeActive(node *SnowthNode) bool {
 	for _, entry := range []GossipDetail(*gossip) {
 		if entry.ID == node.identifier {
 			age = entry.Age
+
 			break
 		}
 	}
 
 	if age > 10.0 {
 		sc.LogWarnf("gossip age expired: %s -> %d", node.GetURL().Host, age)
+
 		return false
 	}
 
@@ -437,7 +454,7 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 		return
 	}
 
-	go func() {
+	go func(wi time.Duration) {
 		tick := time.NewTicker(wi)
 		defer tick.Stop()
 		for {
@@ -456,7 +473,7 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				for _, node := range sc.ListInactiveNodes() {
 					sc.LogDebugf("checking node for inactive -> active: %s",
 						node.GetURL().Host)
-					if sc.isNodeActive(node) {
+					if sc.isNodeActive(ctx, node) {
 						// Move to active.
 						sc.LogDebugf("active, moving to active list: %s",
 							node.GetURL().Host)
@@ -471,7 +488,7 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				for _, node := range sc.ListActiveNodes() {
 					sc.LogDebugf("checking node for active -> inactive: %s",
 						node.GetURL().Host)
-					if !sc.isNodeActive(node) {
+					if !sc.isNodeActive(ctx, node) {
 						// Move to inactive.
 						sc.LogWarnf("inactive, moving to inactive list: %s",
 							node.GetURL().Host)
@@ -484,7 +501,7 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				}
 			}
 		}
-	}()
+	}(wi)
 }
 
 // discoverNodes attempts to discover peer nodes related to the topology.
@@ -499,6 +516,7 @@ func (sc *SnowthClient) discoverNodes(ctx context.Context) error {
 		topology, err := sc.GetTopologyInfoContext(ctx, node)
 		if err != nil {
 			mErr.Add(fmt.Errorf("error getting topology info: %w", err))
+
 			continue
 		}
 
@@ -535,6 +553,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 
 			sc.activeNodes[i].url = &url
 			sc.activeNodes[i].currentTopology = hash
+
 			continue
 		}
 	}
@@ -550,6 +569,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 
 			sc.inactiveNodes[i].url = &url
 			sc.inactiveNodes[i].currentTopology = hash
+
 			continue
 		}
 	}
@@ -587,6 +607,7 @@ func (sc *SnowthClient) ActivateNodes(nodes ...*SnowthNode) {
 		for _, v := range nodes {
 			if v.GetURL().String() == iv.GetURL().String() {
 				match = true
+
 				break
 			}
 		}
@@ -603,6 +624,7 @@ func (sc *SnowthClient) ActivateNodes(nodes ...*SnowthNode) {
 		for _, av := range sc.activeNodes {
 			if v.GetURL().String() == av.GetURL().String() {
 				match = true
+
 				break
 			}
 		}
@@ -626,6 +648,7 @@ func (sc *SnowthClient) DeactivateNodes(nodes ...*SnowthNode) {
 		for _, v := range nodes {
 			if v.GetURL().String() == av.GetURL().String() {
 				match = true
+
 				break
 			}
 		}
@@ -642,6 +665,7 @@ func (sc *SnowthClient) DeactivateNodes(nodes ...*SnowthNode) {
 		for _, iv := range sc.inactiveNodes {
 			if v.GetURL().String() == iv.GetURL().String() {
 				match = true
+
 				break
 			}
 		}
@@ -665,6 +689,7 @@ func (sc *SnowthClient) AddNodes(nodes ...*SnowthNode) {
 		for _, iv := range sc.inactiveNodes {
 			if v.GetURL().String() == iv.GetURL().String() {
 				match = true
+
 				break
 			}
 		}
@@ -681,8 +706,10 @@ func (sc *SnowthClient) AddNodes(nodes ...*SnowthNode) {
 func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
+
 	result := []*SnowthNode{}
 	result = append(result, sc.inactiveNodes...)
+
 	return result
 }
 
@@ -690,12 +717,14 @@ func (sc *SnowthClient) ListInactiveNodes() []*SnowthNode {
 func (sc *SnowthClient) ListActiveNodes() []*SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
+
 	result := []*SnowthNode{}
 	result = append(result, sc.activeNodes...)
+
 	return result
 }
 
-// GetActiveNode returns a random active node in the cluster
+// GetActiveNode returns a random active node in the cluster.
 func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
 	sc.RLock()
 	defer sc.RUnlock()
@@ -722,7 +751,8 @@ func (sc *SnowthClient) GetActiveNode(idsets ...[]string) *SnowthNode {
 // will perform those retries.
 func (sc *SnowthClient) DoRequest(node *SnowthNode,
 	method string, url string, body io.Reader,
-	headers http.Header) (io.Reader, http.Header, error) {
+	headers http.Header,
+) (io.Reader, http.Header, error) {
 	return sc.DoRequestContext(context.Background(), node, method, url,
 		body, headers)
 }
@@ -732,7 +762,8 @@ func (sc *SnowthClient) DoRequest(node *SnowthNode,
 // will perform those retries.
 func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	method string, url string, body io.Reader,
-	headers http.Header) (io.Reader, http.Header, error) {
+	headers http.Header,
+) (io.Reader, http.Header, error) {
 	retries := sc.Retries()
 	if retries < 0 {
 		retries = 0
@@ -748,14 +779,20 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	}
 
 	cr := sc.ConnectRetries()
-	nodes := append([]*SnowthNode{node}, sc.ListActiveNodes()...)
+	nodes := []*SnowthNode{node}
+	for _, n := range sc.ListActiveNodes() {
+		if n.GetURL().String() != node.GetURL().String() {
+			nodes = append(nodes, n)
+		}
+	}
+
 	var bdy io.Reader
 	var hdr http.Header
 
 	for r := int64(0); r < retries+1; r++ {
 		connRetries := cr
-		surl := url
 		sns := nodes
+
 		for len(sns) > 0 {
 			n := int64(0)
 			if connRetries != cr {
@@ -769,19 +806,13 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				continue
 			}
 
-			u := ""
-			if surl != "" {
-				u = strings.Replace(surl, sn.GetURL().String(), "", 1)
-			}
-
-			if surl != "" && u != "" {
-				surl = sc.getURL(sn, u)
-			}
-
+			surl := sc.getURL(sn, url)
 			traceID := time.Now().UnixNano()
+
 			sc.LogDebugf("gosnowth attempting request "+
-				"[retry: %d, connRetry: %d]: %s %s %v traceID: %d",
-				r, (cr - connRetries), method, surl, sn, traceID)
+				"[retry: %d, connRetry: %d]: %s %s traceID: %d",
+				r, (cr - connRetries), method, surl, traceID)
+
 			bdy, hdr, err = sc.do(ctx, sn, method, surl,
 				bytes.NewBuffer(bBody), headers, traceID)
 			if err == nil {
@@ -799,10 +830,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				return bdy, hdr, err
 			}
 
-			// Stop retrying other nodes if this is not a network connection
-			// error of if the context deadline was reached.
-			nerr, ok := err.(net.Error)
-			if !ok || errors.Is(nerr, context.DeadlineExceeded) {
+			// Stop retrying other nodes if he context deadline was reached.
+			if errors.Is(err, context.DeadlineExceeded) {
 				break
 			}
 
@@ -811,11 +840,6 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			connRetries--
-			if nerr.Timeout() && len(nodes) > 2 {
-				// Don't deactivate the last node, and only deactivate if the
-				// failure is a network timeout / tarpit.
-				sc.DeactivateNodes(sn)
-			}
 		}
 
 		if r < retries {
@@ -829,7 +853,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 // do sends a request to IRONdb.
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	method, url string, body io.Reader, headers http.Header,
-	traceID int64) (io.Reader, http.Header, error) {
+	traceID int64,
+) (io.Reader, http.Header, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -881,55 +906,58 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if traceReq {
 		ctrace := &httptrace.ClientTrace{
 			GetConn: func(hostPort string) {
-				fmt.Printf("TRACE-%d: connecting %s\n", traceID, hostPort)
+				sc.LogDebugf("TRACE-%d: connecting %s\n", traceID, hostPort)
 			},
 			GotConn: func(info httptrace.GotConnInfo) {
-				fmt.Printf("TRACE-%d: connected %+v\n", traceID, info)
+				sc.LogDebugf("TRACE-%d: connected %+v\n", traceID, info)
 			},
 			PutIdleConn: func(err error) {
-				fmt.Printf("TRACE-%d: put conn back in idle pool, err: %v\n",
+				sc.LogDebugf("TRACE-%d: put conn back in idle pool, err: %v\n",
 					traceID, err)
 			},
 			GotFirstResponseByte: func() {
-				fmt.Printf("TRACE-%d: got first byte\n", traceID)
+				sc.LogDebugf("TRACE-%d: got first byte\n", traceID)
 			},
 			Got100Continue: func() {
-				fmt.Printf("TRACE-%d: got 100 Continue\n", traceID)
+				sc.LogDebugf("TRACE-%d: got 100 Continue\n", traceID)
 			},
 			Got1xxResponse: func(code int, header textproto.MIMEHeader) error {
-				fmt.Printf("TRACE-%d: %d %+v\n", traceID, code, header)
+				sc.LogDebugf("TRACE-%d: %d %+v\n", traceID, code, header)
+
 				return nil
 			},
 			DNSStart: func(info httptrace.DNSStartInfo) {
-				fmt.Printf("TRACE-%d: dns start %+v\n", traceID, info)
+				sc.LogDebugf("TRACE-%d: dns start %+v\n", traceID, info)
 			},
 			DNSDone: func(info httptrace.DNSDoneInfo) {
-				fmt.Printf("TRACE-%d: dns done %+v\n", traceID, info)
+				sc.LogDebugf("TRACE-%d: dns done %+v\n", traceID, info)
 			},
 			ConnectStart: func(network, addr string) {
-				fmt.Printf("TRACE-%d: dialing %s/%s\n", traceID, network, addr)
+				sc.LogDebugf("TRACE-%d: dialing %s/%s\n",
+					traceID, network, addr)
 			},
 			ConnectDone: func(network, addr string, err error) {
-				fmt.Printf("TRACE-%d: dial complete %s/%s err: %v\n",
+				sc.LogDebugf("TRACE-%d: dial complete %s/%s err: %v\n",
 					traceID, network, addr, err)
 			},
 			WroteHeaderField: func(key string, values []string) {
-				fmt.Printf("TRACE-%d: wrote header %s: %+v\n",
+				sc.LogDebugf("TRACE-%d: wrote header %s: %+v\n",
 					traceID, key, values)
 			},
 			WroteHeaders: func() {
-				fmt.Printf("TRACE-%d: wrote all headers\n", traceID)
+				sc.LogDebugf("TRACE-%d: wrote all headers\n", traceID)
 			},
 			Wait100Continue: func() {
-				fmt.Printf(
+				sc.LogDebugf(
 					"TRACE-%d: waiting for '100 Continue' from server\n",
 					traceID)
 			},
 			WroteRequest: func(info httptrace.WroteRequestInfo) {
-				fmt.Printf("TRACE-%d: wrote request %s %s - info: %+v\n",
+				sc.LogDebugf("TRACE-%d: wrote request %s %s - info: %+v\n",
 					traceID, r.Method, r.URL.Path, info)
 			},
 		}
+
 		r = r.WithContext(httptrace.WithClientTrace(r.Context(), ctrace))
 	}
 
@@ -938,11 +966,12 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		if err != nil {
 			sc.LogErrorf("%v traceID: %d", err, traceID)
 		}
-		fmt.Println(string(dump))
+
+		sc.LogDebugf("gosnowth request dump: %s", string(dump))
 	}
 
 	sc.LogDebugf("gosnowth request: %+v traceID: %d", r, traceID)
-	var start = time.Now()
+	start := time.Now()
 	sc.RLock()
 	cli := sc.c
 	sc.RUnlock()
@@ -975,7 +1004,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 		if resp.StatusCode != http.StatusOK {
 			msg = string(res)
 		}
-		fmt.Printf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
+
+		sc.LogDebugf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
 	}
 
 	sc.LogDebugf("gosnowth response: %+v traceID: %d", resp, traceID)
@@ -992,6 +1022,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if resp.StatusCode != http.StatusOK {
 		sc.LogWarnf("error returned from IRONdb: [%d] %s traceID: %d",
 			resp.StatusCode, string(res), traceID)
+
 		return bytes.NewBuffer(res), resp.Header,
 			fmt.Errorf("error returned from IRONdb (%s): [%d] %s",
 				r.URL.Host, resp.StatusCode, string(res))

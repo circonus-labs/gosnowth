@@ -65,6 +65,8 @@ const rollupAllTestData = `[
 ]`
 
 func TestRollupValueMarshaling(t *testing.T) {
+	t.Parallel()
+
 	v := []RollupValue{}
 	err := json.NewDecoder(bytes.NewBufferString(rollupTestData)).Decode(&v)
 	if err != nil {
@@ -99,6 +101,8 @@ func TestRollupValueMarshaling(t *testing.T) {
 }
 
 func TestRollupAllValueMarshaling(t *testing.T) {
+	t.Parallel()
+
 	v := []RollupAllValue{}
 	err := json.NewDecoder(bytes.NewBufferString(`[
 		[
@@ -157,15 +161,20 @@ func TestRollupAllValueMarshaling(t *testing.T) {
 }
 
 func TestReadRollupValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -174,6 +183,7 @@ func TestReadRollupValues(t *testing.T) {
 			"&type=average"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(rollupTestData))
+
 			return
 		}
 	}))
@@ -211,15 +221,20 @@ func TestReadRollupValues(t *testing.T) {
 }
 
 func TestReadRollupAllValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -228,6 +243,7 @@ func TestReadRollupAllValues(t *testing.T) {
 			"&type=all"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(rollupAllTestData))
+
 			return
 		}
 	}))

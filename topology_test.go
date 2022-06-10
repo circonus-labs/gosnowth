@@ -62,11 +62,12 @@ const topologyXMLTestData = `<nodes n="3">
 </nodes>`
 
 func TestTopologyJSONDeserialization(t *testing.T) {
+	t.Parallel()
+
 	dec := json.NewDecoder(bytes.NewBufferString(topologyTestData))
 	dec.UseNumber()
 	topo := []TopologyNode{}
-	err := dec.Decode(&topo)
-	if err != nil {
+	if err := dec.Decode(&topo); err != nil {
 		t.Errorf("failed to decode topology, %s\n", err.Error())
 	}
 
@@ -76,10 +77,12 @@ func TestTopologyJSONDeserialization(t *testing.T) {
 }
 
 func TestTopologyXMLDeserialization(t *testing.T) {
+	t.Parallel()
+
 	dec := xml.NewDecoder(bytes.NewBufferString(topologyXMLTestData))
 	topo := new(Topology)
-	err := dec.Decode(topo)
-	if err != nil {
+
+	if err := dec.Decode(topo); err != nil {
 		t.Errorf("failed to decode topology, %s\n", err.Error())
 	}
 
@@ -89,6 +92,8 @@ func TestTopologyXMLDeserialization(t *testing.T) {
 }
 
 func TestTopologyXMLSerialization(t *testing.T) {
+	t.Parallel()
+
 	buf := bytes.NewBuffer([]byte{})
 	enc := xml.NewEncoder(buf)
 	topo := Topology{
@@ -125,8 +130,7 @@ func TestTopologyXMLSerialization(t *testing.T) {
 		},
 	}
 
-	err := enc.Encode(topo)
-	if err != nil {
+	if err := enc.Encode(topo); err != nil {
 		t.Errorf("failed to encode node stats, %s\n", err.Error())
 	}
 
@@ -197,33 +201,41 @@ func BenchmarkLookup1(b *testing.B) {
 }
 
 func TestTopology(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/xml") {
 			_, _ = w.Write([]byte(topologyXMLTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/test") {
 			w.WriteHeader(200)
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/activate/test") {
 			w.WriteHeader(200)
+
 			return
 		}
 

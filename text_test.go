@@ -13,6 +13,8 @@ import (
 const textTestData = `[[1380000000,"hello"],[1380000300,"world"]]`
 
 func TestTextValue(t *testing.T) {
+	t.Parallel()
+
 	tvr := TextValueResponse{}
 	if err := json.Unmarshal([]byte(textTestData), &tvr); err != nil {
 		t.Error("error unmarshaling: ", err)
@@ -20,21 +22,27 @@ func TestTextValue(t *testing.T) {
 }
 
 func TestReadTextValuesFindMetricNode(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/read/1/2/3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d/test") {
 			_, _ = w.Write([]byte(textTestData))
+
 			return
 		}
 
@@ -67,21 +75,27 @@ func TestReadTextValuesFindMetricNode(t *testing.T) {
 }
 
 func TestReadTextValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/read/1/2/3aa57ac2-28de-4ec4-aa3d-ed0ddd48fa4d/test") {
 			_, _ = w.Write([]byte(textTestData))
+
 			return
 		}
 
@@ -120,21 +134,27 @@ func TestReadTextValues(t *testing.T) {
 }
 
 func TestWriteText(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/write/text") {
 			w.WriteHeader(200)
+
 			return
 		}
 

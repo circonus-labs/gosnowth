@@ -223,11 +223,13 @@ const stateTestData = `{
 }`
 
 func TestStateDeserialization(t *testing.T) {
+	t.Parallel()
+
 	dec := json.NewDecoder(bytes.NewBufferString(stateTestData))
 	dec.UseNumber()
 	state := new(NodeState)
-	err := dec.Decode(state)
-	if err != nil {
+
+	if err := dec.Decode(state); err != nil {
 		t.Errorf("failed to decode node stats, %s\n", err.Error())
 	}
 
@@ -243,9 +245,7 @@ func TestStateDeserialization(t *testing.T) {
 		t.Errorf("Expected state.Current: %v, got: %v", exp, res)
 	}
 
-	resUI := state.BaseRollup
-	expUI := uint64(60)
-	if resUI != expUI {
+	if resUI, expUI := state.BaseRollup, uint64(60); resUI != expUI {
 		t.Errorf("Expected state.BaseRollup: %v, got: %v", expUI, resUI)
 	}
 

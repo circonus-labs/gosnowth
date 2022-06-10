@@ -61,6 +61,8 @@ const testFetchDF4Response = `{
 }`
 
 func TestFetchQueryMarshaling(t *testing.T) {
+	t.Parallel()
+
 	v := &FetchQuery{}
 	err := json.NewDecoder(bytes.NewBufferString(fetchTestQuery)).Decode(&v)
 	if err != nil {
@@ -85,21 +87,27 @@ func TestFetchQueryMarshaling(t *testing.T) {
 }
 
 func TestFetchQuery(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/fetch") {
 			_, _ = w.Write([]byte(testFetchDF4Response))
+
 			return
 		}
 	}))

@@ -27,10 +27,13 @@ type noOpReadCloser struct {
 
 func (n *noOpReadCloser) Close() error {
 	n.WasClosed = true
+
 	return nil
 }
 
 func TestResolveURL(t *testing.T) {
+	t.Parallel()
+
 	base, _ := url.Parse("http://localhost:1234")
 	result := resolveURL(base, "/a/resource/path")
 	exp := "http://localhost:1234/a/resource/path"
@@ -40,6 +43,8 @@ func TestResolveURL(t *testing.T) {
 }
 
 func TestMultiError(t *testing.T) {
+	t.Parallel()
+
 	me := newMultiError()
 	if me.HasError() {
 		t.Error("Should have no errors yet")
@@ -52,21 +57,22 @@ func TestMultiError(t *testing.T) {
 		t.Error("Should have errors")
 	}
 
-	res := me.Error()
-	exp := "error 1; error 2"
-	if res != exp {
+	if res, exp := me.Error(), "error 1; error 2"; res != exp {
 		t.Errorf("Expected result: %v, got: %v", exp, res)
 	}
 }
 
 func TestDecodeJSON(t *testing.T) {
+	t.Parallel()
+
 	resp := &http.Response{
 		Body: &noOpReadCloser{
 			bytes.NewBufferString(`{
 				"something": 1,
 				"something_else": 2
 			}`),
-			false},
+			false,
+		},
 	}
 
 	v := make(map[string]int)
@@ -85,10 +91,13 @@ func TestDecodeJSON(t *testing.T) {
 }
 
 func TestDecodeXML(t *testing.T) {
+	t.Parallel()
+
 	resp := &http.Response{
 		Body: &noOpReadCloser{
 			bytes.NewBufferString(`<data><something>1</something><somethingelse>2</somethingelse></data>`),
-			false},
+			false,
+		},
 	}
 
 	type data struct {
@@ -113,6 +122,8 @@ func TestDecodeXML(t *testing.T) {
 }
 
 func TestEncodeXML(t *testing.T) {
+	t.Parallel()
+
 	type data struct {
 		XMLName       xml.Name `xml:"data"`
 		Something     int      `xml:"something"`
@@ -136,6 +147,8 @@ func TestEncodeXML(t *testing.T) {
 }
 
 func TestFormatTimestamp(t *testing.T) {
+	t.Parallel()
+
 	tm := time.Unix(123456789, int64(time.Millisecond))
 	exp := "123456789.001"
 	res := formatTimestamp(tm)
@@ -152,6 +165,8 @@ func TestFormatTimestamp(t *testing.T) {
 }
 
 func TestParseTimestamp(t *testing.T) {
+	t.Parallel()
+
 	res, err := parseTimestamp("123456789.001")
 	if err != nil {
 		t.Fatal(err)
@@ -164,13 +179,14 @@ func TestParseTimestamp(t *testing.T) {
 }
 
 func TestParseDuration(t *testing.T) {
+	t.Parallel()
+
 	res, err := parseDuration("1")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	exp := time.Second
-	if res != exp {
+	if exp := time.Second; res != exp {
 		t.Errorf("Expected duration: %v, got: %v", exp, res)
 	}
 }

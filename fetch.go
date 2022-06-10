@@ -117,6 +117,7 @@ func (fq *FetchQuery) UnmarshalJSON(b []byte) error {
 	}
 
 	fq.Reduce = v.Reduce
+
 	return nil
 }
 
@@ -133,7 +134,8 @@ func (sc *SnowthClient) FetchValues(q *FetchQuery, nodes ...*SnowthNode) (*DF4Re
 
 // FetchValuesContext is the context aware version of FetchValues.
 func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
-	q *FetchQuery, nodes ...*SnowthNode) (*DF4Response, error) {
+	q *FetchQuery, nodes ...*SnowthNode,
+) (*DF4Response, error) {
 	var node *SnowthNode
 	switch {
 	case len(nodes) > 0 && nodes[0] != nil:
@@ -178,13 +180,15 @@ const Df4FlatbufferAccept = "x-irondb-df4-flatbuffer"
 
 // FetchValuesFb retrieves data values using the IRONdb fetch API with FlatBuffers.
 func (sc *SnowthClient) FetchValuesFb(node *SnowthNode,
-	q *fetch.FetchT) (*fetch.DF4T, error) {
+	q *fetch.FetchT,
+) (*fetch.DF4T, error) {
 	return sc.FetchValuesFbContext(context.Background(), node, q)
 }
 
 // FetchValuesFbContext is the context aware version of FetchValuesFb.
 func (sc *SnowthClient) FetchValuesFbContext(ctx context.Context,
-	node *SnowthNode, q *fetch.FetchT) (*fetch.DF4T, error) {
+	node *SnowthNode, q *fetch.FetchT,
+) (*fetch.DF4T, error) {
 	builder := flatbuffers.NewBuilder(8192)
 	qOffset := fetch.FetchPack(builder, q)
 	builder.Finish(qOffset)

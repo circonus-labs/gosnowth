@@ -22,7 +22,7 @@ func (tvr *TextValueResponse) UnmarshalJSON(b []byte) error {
 	}
 
 	for _, entry := range values {
-		var tv = TextValue{}
+		tv := TextValue{}
 		if v, ok := entry[0].(float64); ok {
 			tv.Time = time.Unix(int64(v), 0)
 		}
@@ -46,7 +46,8 @@ type TextValue struct {
 
 // ReadTextValues reads text data values from an IRONdb node.
 func (sc *SnowthClient) ReadTextValues(uuid, metric string,
-	start, end time.Time, nodes ...*SnowthNode) ([]TextValue, error) {
+	start, end time.Time, nodes ...*SnowthNode,
+) ([]TextValue, error) {
 	return sc.ReadTextValuesContext(context.Background(), uuid, metric,
 		start, end, nodes...)
 }
@@ -54,7 +55,8 @@ func (sc *SnowthClient) ReadTextValues(uuid, metric string,
 // ReadTextValuesContext is the context aware version of ReadTextValues.
 func (sc *SnowthClient) ReadTextValuesContext(ctx context.Context,
 	uuid, metric string, start, end time.Time,
-	nodes ...*SnowthNode) ([]TextValue, error) {
+	nodes ...*SnowthNode,
+) ([]TextValue, error) {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -92,7 +94,8 @@ func (sc *SnowthClient) WriteText(data []TextData, nodes ...*SnowthNode) error {
 
 // WriteTextContext is the context aware version of WriteText.
 func (sc *SnowthClient) WriteTextContext(ctx context.Context,
-	data []TextData, nodes ...*SnowthNode) error {
+	data []TextData, nodes ...*SnowthNode,
+) error {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -107,5 +110,6 @@ func (sc *SnowthClient) WriteTextContext(ctx context.Context,
 	}
 
 	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/write/text", buf, nil)
+
 	return err
 }

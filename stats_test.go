@@ -38,20 +38,26 @@ const statsTestData = `{
 }`
 
 func TestGetStats(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			_, _ = w.Write([]byte(tagsTestData))
+
 			return
 		}
 	}))

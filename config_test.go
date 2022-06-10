@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	t.Parallel()
+
 	if _, err := NewConfig(":invalid"); err == nil {
 		t.Fatal("Expected invalid server error")
 	}
@@ -81,6 +83,8 @@ func TestNewConfig(t *testing.T) {
 }
 
 func TestConfigMarshalJSON(t *testing.T) {
+	t.Parallel()
+
 	s := `{"dial_timeout":"100ms","discover":true,"timeout":"1s",` +
 		`"watch_interval":"5s","connect_retries":-1,` +
 		`"servers":["localhost:8112"]}`

@@ -18,15 +18,20 @@ import (
 )
 
 func TestWriteRaw(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -38,12 +43,15 @@ func TestWriteRaw(t *testing.T) {
 
 			if string(buf) == "test" {
 				w.WriteHeader(200)
-				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
+				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, ` +
+					`"misdirected": 0, "errors": 0 }`))
+
 				return
 			}
 
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte("invalid request body"))
+
 			return
 		}
 
@@ -91,15 +99,20 @@ func TestWriteRaw(t *testing.T) {
 }
 
 func TestReadRawNumericValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -107,6 +120,7 @@ func TestReadRawNumericValues(t *testing.T) {
 			w.WriteHeader(200)
 			_, _ = w.Write([]byte(
 				`[[1529509063064,0],[1529509122985,0],[1529509183764,0]]`))
+
 			return
 		}
 
@@ -138,15 +152,20 @@ func TestReadRawNumericValues(t *testing.T) {
 }
 
 func TestWriteRawMetricList(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -158,7 +177,9 @@ func TestWriteRawMetricList(t *testing.T) {
 
 			if string(b)[4:8] == "CIML" {
 				w.WriteHeader(200)
-				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
+				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, ` +
+					`"misdirected": 0, "errors": 0 }`))
+
 				return
 			}
 
@@ -317,14 +338,17 @@ func BenchmarkWriteRawMetricListLocal(b *testing.B) {
 	b.StopTimer()
 
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -336,7 +360,9 @@ func BenchmarkWriteRawMetricListLocal(b *testing.B) {
 
 			if string(buf)[4:8] == "CIML" {
 				w.WriteHeader(200)
-				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
+				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, ` +
+					`"misdirected": 0, "errors": 0 }`))
+
 				return
 			}
 

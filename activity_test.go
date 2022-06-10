@@ -11,15 +11,20 @@ import (
 )
 
 func TestRebuildActivity(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -32,11 +37,13 @@ func TestRebuildActivity(t *testing.T) {
 			if string(b) == "[]\n" {
 				w.WriteHeader(200)
 				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
+
 				return
 			}
 
 			w.WriteHeader(500)
 			_, _ = w.Write([]byte("invalid request body"))
+
 			return
 		}
 

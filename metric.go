@@ -82,8 +82,9 @@ func (ms *metricScanner) read() rune {
 func (ms *metricScanner) unread() error { return ms.r.UnreadRune() }
 
 // Scan returns the next token and literal value.
-func (ms *metricScanner) scan() (tok scanToken, lit string) {
+func (ms *metricScanner) scan() (scanToken, string) {
 	ch := ms.read()
+
 	switch ch {
 	case rune(0):
 		return tokenEOF, ""
@@ -164,7 +165,7 @@ func (ms *metricScanner) scanMetricName() (scanToken, string, error) {
 	var buf bytes.Buffer
 	for {
 		ch := ms.read()
-		if ch == '|' {
+		if ch == '|' { //nolint nestif
 			if err := ms.unread(); err != nil {
 				return tokenIllegal, "", fmt.Errorf(
 					"unable to unread to scan buffer: %w", err)
@@ -221,7 +222,7 @@ loop:
 					"unable to write to tag name canonical buffer: %w", err)
 			}
 		case '\\':
-			if quoted {
+			if quoted { //nolint nestif
 				ch2 := ms.read()
 				if ch2 == '"' || ch2 == '\\' {
 					if _, err := buf.WriteRune(ch2); err != nil {
@@ -310,8 +311,10 @@ loop:
 }
 
 // scanTagValue attempts to read a tag value token from the scan buffer.
+//nolint gocyclo
 func (ms *metricScanner) scanTagValue(
-	tt tagType) (scanToken, string, string, error) {
+	tt tagType,
+) (scanToken, string, string, error) {
 	var buf bytes.Buffer
 	var can bytes.Buffer
 	quoted := false
@@ -456,7 +459,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 	}
 
 	for {
-		var tag = Tag{}
+		tag := Tag{}
 
 		tok, lit, can, err = mp.s.scanTagName()
 		if err != nil {
@@ -534,18 +537,21 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 		if tok == tokenComma {
 			// there are additional tags
 			canonical.WriteString(",")
+
 			continue
 		}
 
 		if tt == tagStreamTag && tok == tokenCB {
 			// done with stream tags
 			canonical.WriteString("]")
+
 			break
 		}
 
 		if tt == tagMeasurementTag && tok == tokenCCB {
 			// done with measurement tags
 			canonical.WriteString("}")
+
 			break
 		}
 

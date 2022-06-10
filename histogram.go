@@ -32,6 +32,7 @@ func (hv *HistogramValue) MarshalJSON() ([]byte, error) {
 	v = append(v, fv)
 	v = append(v, hv.Period.Seconds())
 	v = append(v, hv.Data)
+
 	return json.Marshal(v)
 }
 
@@ -82,7 +83,8 @@ func (hv *HistogramValue) Timestamp() string {
 // ReadHistogramValues reads histogram data from a node.
 func (sc *SnowthClient) ReadHistogramValues(
 	uuid, metric string, period time.Duration,
-	start, end time.Time, nodes ...*SnowthNode) ([]HistogramValue, error) {
+	start, end time.Time, nodes ...*SnowthNode,
+) ([]HistogramValue, error) {
 	return sc.ReadHistogramValuesContext(context.Background(), uuid,
 		metric, period, start, end, nodes...)
 }
@@ -91,7 +93,8 @@ func (sc *SnowthClient) ReadHistogramValues(
 // ReadHistogramValues.
 func (sc *SnowthClient) ReadHistogramValuesContext(ctx context.Context,
 	uuid, metric string, period time.Duration,
-	start, end time.Time, nodes ...*SnowthNode) ([]HistogramValue, error) {
+	start, end time.Time, nodes ...*SnowthNode,
+) ([]HistogramValue, error) {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -133,13 +136,15 @@ type HistogramData struct {
 // WriteHistogram sends a list of histogram data values to be written
 // to an IRONdb node.
 func (sc *SnowthClient) WriteHistogram(data []HistogramData,
-	nodes ...*SnowthNode) error {
+	nodes ...*SnowthNode,
+) error {
 	return sc.WriteHistogramContext(context.Background(), data, nodes...)
 }
 
 // WriteHistogramContext is the context aware version of WriteHistogram.
 func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
-	data []HistogramData, nodes ...*SnowthNode) error {
+	data []HistogramData, nodes ...*SnowthNode,
+) error {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -154,5 +159,6 @@ func (sc *SnowthClient) WriteHistogramContext(ctx context.Context,
 	}
 
 	_, _, err := sc.DoRequestContext(ctx, node, "POST", "/histogram/write", buf, nil)
+
 	return err
 }

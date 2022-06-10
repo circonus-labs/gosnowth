@@ -14,7 +14,8 @@ func (sc *SnowthClient) GetNodeState(nodes ...*SnowthNode) (*NodeState, error) {
 
 // GetNodeStateContext is the context aware version of GetNodeState.
 func (sc *SnowthClient) GetNodeStateContext(ctx context.Context,
-	nodes ...*SnowthNode) (*NodeState, error) {
+	nodes ...*SnowthNode,
+) (*NodeState, error) {
 	var node *SnowthNode
 	if len(nodes) > 0 && nodes[0] != nil {
 		node = nodes[0]
@@ -87,7 +88,11 @@ func (r *Rollup) UnmarshalJSON(b []byte) error {
 
 	if rollups, ok := m["rollups"].([]interface{}); ok {
 		for _, v := range rollups {
-			r.RollupList = append(r.RollupList, uint64(v.(float64)))
+			vf, ok := v.(float64)
+			if ok {
+				r.RollupList = append(r.RollupList, uint64(vf))
+			}
+
 			delete(m, "rollup")
 		}
 	}
@@ -111,6 +116,7 @@ func (r *Rollup) UnmarshalJSON(b []byte) error {
 	}
 
 	r.RollupEntries = RollupEntries(rr)
+
 	return nil
 }
 
@@ -156,8 +162,7 @@ func (f *Features) UnmarshalJSON(b []byte) error {
 	f.FeatureFlags = false
 
 	m := make(map[string]string)
-	err := json.Unmarshal(b, &m)
-	if err != nil {
+	if err := json.Unmarshal(b, &m); err != nil {
 		return err
 	}
 
@@ -167,21 +172,27 @@ loop:
 			switch k {
 			case "text:store":
 				f.TextStore = true
+
 				break loop
 			case "histogram:store":
 				f.HistogramStore = true
+
 				break loop
 			case "nnt:second_order":
 				f.NNTSecondOrder = true
+
 				break loop
 			case "histogram:dynamic_rollups":
 				f.HistogramDynamicRollups = true
+
 				break loop
 			case "nnt:store":
 				f.NNTStore = true
+
 				break loop
 			case "features":
 				f.FeatureFlags = true
+
 				break loop
 			}
 		}

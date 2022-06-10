@@ -106,11 +106,13 @@ const gossipTestAltData = `[
 ]`
 
 func TestGossipDeserialization(t *testing.T) {
+	t.Parallel()
+
 	dec := json.NewDecoder(bytes.NewBufferString(gossipTestData))
 	dec.UseNumber()
 	gossip := new(Gossip)
-	err := dec.Decode(gossip)
-	if err != nil {
+
+	if err := dec.Decode(gossip); err != nil {
 		t.Errorf("failed to decode gossip data, %s\n", err.Error())
 	}
 
@@ -124,28 +126,32 @@ func TestGossipDeserialization(t *testing.T) {
 		t.Errorf("Expected time: %v, got: %v", exp, res)
 	}
 
-	resA := []GossipDetail(*gossip)[0].Age
-	expA := float64(0.0)
-	if resA != expA {
+	if resA, expA := []GossipDetail(*gossip)[0].Age, float64(0.0); resA != expA {
 		t.Errorf("Expected age: %v, got: %v", exp, res)
 	}
 }
 
 func TestGetGossipInfo(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/gossip/json" {
 			_, _ = w.Write([]byte(gossipTestData))
+
 			return
 		}
 	}))

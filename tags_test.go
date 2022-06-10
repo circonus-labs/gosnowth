@@ -51,6 +51,8 @@ const tagsTestData = `[
 ]`
 
 func TestFindTagsJSON(t *testing.T) {
+	t.Parallel()
+
 	fti := &FindTagsItem{
 		UUID:       "11223344-5566-7788-9900-aabbccddeeff",
 		CheckTags:  []string{"test:test"},
@@ -97,29 +99,36 @@ func TestFindTagsJSON(t *testing.T) {
 	}
 }
 
-// nolint: gocyclo
+//nolint: gocyclo
 func TestFindTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.Contains(r.RequestURI, "&count_only=1") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(tagsCountTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(tagsTestData))
+
 			return
 		}
 	}))
@@ -273,20 +282,26 @@ func TestFindTags(t *testing.T) {
 }
 
 func TestFindTagCats(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tag_cats?query=test") {
 			_, _ = w.Write([]byte(tagCatsValsTestData))
+
 			return
 		}
 	}))
@@ -319,21 +334,27 @@ func TestFindTagCats(t *testing.T) {
 }
 
 func TestFindTagVals(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/find/1/tag_vals?query=test&category=test") {
 			_, _ = w.Write([]byte(tagCatsValsTestData))
+
 			return
 		}
 	}))
@@ -366,20 +387,26 @@ func TestFindTagVals(t *testing.T) {
 }
 
 func TestGetCheckTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
 			_, _ = w.Write([]byte(getCheckTagsTestData))
+
 			return
 		}
 	}))
@@ -412,20 +439,26 @@ func TestGetCheckTags(t *testing.T) {
 }
 
 func TestDeleteCheckTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
 			_, _ = w.Write([]byte("test"))
+
 			return
 		}
 	}))
@@ -450,20 +483,26 @@ func TestDeleteCheckTags(t *testing.T) {
 }
 
 func TestUpdateCheckTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
 			_, _ = w.Write([]byte(getCheckTagsTestData))
+
 			return
 		}
 	}))

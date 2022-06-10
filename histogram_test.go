@@ -45,6 +45,8 @@ const histTestData = `[
 ]`
 
 func TestHistogramValueMarshaling(t *testing.T) {
+	t.Parallel()
+
 	v := []HistogramValue{}
 	err := json.NewDecoder(bytes.NewBufferString(histogramTestData)).Decode(&v)
 	if err != nil {
@@ -81,15 +83,20 @@ func TestHistogramValueMarshaling(t *testing.T) {
 }
 
 func TestReadHistogramValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -97,6 +104,7 @@ func TestReadHistogramValues(t *testing.T) {
 			"ae0f7f90-2a6b-481c-9cf5-21a31837020e/example1"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(histogramTestData))
+
 			return
 		}
 	}))
@@ -139,15 +147,20 @@ func TestReadHistogramValues(t *testing.T) {
 }
 
 func TestWriteHistogram(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -156,12 +169,14 @@ func TestWriteHistogram(t *testing.T) {
 			if err := json.NewDecoder(r.Body).Decode(&rb); err != nil {
 				w.WriteHeader(500)
 				t.Error("Unable to decode JSON data")
+
 				return
 			}
 
 			if len(rb) < 1 {
 				w.WriteHeader(500)
 				t.Error("Invalid request")
+
 				return
 			}
 
@@ -169,10 +184,12 @@ func TestWriteHistogram(t *testing.T) {
 			if rb[0].ID != exp {
 				w.WriteHeader(500)
 				t.Errorf("Expected UUID: %v, got: %v", exp, rb[0].ID)
+
 				return
 			}
 
 			_, _ = w.Write([]byte(histTestData))
+
 			return
 		}
 	}))

@@ -6,7 +6,9 @@ import (
 )
 
 func TestScanMetricName(t *testing.T) {
-	var cases = []struct {
+	t.Parallel()
+
+	cases := []struct {
 		input string    // input
 		tok   scanToken // token
 		lit   string    // metric name literal
@@ -76,6 +78,8 @@ func TestScanMetricName(t *testing.T) {
 }
 
 func TestScanTagSep(t *testing.T) {
+	t.Parallel()
+
 	stBuf := bytes.NewBufferString("|ST[blah:blah]")
 	s := newMetricScanner(stBuf)
 	tok, lit, err := s.peekTagSep()
@@ -134,7 +138,9 @@ func TestScanTagSep(t *testing.T) {
 }
 
 func TestMetricParser(t *testing.T) {
-	var cases = []struct {
+	t.Parallel()
+
+	cases := []struct {
 		input string // input
 		numST int    // number of derived stream tags
 		numMT int    // number of derived measurement tags
@@ -285,6 +291,8 @@ func TestMetricParser(t *testing.T) {
 }
 
 func TestMetricParserComplex(t *testing.T) {
+	t.Parallel()
+
 	mn, err := ParseMetricName("test|ST[sri:sri:spc:compute::" +
 		"stackable-cloud:vm/0bce9aef-8186-44c9-a73d-33723173b2c6]")
 	if err != nil {

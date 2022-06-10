@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.6] - 2022-06-10
+
+* fix: Corrects a bug that was causing the process to fail that randomly
+retries other nodes in a snowth cluster when there are connection issues.
+
 ## [v1.10.5] - 2022-05-03
 
 * fix: Fixes the metric name parser to correctly use curly brackets when
@@ -347,6 +352,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.6
 [v1.10.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.5
 [v1.10.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.4
 [v1.10.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.3

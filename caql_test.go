@@ -37,15 +37,20 @@ const testCAQLError = `{
 }`
 
 func TestGetCAQLQuery(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -55,22 +60,26 @@ func TestGetCAQLQuery(t *testing.T) {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(testCAQLError))
+
 				return
 			}
 
 			if len(b) == 0 {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(testCAQLError))
+
 				return
 			}
 
 			if strings.Contains(string(b), "histograms") {
 				w.WriteHeader(502)
 				_, _ = w.Write([]byte(testCAQLError))
+
 				return
 			}
 
 			_, _ = w.Write([]byte(testFetchDF4Response))
+
 			return
 		}
 	}))
