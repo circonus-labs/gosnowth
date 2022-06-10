@@ -795,8 +795,11 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 		for len(sns) > 0 {
 			n := int64(0)
+			reqMsg := "attempting"
+
 			if connRetries != cr {
 				n = time.Now().UnixNano() % int64(len(sns))
+				reqMsg = "retrying"
 			}
 
 			sn := sns[n]
@@ -809,9 +812,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			surl := sc.getURL(sn, url)
 			traceID := time.Now().UnixNano()
 
-			sc.LogDebugf("gosnowth attempting request "+
+			sc.LogDebugf("gosnowth %s request "+
 				"[retry: %d, connRetry: %d]: %s %s traceID: %d",
-				r, (cr - connRetries), method, surl, traceID)
+				reqMsg, r, (cr - connRetries), method, surl, traceID)
 
 			bdy, hdr, err = sc.do(ctx, sn, method, surl,
 				bytes.NewBuffer(bBody), headers, traceID)
