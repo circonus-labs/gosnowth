@@ -106,11 +106,14 @@ const gossipTestAltData = `[
 ]`
 
 func TestGossipDeserialization(t *testing.T) {
+	t.Parallel()
+
 	dec := json.NewDecoder(bytes.NewBufferString(gossipTestData))
 	dec.UseNumber()
+
 	gossip := new(Gossip)
-	err := dec.Decode(gossip)
-	if err != nil {
+
+	if err := dec.Decode(gossip); err != nil {
 		t.Errorf("failed to decode gossip data, %s\n", err.Error())
 	}
 
@@ -120,37 +123,43 @@ func TestGossipDeserialization(t *testing.T) {
 
 	res := []GossipDetail(*gossip)[0].Time
 	exp := float64(1409082055.744880)
+
 	if res != exp {
 		t.Errorf("Expected time: %v, got: %v", exp, res)
 	}
 
-	resA := []GossipDetail(*gossip)[0].Age
-	expA := float64(0.0)
-	if resA != expA {
+	if resA, expA := []GossipDetail(*gossip)[0].Age, float64(0.0); resA != expA {
 		t.Errorf("Expected age: %v, got: %v", exp, res)
 	}
 }
 
 func TestGetGossipInfo(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/gossip/json" {
 			_, _ = w.Write([]byte(gossipTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -162,6 +171,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetGossipInfo(node)
 	if err != nil {
 		t.Fatal(err)
@@ -177,6 +187,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
+
 	res, err = sc.GetGossipInfoContext(ctx, node)
 	if err != nil {
 		t.Fatal(err)
@@ -192,6 +203,7 @@ func TestGetGossipInfo(t *testing.T) {
 	}
 
 	cancel()
+
 	_, err = sc.GetGossipInfoContext(ctx, node)
 	if err == nil || !strings.Contains(err.Error(), "context") {
 		t.Error("Expected context error.", err)

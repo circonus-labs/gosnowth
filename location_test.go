@@ -91,10 +91,12 @@ const locateTopologyXMLTestData = `<nodes n="3">
 */
 
 func TestDataLocationXMLDeserialization(t *testing.T) {
+	t.Parallel()
+
 	dec := xml.NewDecoder(bytes.NewBufferString(locateXMLTestData))
 	dl := new(Topology)
-	err := dec.Decode(dl)
-	if err != nil {
+
+	if err := dec.Decode(dl); err != nil {
 		t.Errorf("failed to decode node stats, %s\n", err.Error())
 	}
 
@@ -104,26 +106,33 @@ func TestDataLocationXMLDeserialization(t *testing.T) {
 }
 
 func TestLocateMetric(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/locate/xml/1f846f26-0cfd-4df5-b4f1-e0930604e577/test") {
 			_, _ = w.Write([]byte(locateXMLTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -135,6 +144,7 @@ func TestLocateMetric(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.LocateMetric("1f846f26-0cfd-4df5-b4f1-e0930604e577",
 		"test", node)
 	if err != nil {
@@ -152,32 +162,40 @@ func TestLocateMetric(t *testing.T) {
 }
 
 func TestLocateMetricFindMetric(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/xml") {
 			_, _ = w.Write([]byte(topologyXMLTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/locate/xml/1f846f26-0cfd-4df5-b4f1-e0930604e577/test") {
 			_, _ = w.Write([]byte(locateXMLTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

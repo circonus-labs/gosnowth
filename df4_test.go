@@ -38,7 +38,10 @@ const testDF4Response = `{
 	]
 }`
 
+//nolint shortif
 func TestDF4ResponseCopy(t *testing.T) {
+	t.Parallel()
+
 	var v *DF4Response
 	err := json.NewDecoder(bytes.NewBufferString(testDF4Response)).Decode(&v)
 	if err != nil {
@@ -66,6 +69,8 @@ func TestDF4ResponseCopy(t *testing.T) {
 }
 
 func TestMarshalDF4Response(t *testing.T) {
+	t.Parallel()
+
 	v := &DF4Response{
 		Data: [][]interface{}{{1, 2, 3}},
 		Meta: []DF4Meta{{
@@ -87,8 +92,8 @@ func TestMarshalDF4Response(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err := json.NewEncoder(buf).Encode(&v)
-	if err != nil {
+
+	if err := json.NewEncoder(buf).Encode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -100,9 +105,12 @@ func TestMarshalDF4Response(t *testing.T) {
 }
 
 func TestUnmarshalDF4Timeseries(t *testing.T) {
+	t.Parallel()
+
 	var v *DF4Response
-	err := json.NewDecoder(bytes.NewBufferString(testDF4Response)).Decode(&v)
-	if err != nil {
+
+	if err := json.NewDecoder(bytes.NewBufferString(
+		testDF4Response)).Decode(&v); err != nil {
 		t.Fatal(err)
 	}
 

@@ -42,7 +42,8 @@ func ExampleReadNNT() {
 				{Count: 1, Value: 100},
 				{Count: 1, Value: 100},
 				{Count: 1, Value: 100},
-			}},
+			},
+		},
 	}}); err != nil {
 		log.Fatalf("failed to write text data: %v", err)
 	}

@@ -65,7 +65,10 @@ const rollupAllTestData = `[
 ]`
 
 func TestRollupValueMarshaling(t *testing.T) {
+	t.Parallel()
+
 	v := []RollupValue{}
+
 	err := json.NewDecoder(bytes.NewBufferString(rollupTestData)).Decode(&v)
 	if err != nil {
 		t.Fatal(err)
@@ -88,8 +91,8 @@ func TestRollupValueMarshaling(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err = json.NewEncoder(buf).Encode(&v)
-	if err != nil {
+
+	if err = json.NewEncoder(buf).Encode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -99,14 +102,16 @@ func TestRollupValueMarshaling(t *testing.T) {
 }
 
 func TestRollupAllValueMarshaling(t *testing.T) {
+	t.Parallel()
+
 	v := []RollupAllValue{}
-	err := json.NewDecoder(bytes.NewBufferString(`[
+
+	if err := json.NewDecoder(bytes.NewBufferString(`[
 		[
 			1529509020,
 			null
 		]
-	]`)).Decode(&v)
-	if err != nil {
+	]`)).Decode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -118,8 +123,8 @@ func TestRollupAllValueMarshaling(t *testing.T) {
 		t.Fatalf("Expected data: nil, got: %v", *v[0].Data)
 	}
 
-	err = json.NewDecoder(bytes.NewBufferString(rollupAllTestData)).Decode(&v)
-	if err != nil {
+	if err := json.NewDecoder(bytes.NewBufferString(
+		rollupAllTestData)).Decode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -144,8 +149,8 @@ func TestRollupAllValueMarshaling(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err = json.NewEncoder(buf).Encode(&v)
-	if err != nil {
+
+	if err := json.NewEncoder(buf).Encode(&v); err != nil {
 		t.Fatal(err)
 	}
 
@@ -157,15 +162,20 @@ func TestRollupAllValueMarshaling(t *testing.T) {
 }
 
 func TestReadRollupValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -174,11 +184,13 @@ func TestReadRollupValues(t *testing.T) {
 			"&type=average"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(rollupTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -190,6 +202,7 @@ func TestReadRollupValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ReadRollupValues(
 		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", time.Second,
 		time.Unix(1529509020, 0), time.Unix(1529509200, 0), "average", node)
@@ -211,15 +224,20 @@ func TestReadRollupValues(t *testing.T) {
 }
 
 func TestReadRollupAllValues(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -228,11 +246,13 @@ func TestReadRollupAllValues(t *testing.T) {
 			"&type=all"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(rollupAllTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -244,6 +264,7 @@ func TestReadRollupAllValues(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ReadRollupAllValues(
 		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "online", time.Second,
 		time.Unix(1529509020, 0), time.Unix(1529509200, 0), node)

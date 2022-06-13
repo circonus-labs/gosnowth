@@ -37,15 +37,20 @@ const testCAQLError = `{
 }`
 
 func TestGetCAQLQuery(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -55,27 +60,32 @@ func TestGetCAQLQuery(t *testing.T) {
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(testCAQLError))
+
 				return
 			}
 
 			if len(b) == 0 {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(testCAQLError))
+
 				return
 			}
 
 			if strings.Contains(string(b), "histograms") {
 				w.WriteHeader(502)
 				_, _ = w.Write([]byte(testCAQLError))
+
 				return
 			}
 
 			_, _ = w.Write([]byte(testFetchDF4Response))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -90,6 +100,7 @@ func TestGetCAQLQuery(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetCAQLQuery(&CAQLQuery{
 		AccountID: 1,
 		Query:     "test",
@@ -152,6 +163,7 @@ func TestGetCAQLQuery(t *testing.T) {
 		testCAQLError, " ", ""), "\t", ""), "\n", "")
 	val := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
 		vErr.Error(), " ", ""), "\t", ""), "\n", "")
+
 	if val != exp {
 		t.Errorf("Expected error JSON: %v, got: %v", exp, val)
 	}

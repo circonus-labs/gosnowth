@@ -51,6 +51,8 @@ const tagsTestData = `[
 ]`
 
 func TestFindTagsJSON(t *testing.T) {
+	t.Parallel()
+
 	fti := &FindTagsItem{
 		UUID:       "11223344-5566-7788-9900-aabbccddeeff",
 		CheckTags:  []string{"test:test"},
@@ -66,14 +68,14 @@ func TestFindTagsJSON(t *testing.T) {
 	}
 
 	buf := &bytes.Buffer{}
-	err := json.NewEncoder(buf).Encode(&fti)
-	if err != nil {
+
+	if err := json.NewEncoder(buf).Encode(&fti); err != nil {
 		t.Fatal(err)
 	}
 
 	var r *FindTagsItem
-	err = json.NewDecoder(buf).Decode(&r)
-	if err != nil {
+
+	if err := json.NewDecoder(buf).Decode(&r); err != nil {
 		t.Fatal(err)
 	}
 
@@ -97,34 +99,42 @@ func TestFindTagsJSON(t *testing.T) {
 	}
 }
 
-// nolint: gocyclo
+//nolint: gocyclo
 func TestFindTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.Contains(r.RequestURI, "&count_only=1") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(tagsCountTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tags?query=test") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(tagsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -136,6 +146,7 @@ func TestFindTags(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.FindTags(1, "test", &FindTagsOptions{
 		Start:     time.Unix(1, 0),
 		End:       time.Unix(2, 0),
@@ -273,25 +284,32 @@ func TestFindTags(t *testing.T) {
 }
 
 func TestFindTagCats(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/find/1/tag_cats?query=test") {
 			_, _ = w.Write([]byte(tagCatsValsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -319,26 +337,33 @@ func TestFindTagCats(t *testing.T) {
 }
 
 func TestFindTagVals(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/find/1/tag_vals?query=test&category=test") {
 			_, _ = w.Write([]byte(tagCatsValsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -366,25 +391,32 @@ func TestFindTagVals(t *testing.T) {
 }
 
 func TestGetCheckTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
 			_, _ = w.Write([]byte(getCheckTagsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -412,25 +444,32 @@ func TestGetCheckTags(t *testing.T) {
 }
 
 func TestDeleteCheckTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
 			_, _ = w.Write([]byte("test"))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -450,25 +489,32 @@ func TestDeleteCheckTags(t *testing.T) {
 }
 
 func TestUpdateCheckTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/meta/check/tag") {
 			_, _ = w.Write([]byte(getCheckTagsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

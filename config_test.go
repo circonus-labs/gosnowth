@@ -8,6 +8,8 @@ import (
 )
 
 func TestNewConfig(t *testing.T) {
+	t.Parallel()
+
 	if _, err := NewConfig(":invalid"); err == nil {
 		t.Fatal("Expected invalid server error")
 	}
@@ -22,6 +24,7 @@ func TestNewConfig(t *testing.T) {
 	}
 
 	cfg.SetDiscover(true)
+
 	if err := cfg.SetServers("test1", "test2"); err != nil {
 		t.Fatal(err)
 	}
@@ -32,6 +35,7 @@ func TestNewConfig(t *testing.T) {
 
 	cfg.SetRetries(1)
 	cfg.SetConnectRetries(1)
+
 	if err := cfg.SetWatchInterval(time.Second); err != nil {
 		t.Fatal(err)
 	}
@@ -81,9 +85,12 @@ func TestNewConfig(t *testing.T) {
 }
 
 func TestConfigMarshalJSON(t *testing.T) {
+	t.Parallel()
+
 	s := `{"dial_timeout":"100ms","discover":true,"timeout":"1s",` +
 		`"watch_interval":"5s","connect_retries":-1,` +
 		`"servers":["localhost:8112"]}`
+
 	c, err := NewConfig()
 	if err != nil {
 		t.Fatal(err)
@@ -105,83 +112,93 @@ func TestConfigMarshalJSON(t *testing.T) {
 
 	s = `{"dial_timeout":"100s","discover":true,` +
 		`"servers":["localhost:8112"],"timeout":"1s","watch_interval":"5s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"invalid dial timeout value") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"invalid dial timeout value") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"aa","discover":true,` +
 		`"servers":["localhost:8112"],"timeout":"1s","watch_interval":"5s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"unable to parse dial timeout") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"unable to parse dial timeout") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
 		`"servers":["localhost:8112"],"timeout":"38h","watch_interval":"5s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"invalid timeout value") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"invalid timeout value") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
 		`"servers":["localhost:8112"],"timeout":"aa","watch_interval":"5s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"unable to parse timeout") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"unable to parse timeout") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
 		`"servers":["localhost:8112"],"timeout":"10s","watch_interval":"500h"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"invalid watch interval value") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"invalid watch interval value") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
 		`"servers":["localhost:8112"],"timeout":"10s","watch_interval":"aa"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"unable to parse watch interval") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"unable to parse watch interval") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
 		`"connect_retries":-1,"servers":[":invalid"],"timeout":"10s",` +
 		`"watch_interval":"30s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"invalid server address") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"invalid server address") {
 		t.Error("Expected error not returned.")
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,"retries":"invalid",` +
 		`"connect_retries":"invalid","servers":[":invalid"],"timeout":"10s",` +
 		`"watch_interval":"30s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"unmarshal string into Go struct field .retries of type") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"unmarshal string into Go struct field .retries of type") {
 		t.Errorf("Expected error not returned, got: %v", err)
 	}
 
 	s = `{"dial_timeout":"100ms","discover":true,` +
 		`"connect_retries":"invalid","servers":[":invalid"],"timeout":"10s",` +
 		`"watch_interval":"30s"}`
-	err = json.Unmarshal([]byte(s), c)
-	if err == nil || !strings.Contains(err.Error(),
-		"unmarshal string into Go struct field .connect_retries of type") {
+
+	if err = json.Unmarshal([]byte(s), c); err == nil ||
+		!strings.Contains(err.Error(),
+			"unmarshal string into Go struct field .connect_retries of type") {
 		t.Errorf("Expected error not returned, got: %v", err)
 	}
 
 	s = `{$$$}`
-	err = c.UnmarshalJSON([]byte(s))
-	if err == nil || !strings.Contains(err.Error(),
-		"unable to unmarshal JSON data") {
+
+	if err = c.UnmarshalJSON([]byte(s)); err == nil ||
+		!strings.Contains(err.Error(),
+			"unable to unmarshal JSON data") {
 		t.Error("Expected error not returned.")
 	}
 }

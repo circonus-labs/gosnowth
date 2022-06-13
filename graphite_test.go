@@ -34,15 +34,20 @@ const graphiteDatapointsTestData = `{
 }`
 
 func TestGraphiteFindMetrics(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -50,11 +55,13 @@ func TestGraphiteFindMetrics(t *testing.T) {
 			"/graphite/1/test/metrics/find?query=test") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(graphiteMetricsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -83,15 +90,20 @@ func TestGraphiteFindMetrics(t *testing.T) {
 }
 
 func TestGraphiteFindTags(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -99,11 +111,13 @@ func TestGraphiteFindTags(t *testing.T) {
 			"/graphite/1/test/tags/find?query=test") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(graphiteMetricsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -132,15 +146,20 @@ func TestGraphiteFindTags(t *testing.T) {
 }
 
 func TestGraphiteGetDatapoints(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -148,11 +167,13 @@ func TestGraphiteGetDatapoints(t *testing.T) {
 			"/graphite/1/test/series_multi") {
 			w.Header().Set("X-Snowth-Search-Result-Count", "1")
 			_, _ = w.Write([]byte(graphiteDatapointsTestData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

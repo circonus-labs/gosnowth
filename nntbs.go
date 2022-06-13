@@ -20,7 +20,8 @@ func nntMergeFileIdentifier() []byte {
 
 // WriteNNTBSFlatbuffer writes flatbuffer format NNTBS data to an IRONdb node.
 func (sc *SnowthClient) WriteNNTBSFlatbuffer(merge *nntbs.NNTMergeT,
-	builder *flatbuffers.Builder, nodes ...*SnowthNode) error {
+	builder *flatbuffers.Builder, nodes ...*SnowthNode,
+) error {
 	return sc.WriteNNTBSFlatbufferContext(context.Background(), merge,
 		builder, nodes...)
 }
@@ -29,7 +30,8 @@ func (sc *SnowthClient) WriteNNTBSFlatbuffer(merge *nntbs.NNTMergeT,
 // WriteNNTBSFlatbuffer.
 func (sc *SnowthClient) WriteNNTBSFlatbufferContext(ctx context.Context,
 	merge *nntbs.NNTMergeT, builder *flatbuffers.Builder,
-	nodes ...*SnowthNode) error {
+	nodes ...*SnowthNode,
+) error {
 	if merge == nil {
 		return fmt.Errorf("NNTBS merge data must not be null")
 	}

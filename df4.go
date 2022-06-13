@@ -49,6 +49,7 @@ func (dr *DF4Response) Copy() *DF4Response {
 	}
 
 	copy(b.Meta, dr.Meta)
+
 	for i, v := range dr.Data {
 		b.Data[i] = make([]interface{}, len(v))
 		copy(b.Data[i], v)

@@ -58,25 +58,32 @@ const testLuaExtensionData = `{
 }`
 
 func TestGetLuaExtension(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/extension/lua") {
 			_, _ = w.Write([]byte(testLuaExtensionData))
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -88,6 +95,7 @@ func TestGetLuaExtension(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.GetLuaExtensions(node)
 	if err != nil {
 		t.Fatal(err)
@@ -136,27 +144,34 @@ func TestGetLuaExtension(t *testing.T) {
 }
 
 func TestExecLuaExtensionContext(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/extension/lua/test") {
 			if r.URL.Query().Get("test") == "1" {
 				_, _ = w.Write([]byte(`{"test":1}`))
+
 				return
 			}
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -168,6 +183,7 @@ func TestExecLuaExtensionContext(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ExecLuaExtension("test",
 		[]ExtParam{{Name: "test", Value: "1"}}, node)
 	if err != nil {

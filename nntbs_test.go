@@ -14,15 +14,20 @@ import (
 )
 
 func TestWriteNNTBSFlatbuffer(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -35,6 +40,7 @@ func TestWriteNNTBSFlatbuffer(t *testing.T) {
 			if string(b)[4:8] == "CINN" {
 				w.WriteHeader(200)
 				_, _ = w.Write([]byte(`{ "records": 1, "updated": 1, "misdirected": 0, "errors": 0 }`))
+
 				return
 			}
 
@@ -50,6 +56,7 @@ func TestWriteNNTBSFlatbuffer(t *testing.T) {
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)

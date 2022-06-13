@@ -79,6 +79,7 @@ func (c *Config) MarshalJSON() ([]byte, error) {
 	}
 
 	c.RUnlock()
+
 	return json.Marshal(m)
 }
 
@@ -110,6 +111,7 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 	}
 
 	c.SetDiscover(m.Discover)
+
 	if m.Timeout != "" {
 		d, err := time.ParseDuration(m.Timeout)
 		if err != nil {
@@ -154,6 +156,7 @@ func (c *Config) UnmarshalJSON(b []byte) error {
 func (c *Config) DialTimeout() time.Duration {
 	c.RLock()
 	defer c.RUnlock()
+
 	return c.dialTimeout
 }
 
@@ -166,6 +169,7 @@ func (c *Config) SetDialTimeout(t time.Duration) error {
 	c.Lock()
 	c.dialTimeout = t
 	c.Unlock()
+
 	return nil
 }
 
@@ -174,6 +178,7 @@ func (c *Config) SetDialTimeout(t time.Duration) error {
 func (c *Config) Discover() bool {
 	c.RLock()
 	defer c.RUnlock()
+
 	return c.discover
 }
 
@@ -190,6 +195,7 @@ func (c *Config) SetDiscover(d bool) {
 func (c *Config) Timeout() time.Duration {
 	c.RLock()
 	defer c.RUnlock()
+
 	return c.timeout
 }
 
@@ -202,6 +208,7 @@ func (c *Config) SetTimeout(t time.Duration) error {
 	c.Lock()
 	c.timeout = t
 	c.Unlock()
+
 	return nil
 }
 
@@ -209,6 +216,7 @@ func (c *Config) SetTimeout(t time.Duration) error {
 func (c *Config) Retries() int64 {
 	c.RLock()
 	defer c.RUnlock()
+
 	return c.retries
 }
 
@@ -224,6 +232,7 @@ func (c *Config) SetRetries(num int64) {
 func (c *Config) ConnectRetries() int64 {
 	c.RLock()
 	defer c.RUnlock()
+
 	return c.connectRetries
 }
 
@@ -241,6 +250,7 @@ func (c *Config) Servers() []string {
 	defer c.RUnlock()
 	s := make([]string, len(c.servers))
 	copy(s, c.servers)
+
 	return s
 }
 
@@ -248,6 +258,7 @@ func (c *Config) Servers() []string {
 // updated configuration value.
 func (c *Config) SetServers(servers ...string) error {
 	s := []string{}
+
 	for _, svr := range servers {
 		if _, err := url.Parse(svr); err != nil {
 			return fmt.Errorf("invalid server address " + svr)
@@ -259,6 +270,7 @@ func (c *Config) SetServers(servers ...string) error {
 	c.Lock()
 	c.servers = s
 	c.Unlock()
+
 	return nil
 }
 
@@ -267,6 +279,7 @@ func (c *Config) SetServers(servers ...string) error {
 func (c *Config) WatchInterval() time.Duration {
 	c.RLock()
 	defer c.RUnlock()
+
 	return c.watchInterval
 }
 
@@ -279,5 +292,6 @@ func (c *Config) SetWatchInterval(i time.Duration) error {
 	c.Lock()
 	c.watchInterval = i
 	c.Unlock()
+
 	return nil
 }

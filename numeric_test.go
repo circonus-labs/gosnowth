@@ -94,6 +94,8 @@ const numericTestWriteData = `[
 ]`
 
 func TestNumericValue(t *testing.T) {
+	t.Parallel()
+
 	nv := NumericValueResponse{}
 	if err := json.Unmarshal([]byte(numericTestData), &nv); err != nil {
 		t.Error("error decoding JSON: ", err)
@@ -117,6 +119,8 @@ func TestNumericValue(t *testing.T) {
 }
 
 func TestNumericAllValue(t *testing.T) {
+	t.Parallel()
+
 	nv := NumericAllValueResponse{}
 	if err := json.Unmarshal([]byte(numericTestAllData), &nv); err != nil {
 		t.Error("error decoding JSON: ", err)
@@ -124,15 +128,20 @@ func TestNumericAllValue(t *testing.T) {
 }
 
 func TestNumericReadWrite(t *testing.T) {
+	t.Parallel()
+
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
-		r *http.Request) {
+		r *http.Request,
+	) {
 		if r.RequestURI == "/state" {
 			_, _ = w.Write([]byte(stateTestData))
+
 			return
 		}
 
 		if r.RequestURI == "/stats.json" {
 			_, _ = w.Write([]byte(statsTestData))
+
 			return
 		}
 
@@ -140,6 +149,7 @@ func TestNumericReadWrite(t *testing.T) {
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/count/test"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(numericTestData))
+
 			return
 		}
 
@@ -147,17 +157,20 @@ func TestNumericReadWrite(t *testing.T) {
 			"fc85e0ab-f568-45e6-86ee-d7443be8277d/all/test"
 		if strings.HasPrefix(r.RequestURI, u) {
 			_, _ = w.Write([]byte(numericTestAllData))
+
 			return
 		}
 
 		u = "/write/nnt"
 		if strings.HasPrefix(r.RequestURI, u) {
 			w.WriteHeader(200)
+
 			return
 		}
 	}))
 
 	defer ms.Close()
+
 	sc, err := NewSnowthClient(false, ms.URL)
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
@@ -169,6 +182,7 @@ func TestNumericReadWrite(t *testing.T) {
 	}
 
 	node := &SnowthNode{url: u}
+
 	res, err := sc.ReadNumericValues(time.Unix(1529509020, 0),
 		time.Unix(1529509200, 0), 1, "count",
 		"fc85e0ab-f568-45e6-86ee-d7443be8277d", "test", node)
@@ -200,8 +214,9 @@ func TestNumericReadWrite(t *testing.T) {
 	}
 
 	nv := []NumericWrite{}
-	err = json.NewDecoder(bytes.NewBufferString(numericTestWriteData)).Decode(&nv)
-	if err != nil {
+
+	if err = json.NewDecoder(bytes.NewBufferString(
+		numericTestWriteData)).Decode(&nv); err != nil {
 		t.Fatal(err)
 	}
 
