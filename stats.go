@@ -41,7 +41,7 @@ func (sc *SnowthClient) GetStatsNodeContext(ctx context.Context,
 ) (*Stats, error) {
 	r := &Stats{}
 
-	body, _, err := sc.do(ctx, node, "GET", "/stats.json", nil, nil, 0)
+	body, _, _, err := sc.do(ctx, node, "GET", "/stats.json", nil, nil, 0)
 	if err != nil {
 		return nil, err
 	}
