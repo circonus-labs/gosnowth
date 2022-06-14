@@ -821,6 +821,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 	var hdr http.Header
 
+	traceID := time.Now().UnixNano()
+
 	for r := int64(0); r < retries+1; r++ {
 		connRetries := cr
 		sns := nodes
@@ -844,32 +846,43 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			surl := sc.getURL(sn, url)
-			traceID := time.Now().UnixNano()
 
 			sc.LogDebugf("gosnowth %s request "+
-				"[retry: %d, connRetry: %d]: %s %s traceID: %d",
-				reqMsg, r, (cr - connRetries), method, surl, traceID)
+				"[retry: %d, connRetry: %d]: %s %s %s traceID: %d",
+				reqMsg, r, (cr - connRetries), method, surl,
+				string(bBody), traceID)
+
+			start := time.Now()
 
 			bdy, hdr, err = sc.do(ctx, sn, method, surl,
 				bytes.NewBuffer(bBody), headers, traceID)
+
+			sc.LogDebugf("gosnowth request complete "+
+				"[retry: %d, connRetry: %d]: %s %s latency: %+v traceID: %d",
+				r, (cr - connRetries), method, surl,
+				time.Since(start), traceID)
+
 			if err == nil {
 				return bdy, hdr, nil
 			}
 
-			sc.LogDebugf("gosnowth request error "+
-				"[retry: %d, connRetry: %d]: %s %s %v traceID: %d",
-				r, (cr - connRetries), method, surl, err, traceID)
+			sc.LogWarnf("gosnowth request error "+
+				"[retry: %d, connRetry: %d]: %s %s traceID: %d %+v",
+				r, (cr - connRetries), method, surl, traceID, err)
+
+			// Stop retrying other nodes if he context deadline was reached
+			// or the context has been canceled.
+			if errors.Is(err, context.DeadlineExceeded) ||
+				errors.Is(err, context.Canceled) {
+				return bdy, hdr, err
+			}
 
 			// There are likely more types of IRONdb errors that need to be
 			// checked for and included in this section for errors which
 			// indicate that retries would not be helpful.
-			if strings.Contains(err.Error(), "cannot parse") {
+			if strings.Contains(err.Error(), "cannot parse") ||
+				strings.Contains(err.Error(), "User facing error") {
 				return bdy, hdr, err
-			}
-
-			// Stop retrying other nodes if he context deadline was reached.
-			if errors.Is(err, context.DeadlineExceeded) {
-				break
 			}
 
 			if connRetries == 0 {
@@ -948,54 +961,58 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if traceReq {
 		ctrace := &httptrace.ClientTrace{
 			GetConn: func(hostPort string) {
-				sc.LogDebugf("TRACE-%d: connecting %s\n", traceID, hostPort)
+				sc.LogDebugf("gosnowth TRACE-%d: connecting %s\n",
+					traceID, hostPort)
 			},
 			GotConn: func(info httptrace.GotConnInfo) {
-				sc.LogDebugf("TRACE-%d: connected %+v\n", traceID, info)
+				sc.LogDebugf("gosnowth TRACE-%d: connected %+v\n",
+					traceID, info)
 			},
 			PutIdleConn: func(err error) {
-				sc.LogDebugf("TRACE-%d: put conn back in idle pool, err: %v\n",
+				sc.LogDebugf("gosnowth TRACE-%d: put conn back in idle pool, err: %v\n",
 					traceID, err)
 			},
 			GotFirstResponseByte: func() {
-				sc.LogDebugf("TRACE-%d: got first byte\n", traceID)
+				sc.LogDebugf("gosnowth TRACE-%d: got first byte\n", traceID)
 			},
 			Got100Continue: func() {
-				sc.LogDebugf("TRACE-%d: got 100 Continue\n", traceID)
+				sc.LogDebugf("gosnowth TRACE-%d: got 100 Continue\n", traceID)
 			},
 			Got1xxResponse: func(code int, header textproto.MIMEHeader) error {
-				sc.LogDebugf("TRACE-%d: %d %+v\n", traceID, code, header)
+				sc.LogDebugf("gosnowth TRACE-%d: %d %+v\n",
+					traceID, code, header)
 
 				return nil
 			},
 			DNSStart: func(info httptrace.DNSStartInfo) {
-				sc.LogDebugf("TRACE-%d: dns start %+v\n", traceID, info)
+				sc.LogDebugf("gosnowth TRACE-%d: dns start %+v\n",
+					traceID, info)
 			},
 			DNSDone: func(info httptrace.DNSDoneInfo) {
-				sc.LogDebugf("TRACE-%d: dns done %+v\n", traceID, info)
+				sc.LogDebugf("gosnowth TRACE-%d: dns done %+v\n",
+					traceID, info)
 			},
 			ConnectStart: func(network, addr string) {
-				sc.LogDebugf("TRACE-%d: dialing %s/%s\n",
+				sc.LogDebugf("gosnowth TRACE-%d: dialing %s/%s\n",
 					traceID, network, addr)
 			},
 			ConnectDone: func(network, addr string, err error) {
-				sc.LogDebugf("TRACE-%d: dial complete %s/%s err: %v\n",
+				sc.LogDebugf("gosnowth TRACE-%d: dial complete %s/%s err: %v\n",
 					traceID, network, addr, err)
 			},
 			WroteHeaderField: func(key string, values []string) {
-				sc.LogDebugf("TRACE-%d: wrote header %s: %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%d: wrote header %s: %+v\n",
 					traceID, key, values)
 			},
 			WroteHeaders: func() {
-				sc.LogDebugf("TRACE-%d: wrote all headers\n", traceID)
+				sc.LogDebugf("gosnowth TRACE-%d: wrote all headers\n", traceID)
 			},
 			Wait100Continue: func() {
-				sc.LogDebugf(
-					"TRACE-%d: waiting for '100 Continue' from server\n",
+				sc.LogDebugf("gosnowth TRACE-%d: waiting for '100 Continue' from server\n",
 					traceID)
 			},
 			WroteRequest: func(info httptrace.WroteRequestInfo) {
-				sc.LogDebugf("TRACE-%d: wrote request %s %s - info: %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%d: wrote request %s %s - info: %+v\n",
 					traceID, r.Method, r.URL.Path, info)
 			},
 		}
@@ -1006,15 +1023,11 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if dumpReq {
 		dump, err := httputil.DumpRequestOut(r, true)
 		if err != nil {
-			sc.LogErrorf("%v traceID: %d", err, traceID)
+			sc.LogErrorf("gosnowth error: %v traceID: %d", err, traceID)
 		}
 
 		sc.LogDebugf("gosnowth request dump: %s", string(dump))
 	}
-
-	sc.LogDebugf("gosnowth request: %+v traceID: %d", r, traceID)
-
-	start := time.Now()
 
 	sc.RLock()
 
@@ -1055,13 +1068,9 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 			msg = string(res)
 		}
 
-		sc.LogDebugf("TRACE-%d: complete %s - %s\n", traceID, resp.Status, msg)
+		sc.LogDebugf("gosnowth TRACE-%d: complete %s - %s\n",
+			traceID, resp.Status, msg)
 	}
-
-	sc.LogDebugf("gosnowth response: %+v traceID: %d", resp, traceID)
-	// sc.LogDebugf("gosnowth response body: %v", string(res))
-	sc.LogDebugf("gosnowth latency: %+v traceID: %d", time.Since(start),
-		traceID)
 
 	select {
 	case <-ctx.Done():
@@ -1070,9 +1079,6 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		sc.LogWarnf("error returned from IRONdb: [%d] %s traceID: %d",
-			resp.StatusCode, string(res), traceID)
-
 		return bytes.NewBuffer(res), resp.Header,
 			fmt.Errorf("error returned from IRONdb (%s): [%d] %s",
 				r.URL.Host, resp.StatusCode, string(res))

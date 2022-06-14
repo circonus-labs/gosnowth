@@ -6,6 +6,20 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.8] - 2022-06-14
+
+* fix: Corrects a bug that was causing gosnowth to retry requests that should
+not be retried because they failed due to context cancelation or due to a
+user facing error.
+* upd: Improves the gosnowth debug logging for readability and allows the
+traceID to be used to track requests across multiple retries.
+
+## [v1.10.7] - 2022-06-13
+
+* upd: Bump github.com/openhistogram/circonusllhist from 0.2.1 to 0.3.0 by @dependabot in #69
+* upd: Bump github.com/google/uuid from 1.1.1 to 1.3.0 by @dependabot in #68
+* upd: Bump github.com/google/flatbuffers from 1.12.0 to 2.0.6+incompatible by @dependabot in #67
+
 ## [v1.10.6] - 2022-06-10
 
 * fix: Corrects a bug that was causing the process to fail that randomly
@@ -352,6 +366,8 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.8]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.8
+[v1.10.7]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.7
 [v1.10.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.6
 [v1.10.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.5
 [v1.10.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.4
