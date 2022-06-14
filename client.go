@@ -821,6 +821,8 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 	var hdr http.Header
 
+	var status int
+
 	traceID := time.Now().UnixNano()
 
 	for r := int64(0); r < retries+1; r++ {
@@ -854,7 +856,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 			start := time.Now()
 
-			bdy, hdr, err = sc.do(ctx, sn, method, surl,
+			bdy, hdr, status, err = sc.do(ctx, sn, method, surl,
 				bytes.NewBuffer(bBody), headers, traceID)
 
 			sc.LogDebugf("gosnowth request complete "+
@@ -877,9 +879,13 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				return bdy, hdr, err
 			}
 
-			// There are likely more types of IRONdb errors that need to be
-			// checked for and included in this section for errors which
-			// indicate that retries would not be helpful.
+			// Do not retry 4xx status errors since these indicate a problem
+			// with the request.
+			if status <= http.StatusBadRequest &&
+				status < http.StatusInternalServerError {
+				return bdy, hdr, err
+			}
+
 			if strings.Contains(err.Error(), "cannot parse") ||
 				strings.Contains(err.Error(), "User facing error") {
 				return bdy, hdr, err
@@ -904,14 +910,14 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	method, url string, body io.Reader, headers http.Header,
 	traceID int64,
-) (io.Reader, http.Header, error) {
+) (io.Reader, http.Header, int, error) {
 	if ctx == nil {
 		ctx = context.Background()
 	}
 
 	r, err := http.NewRequest(method, sc.getURL(node, url), body)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create request: %w", err)
+		return nil, nil, 0, fmt.Errorf("failed to create request: %w", err)
 	}
 
 	sc.RLock()
@@ -950,11 +956,11 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	if rf != nil {
 		if err := rf(r); err != nil {
-			return nil, nil, fmt.Errorf("unable to process request: %w", err)
+			return nil, nil, 0, fmt.Errorf("unable to process request: %w", err)
 		}
 
 		if r == nil {
-			return nil, nil, fmt.Errorf("invalid request after processing")
+			return nil, nil, 0, fmt.Errorf("invalid request after processing")
 		}
 	}
 
@@ -1037,7 +1043,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	resp, err := cli.Do(r)
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to perform request: %w", err)
+		return nil, nil, http.StatusInternalServerError,
+			fmt.Errorf("failed to perform request: %w", err)
 	}
 
 	defer func() {
@@ -1046,7 +1053,8 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	res, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, nil, fmt.Errorf("unable to read response body: %w", err)
+		return nil, nil, resp.StatusCode,
+			fmt.Errorf("unable to read response body: %w", err)
 	}
 
 	newTopo := resp.Header.Get("X-Topo-0")
@@ -1074,17 +1082,18 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 	select {
 	case <-ctx.Done():
-		return nil, nil, fmt.Errorf("context terminated: %w", ctx.Err())
+		return nil, nil, resp.StatusCode,
+			fmt.Errorf("context terminated: %w", ctx.Err())
 	default:
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return bytes.NewBuffer(res), resp.Header,
+		return bytes.NewBuffer(res), resp.Header, resp.StatusCode,
 			fmt.Errorf("error returned from IRONdb (%s): [%d] %s",
 				r.URL.Host, resp.StatusCode, string(res))
 	}
 
-	return bytes.NewBuffer(res), resp.Header, nil
+	return bytes.NewBuffer(res), resp.Header, resp.StatusCode, nil
 }
 
 // getURL resolves the URL with a reference for a particular node.

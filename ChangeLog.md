@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.9] - 2022-06-14
+
+* upd: Improves request handling so that requests are not retried for 4XX
+status codes returned from snowth.
+
 ## [v1.10.8] - 2022-06-14
 
 * fix: Corrects a bug that was causing gosnowth to retry requests that should
@@ -366,6 +371,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.9]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.9
 [v1.10.8]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.8
 [v1.10.7]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.7
 [v1.10.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.6
