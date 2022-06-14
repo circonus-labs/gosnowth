@@ -881,7 +881,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 			// Do not retry 4xx status errors since these indicate a problem
 			// with the request.
-			if status <= http.StatusBadRequest &&
+			if status >= http.StatusBadRequest &&
 				status < http.StatusInternalServerError {
 				return bdy, hdr, err
 			}
