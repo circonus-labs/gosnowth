@@ -3,7 +3,6 @@ package gosnowth
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -874,9 +873,10 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 			// Stop retrying other nodes if he context deadline was reached
 			// or the context has been canceled.
-			if errors.Is(err, context.DeadlineExceeded) ||
-				errors.Is(err, context.Canceled) {
-				return bdy, hdr, err
+			select {
+			case <-ctx.Done():
+				return bdy, hdr, ctx.Err()
+			default:
 			}
 
 			// Do not retry 4xx status errors since these indicate a problem
@@ -1078,13 +1078,6 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 
 		sc.LogDebugf("gosnowth TRACE-%d: complete %s - %s\n",
 			traceID, resp.Status, msg)
-	}
-
-	select {
-	case <-ctx.Done():
-		return nil, nil, resp.StatusCode,
-			fmt.Errorf("context terminated: %w", ctx.Err())
-	default:
 	}
 
 	if resp.StatusCode != http.StatusOK {
