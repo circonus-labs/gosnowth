@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.10.11] - 2022-07-15
+
+* fix: Corrects a bug in how check tag encoding is handled that was preventing
+UpdateCheckTags() from correctly updating check tags requiring base64 encoding.
+
 ## [v1.10.10] - 2022-06-15
 
 * upd: Changes the method used to stop retrying when contexts are canceled
@@ -376,6 +381,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.10.11]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.11
 [v1.10.10]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.10
 [v1.10.9]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.9
 [v1.10.8]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.8

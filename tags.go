@@ -561,7 +561,7 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 
 // encodeTags performs base64 encoding on tags when needed.
 func encodeTags(tags []string) ([]string, error) {
-	keyTest := regexp.MustCompile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-]*$")
+	catTest := regexp.MustCompile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-]*$")
 	valTest := regexp.MustCompile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-:=]*$")
 	res := []string{}
 
@@ -570,34 +570,36 @@ func encodeTags(tags []string) ([]string, error) {
 			continue
 		}
 
-		rk, rv := "", ""
-
 		parts := strings.SplitN(tag, ":", 2)
-		if len(parts) != 2 {
+
+		cat := parts[0]
+
+		if strings.HasPrefix(cat, `b"`) && strings.HasSuffix(cat, `"`) {
+			cat = strings.TrimPrefix(strings.TrimSuffix(cat, `"`), `b"`)
+
+			cat, err := base64.StdEncoding.DecodeString(cat)
+			if err != nil {
+				return nil, fmt.Errorf("invalid base64 tag category: %v %w",
+					cat, err)
+			}
+		}
+
+		if !catTest.MatchString(cat) {
+			cat = `b"` + base64.StdEncoding.EncodeToString([]byte(cat)) + `"`
+		}
+
+		if cat == "" {
 			return nil, fmt.Errorf("invalid tag passed: %v", tag)
 		}
 
-		key := parts[0]
-		if strings.HasPrefix(key, `b"`) && strings.HasSuffix(key, `"`) {
-			key = strings.TrimPrefix(strings.TrimSuffix(key, `"`), `b"`)
+		if len(parts) < 2 {
+			res = append(res, cat+":")
 
-			key, err := base64.StdEncoding.DecodeString(key)
-			if err != nil {
-				return nil, fmt.Errorf("invalid base64 tag key: %v %w",
-					key, err)
-			}
-
-			rk = string(key)
-
-			if keyTest.Match(key) {
-				rk = `b"` + base64.StdEncoding.EncodeToString(key) +
-					`"`
-			}
-		} else {
-			rk = key
+			continue
 		}
 
 		val := parts[1]
+
 		if strings.HasPrefix(val, `b"`) && strings.HasSuffix(val, `"`) {
 			val = strings.TrimPrefix(strings.TrimSuffix(val, `"`), `b"`)
 
@@ -606,18 +608,13 @@ func encodeTags(tags []string) ([]string, error) {
 				return nil, fmt.Errorf("invalid base64 tag value: %v %w",
 					val, err)
 			}
-
-			rv = string(val)
-
-			if valTest.Match(val) {
-				rv = `b"` + base64.StdEncoding.EncodeToString(val) +
-					`"`
-			}
-		} else {
-			rv = val
 		}
 
-		res = append(res, rk+":"+rv)
+		if !valTest.MatchString(val) {
+			val = `b"` + base64.StdEncoding.EncodeToString([]byte(val)) + `"`
+		}
+
+		res = append(res, cat+":"+val)
 	}
 
 	return res, nil
