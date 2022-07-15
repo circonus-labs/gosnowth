@@ -530,7 +530,7 @@ func TestUpdateCheckTags(t *testing.T) {
 	r, err := sc.UpdateCheckTags("11223344-5566-7788-9900-aabbccddeeff",
 		[]string{
 			"test:test",
-			"dGVzdA==:dGVzdA==",
+			"b\"dGVzdA==\":b\"dGVzdA==\"",
 		}, node)
 	if err != nil {
 		t.Fatal(err)
