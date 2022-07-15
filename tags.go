@@ -561,7 +561,7 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 
 // encodeTags performs base64 encoding on tags when needed.
 func encodeTags(tags []string) ([]string, error) {
-	keyTest := regexp.MustCompile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-]*$")
+	catTest := regexp.MustCompile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-]*$")
 	valTest := regexp.MustCompile("^[`+A-Za-z0-9!@#\\$%^&\"'\\/\\?\\._\\-:=]*$")
 	res := []string{}
 
@@ -584,7 +584,7 @@ func encodeTags(tags []string) ([]string, error) {
 			}
 		}
 
-		if !keyTest.MatchString(cat) {
+		if !catTest.MatchString(cat) {
 			cat = `b"` + base64.StdEncoding.EncodeToString([]byte(cat)) + `"`
 		}
 
