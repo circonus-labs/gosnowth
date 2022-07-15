@@ -571,9 +571,6 @@ func encodeTags(tags []string) ([]string, error) {
 		}
 
 		parts := strings.SplitN(tag, ":", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid tag passed: %v", tag)
-		}
 
 		cat := parts[0]
 
@@ -591,23 +588,31 @@ func encodeTags(tags []string) ([]string, error) {
 			cat = `b"` + base64.StdEncoding.EncodeToString([]byte(cat)) + `"`
 		}
 
-		val := parts[1]
+		if cat == "" {
+			return nil, fmt.Errorf("invalid tag passed: %v", tag)
+		}
 
-		if strings.HasPrefix(val, `b"`) && strings.HasSuffix(val, `"`) {
-			val = strings.TrimPrefix(strings.TrimSuffix(val, `"`), `b"`)
+		if len(parts) > 1 {
+			val := parts[1]
 
-			val, err := base64.StdEncoding.DecodeString(val)
-			if err != nil {
-				return nil, fmt.Errorf("invalid base64 tag value: %v %w",
-					val, err)
+			if strings.HasPrefix(val, `b"`) && strings.HasSuffix(val, `"`) {
+				val = strings.TrimPrefix(strings.TrimSuffix(val, `"`), `b"`)
+
+				val, err := base64.StdEncoding.DecodeString(val)
+				if err != nil {
+					return nil, fmt.Errorf("invalid base64 tag value: %v %w",
+						val, err)
+				}
 			}
-		}
 
-		if !valTest.MatchString(val) {
-			val = `b"` + base64.StdEncoding.EncodeToString([]byte(val)) + `"`
-		}
+			if !valTest.MatchString(val) {
+				val = `b"` + base64.StdEncoding.EncodeToString([]byte(val)) + `"`
+			}
 
-		res = append(res, cat+":"+val)
+			res = append(res, cat+":"+val)
+		} else {
+			res = append(res, cat+":")
+		}
 	}
 
 	return res, nil
