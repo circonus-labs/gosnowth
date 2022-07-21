@@ -20,5 +20,6 @@ linters:
       - godox
       - gomnd
       - nolintlint
+      - scopelint
       - tagliatelle
       - testpackage

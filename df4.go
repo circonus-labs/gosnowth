@@ -98,6 +98,7 @@ func (h *DF4Head) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON decodes a DF4Head value from a JSON format byte slice.
+//nolint gocyclo
 func (h *DF4Head) UnmarshalJSON(b []byte) error {
 	m := map[string]interface{}{}
 
@@ -230,6 +231,7 @@ func (dd *DF4Data) Numeric() []float64 {
 	}
 
 	r := make([]float64, len(*dd))
+
 	for i, v := range *dd {
 		switch tv := v.(type) {
 		case float64:
@@ -253,6 +255,7 @@ func (dd *DF4Data) Text() []string {
 	}
 
 	r := make([]string, len(*dd))
+
 	for i, v := range *dd {
 		if vv, ok := v.(string); ok {
 			r[i] = vv
@@ -270,9 +273,11 @@ func (dd *DF4Data) Histogram() []map[string]int64 {
 	}
 
 	r := make([]map[string]int64, len(*dd))
+
 	for i, v := range *dd {
 		if m, ok := v.(map[string]interface{}); ok {
 			r[i] = make(map[string]int64, len(m))
+
 			for k, iv := range m {
 				switch tv := iv.(type) {
 				case int64:
