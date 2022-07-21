@@ -147,5 +147,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
+	r.Query = q.Query
+
 	return r, err
 }
