@@ -50,8 +50,8 @@ const testDF4Response = `{
 	"data": [
 		[
 			1,
-			2,
-			3
+			null,
+			2
 		],
 		[
 			[
@@ -60,22 +60,17 @@ const testDF4Response = `{
 					"test1"
 				]
 			],
+			[],
 			[
 				[
 					6866,
 					"test2"
 				]
-			],
-			[
-				[
-					6866,
-					"test3"
-				]
 			]
 		],
 		[
 			{"+12e-004": 1},
-			{"+12e-004": 1},
+			null,
 			{"+12e-004": 1}
 		]
 	]
@@ -111,71 +106,7 @@ func TestDF4ResponseCopy(t *testing.T) {
 	}
 }
 
-func TestMarshalDF4Response(t *testing.T) {
-	t.Parallel()
-
-	v := &DF4Response{
-		Data: []DF4Data{
-			{1, 2, 3},
-			{
-				[][]interface{}{{6866, "test1"}},
-				[][]interface{}{{6866, "test2"}},
-				[][]interface{}{{6866, "test3"}},
-			},
-			{
-				map[string]int64{"+12e-004": 1},
-				map[string]int64{"+12e-004": 1},
-				map[string]int64{"+12e-004": 1},
-			},
-		},
-		Meta: []DF4Meta{{
-			Tags: []string{
-				"__check_uuid:11223344-5566-7788-9900-aabbccddeeff",
-				"__name:test_numeric",
-			},
-			Label: "test_numeric",
-			Kind:  "numeric",
-		}, {
-			Tags: []string{
-				"__check_uuid:11223344-5566-7788-9900-aabbccddeeff",
-				"__name:test_text",
-			},
-			Label: "test_text",
-			Kind:  "text",
-		}, {
-			Tags: []string{
-				"__check_uuid:11223344-5566-7788-9900-aabbccddeeff",
-				"__name:test_histogram",
-			},
-			Label: "test_histogram",
-			Kind:  "histogram",
-		}},
-		Ver: "DF4",
-		Head: DF4Head{
-			Count:   3,
-			Start:   0,
-			Period:  300,
-			Error:   []string{"test", "test"},
-			Warning: []string{"test"},
-			Explain: json.RawMessage([]byte(
-				`{"info":{"putype":["none","number"]}}`)),
-		},
-	}
-
-	buf := &bytes.Buffer{}
-
-	if err := json.NewEncoder(buf).Encode(&v); err != nil {
-		t.Fatal(err)
-	}
-
-	exp := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
-		testDF4Response, "\n", ""), " ", ""), "\t", "") + "\n"
-	if buf.String() != exp {
-		t.Errorf("Expected JSON: %s, got: %s", exp, buf.String())
-	}
-}
-
-func TestUnmarshalDF4Response(t *testing.T) {
+func TestDF4ResponseMarshaling(t *testing.T) {
 	t.Parallel()
 
 	var v *DF4Response
@@ -201,8 +132,8 @@ func TestUnmarshalDF4Response(t *testing.T) {
 		t.Fatalf("Expected length: 3, got: %v", len(v.Data))
 	}
 
-	if v.Data[0][1] != 2.0 {
-		t.Errorf("Expected value: 2.0, got: %v", v.Data[1][1])
+	if v.Data[0][2] != 2.0 {
+		t.Errorf("Expected value: 2.0, got: %v", v.Data[0][2])
 	}
 
 	if v.Head.Start != 0 {
@@ -216,6 +147,18 @@ func TestUnmarshalDF4Response(t *testing.T) {
 	exp := `{"info":{"putype":["none","number"]}}`
 	if string(v.Head.Explain) != exp {
 		t.Errorf("Expected explain: %v, got: %v", exp, string(v.Head.Explain))
+	}
+
+	buf := &bytes.Buffer{}
+
+	if err := json.NewEncoder(buf).Encode(&v); err != nil {
+		t.Fatal(err)
+	}
+
+	exp = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(
+		testDF4Response, "\n", ""), " ", ""), "\t", "") + "\n"
+	if buf.String() != exp {
+		t.Errorf("Expected JSON: %s, got: %s", exp, buf.String())
 	}
 }
 
@@ -239,8 +182,12 @@ func TestDF4Data(t *testing.T) {
 		t.Fatalf("Expected length: 3, got: %v", len(num))
 	}
 
-	if num[1] != 2.0 {
-		t.Errorf("Expected value: 2.0, got: %v", num[1])
+	if num[1] != nil {
+		t.Errorf("Expected value: nil, got: %v", num[1])
+	}
+
+	if *num[2] != 2.0 {
+		t.Errorf("Expected value: 2.0, got: %v", *num[2])
 	}
 
 	text := v.Data[1].Text()
@@ -249,8 +196,12 @@ func TestDF4Data(t *testing.T) {
 		t.Fatalf("Expected length: 3, got: %v", len(text))
 	}
 
-	if text[1] != "test2" {
-		t.Errorf("Expected value: test2, got: %v", text[1])
+	if text[1] != nil {
+		t.Errorf("Expected value: nil, got: %v", text[1])
+	}
+
+	if *text[2] != "test2" {
+		t.Errorf("Expected value: test2, got: %v", *text[2])
 	}
 
 	hist := v.Data[2].Histogram()
@@ -259,46 +210,14 @@ func TestDF4Data(t *testing.T) {
 		t.Fatalf("Expected length: 3, got: %v", len(hist))
 	}
 
-	if hist[1]["+12e-004"] != 1 {
-		t.Errorf("Expected value: 1, got: %v", hist[1]["+12e-004"])
+	if hist[1] != nil {
+		t.Errorf("Expected value: nil, got: %v", hist[1])
+	}
+
+	if (*hist[2])["+12e-004"] != 1 {
+		t.Errorf("Expected value: 1, got: %v", (*hist[2])["+12e-004"])
 	}
 }
-
-const testDF4ResponseText = `{
-	"version": "DF4",
-	"head": {
-		"count": 3,
-		"start": 0,
-		"period": 300
-	},
-	"meta": [
-		{
-			"kind": "text",
-			"label": "test_text",
-			"tags": [
-				"__check_uuid:11223344-5566-7788-9900-aabbccddeeff",
-				"__name:test_text"
-			]
-		}
-	],
-	"data": [
-		[
-			[
-				[
-					6866,
-					"test1"
-				]
-			],
-			[],
-			[
-				[
-					6866,
-					"test3"
-				]
-			]
-		]
-	]
-}`
 
 func TestDF4DataNullEmpty(t *testing.T) {
 	t.Parallel()
@@ -306,19 +225,25 @@ func TestDF4DataNullEmpty(t *testing.T) {
 	var v *DF4Response
 
 	if err := json.NewDecoder(bytes.NewBufferString(
-		testDF4ResponseText)).Decode(&v); err != nil {
+		testDF4Response)).Decode(&v); err != nil {
 		t.Fatal(err)
 	}
 
-	if len(v.Data) != 1 {
-		t.Fatalf("Expected length: 1, got: %v", len(v.Data))
+	if len(v.Data) != 3 {
+		t.Fatalf("Expected length: 3, got: %v", len(v.Data))
+	}
+
+	tv, ok := v.Data[1][1].([]interface{})
+
+	if !ok || len(tv) != 0 {
+		t.Errorf("Expected value: [], got: %v", v.Data[1][1])
 	}
 
 	for _, dv := range v.Data {
 		dv.NullEmpty()
 	}
 
-	if v.Data[0][1] != nil {
-		t.Errorf("Expected value: nil, got: %v", v.Data[0][1])
+	if v.Data[1][1] != nil {
+		t.Errorf("Expected value: nil, got: %v", v.Data[1][1])
 	}
 }

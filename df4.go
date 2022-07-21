@@ -238,23 +238,29 @@ func (d *DF4Data) NullEmpty() {
 }
 
 // Numeric retrieves the data in this value as a slice of float64 values.
-func (dd *DF4Data) Numeric() []float64 {
+func (dd *DF4Data) Numeric() []*float64 {
 	if dd == nil {
 		return nil
 	}
 
-	r := make([]float64, len(*dd))
+	r := make([]*float64, len(*dd))
 
 	for i, v := range *dd {
 		switch tv := v.(type) {
 		case float64:
-			r[i] = tv
+			r[i] = &tv
 		case int64:
-			r[i] = float64(tv)
+			tvv := float64(tv)
+
+			r[i] = &tvv
 		case int:
-			r[i] = float64(tv)
+			tvv := float64(tv)
+
+			r[i] = &tvv
 		case float32:
-			r[i] = float64(tv)
+			tvv := float64(tv)
+
+			r[i] = &tvv
 		}
 	}
 
@@ -262,31 +268,27 @@ func (dd *DF4Data) Numeric() []float64 {
 }
 
 // Text retrieves the data in this value as a slice of string values.
-func (dd *DF4Data) Text() []string {
+func (dd *DF4Data) Text() []*string {
 	if dd == nil {
 		return nil
 	}
 
-	r := make([]string, len(*dd))
+	r := make([]*string, len(*dd))
 
 	for i, v := range *dd {
 		switch vv := v.(type) {
 		case string:
-			r[i] = vv
+			r[i] = &vv
 		case []interface{}:
 			if len(vv) > 0 {
 				if vvs, ok := vv[0].([]interface{}); ok && len(vvs) > 1 {
 					if s, ok := vvs[1].(string); ok {
-						r[i] = s
+						r[i] = &s
 
 						break
 					}
 				}
 			}
-
-			r[i] = ""
-		default:
-			r[i] = ""
 		}
 	}
 
@@ -295,31 +297,33 @@ func (dd *DF4Data) Text() []string {
 
 // Histogram retrieves the data in this value as a slice of map[string]int64
 // values.
-func (dd *DF4Data) Histogram() []map[string]int64 {
+func (dd *DF4Data) Histogram() []*map[string]int64 {
 	if dd == nil {
 		return nil
 	}
 
-	r := make([]map[string]int64, len(*dd))
+	r := make([]*map[string]int64, len(*dd))
 
 	for i, v := range *dd {
 		if m, ok := v.(map[string]interface{}); ok {
-			r[i] = make(map[string]int64, len(m))
+			mv := make(map[string]int64, len(m))
 
 			for k, iv := range m {
 				switch tv := iv.(type) {
 				case int64:
-					r[i][k] = tv
+					mv[k] = tv
 				case int:
-					r[i][k] = int64(tv)
+					mv[k] = int64(tv)
 				case float64:
-					r[i][k] = int64(tv)
+					mv[k] = int64(tv)
 				case float32:
-					r[i][k] = int64(tv)
+					mv[k] = int64(tv)
 				}
 			}
+
+			r[i] = &mv
 		} else if m, ok := v.(map[string]int64); ok {
-			r[i] = m
+			r[i] = &m
 		}
 	}
 
