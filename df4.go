@@ -12,7 +12,7 @@ import (
 type DF4Response struct {
 	Ver   string    `json:"version,omitempty"`
 	Head  DF4Head   `json:"head"`
-	Meta  []DF4Meta `json:"meta,omitempty"`
+	Meta  []DF4Meta `json:"meta"`
 	Data  []DF4Data `json:"data"`
 	Query string    `json:"-"`
 }
