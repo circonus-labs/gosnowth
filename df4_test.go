@@ -54,9 +54,24 @@ const testDF4Response = `{
 			3
 		],
 		[
-			"test1",
-			"test2",
-			"test3"
+			[
+				[
+					6866,
+					"test1"
+				]
+			],
+			[
+				[
+					6866,
+					"test2"
+				]
+			],
+			[
+				[
+					6866,
+					"test3"
+				]
+			]
 		],
 		[
 			{"+12e-004": 1},
@@ -102,7 +117,11 @@ func TestMarshalDF4Response(t *testing.T) {
 	v := &DF4Response{
 		Data: []DF4Data{
 			{1, 2, 3},
-			{"test1", "test2", "test3"},
+			{
+				[][]interface{}{{6866, "test1"}},
+				[][]interface{}{{6866, "test2"}},
+				[][]interface{}{{6866, "test3"}},
+			},
 			{
 				map[string]int64{"+12e-004": 1},
 				map[string]int64{"+12e-004": 1},
@@ -242,5 +261,64 @@ func TestDF4Data(t *testing.T) {
 
 	if hist[1]["+12e-004"] != 1 {
 		t.Errorf("Expected value: 1, got: %v", hist[1]["+12e-004"])
+	}
+}
+
+const testDF4ResponseText = `{
+	"version": "DF4",
+	"head": {
+		"count": 3,
+		"start": 0,
+		"period": 300
+	},
+	"meta": [
+		{
+			"kind": "text",
+			"label": "test_text",
+			"tags": [
+				"__check_uuid:11223344-5566-7788-9900-aabbccddeeff",
+				"__name:test_text"
+			]
+		}
+	],
+	"data": [
+		[
+			[
+				[
+					6866,
+					"test1"
+				]
+			],
+			[],
+			[
+				[
+					6866,
+					"test3"
+				]
+			]
+		]
+	]
+}`
+
+func TestDF4DataNullEmpty(t *testing.T) {
+	t.Parallel()
+
+	var v *DF4Response
+
+	if err := json.NewDecoder(bytes.NewBufferString(
+		testDF4ResponseText)).Decode(&v); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(v.Data) != 1 {
+		t.Fatalf("Expected length: 1, got: %v", len(v.Data))
+	}
+
+	for _, dv := range v.Data {
+		dv.NullEmpty()
+	}
+
+	if v.Data[0][1] != nil {
+		t.Errorf("Expected value: nil, got: %v", v.Data[0][1])
 	}
 }

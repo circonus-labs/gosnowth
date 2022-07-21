@@ -224,6 +224,19 @@ func (h *DF4Head) UnmarshalJSON(b []byte) error {
 // DF4Data values contain slices of data points of DF4 format time series data.
 type DF4Data []interface{}
 
+// NullEmpty sets values within a DF4Data value equal to an empty array to nil.
+func (d *DF4Data) NullEmpty() {
+	if d == nil {
+		return
+	}
+
+	for i, v := range *d {
+		if vv, ok := v.([]interface{}); ok && len(vv) == 0 {
+			(*d)[i] = nil
+		}
+	}
+}
+
 // Numeric retrieves the data in this value as a slice of float64 values.
 func (dd *DF4Data) Numeric() []float64 {
 	if dd == nil {
@@ -257,8 +270,23 @@ func (dd *DF4Data) Text() []string {
 	r := make([]string, len(*dd))
 
 	for i, v := range *dd {
-		if vv, ok := v.(string); ok {
+		switch vv := v.(type) {
+		case string:
 			r[i] = vv
+		case []interface{}:
+			if len(vv) > 0 {
+				if vvs, ok := vv[0].([]interface{}); ok && len(vvs) > 1 {
+					if s, ok := vvs[1].(string); ok {
+						r[i] = s
+
+						break
+					}
+				}
+			}
+
+			r[i] = ""
+		default:
+			r[i] = ""
 		}
 	}
 
