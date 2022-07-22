@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.11.0] - 2022-07-21
+
+* upd: Changes the DF4 data types to include fields that were missing for
+`head.error` and `head.warning`. Adds functionality to allow extracting typed
+data from DF4 data values.
+
 ## [v1.10.11] - 2022-07-15
 
 * fix: Corrects a bug in how check tag encoding is handled that was preventing
@@ -381,6 +387,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.11.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.0
 [v1.10.11]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.11
 [v1.10.10]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.10
 [v1.10.9]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.9
