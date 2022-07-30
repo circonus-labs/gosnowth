@@ -52,12 +52,9 @@ func TestNewClientTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1)
 	defer cancel()
 
-	cfg, err := NewConfig("http://localhost")
-	if err != nil {
-		t.Fatal(err)
-	}
+	cfg := NewConfig("http://localhost")
 
-	_, err = NewClient(ctx, cfg)
+	_, err := NewClient(ctx, cfg)
 	if err == nil {
 		t.Error("Error expected for new client timeout test")
 	}
