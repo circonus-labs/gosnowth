@@ -11,12 +11,9 @@ import (
 // a particular node.
 func ExampleGetNodeState() {
 	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
+	cfg := gosnowth.NewConfig(SnowthServers...)
+	cfg.Discover = true
 
-	cfg.SetDiscover(true)
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
@@ -36,12 +33,9 @@ func ExampleGetNodeState() {
 // ExampleGetNodeGossip demontrates how to get gossip details from a node.
 func ExampleGetNodeGossip() {
 	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
+	cfg := gosnowth.NewConfig(SnowthServers...)
+	cfg.Discover = true
 
-	cfg.SetDiscover(true)
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
@@ -61,12 +55,9 @@ func ExampleGetNodeGossip() {
 // ExampleGetTopology demonstrates how to get topology details from a node.
 func ExampleGetTopology() {
 	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
+	cfg := gosnowth.NewConfig(SnowthServers...)
+	cfg.Discover = true
 
-	cfg.SetDiscover(true)
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)

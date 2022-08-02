@@ -19,12 +19,9 @@ import (
 // ExampleSubmitText demonstrates how to submit a text metric to a node.
 func ExampleSubmitText() {
 	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
+	cfg := gosnowth.NewConfig(SnowthServers...)
+	cfg.Discover = true
 
-	cfg.SetDiscover(true)
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
@@ -46,12 +43,9 @@ func ExampleSubmitText() {
 // ExampleSubmitNNT demonstrates how to submit an NNT metric to a node.
 func ExampleSubmitNNT() {
 	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
+	cfg := gosnowth.NewConfig(SnowthServers...)
+	cfg.Discover = true
 
-	cfg.SetDiscover(true)
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)
@@ -82,12 +76,9 @@ func ExampleSubmitNNT() {
 // ExampleSubmitHistogram demonstrates how to submit histogram data to a node.
 func ExampleSubmitHistogram() {
 	// Create a new client.
-	cfg, err := gosnowth.NewConfig(SnowthServers...)
-	if err != nil {
-		log.Fatalf("failed to create snowth configuration: %v", err)
-	}
+	cfg := gosnowth.NewConfig(SnowthServers...)
+	cfg.Discover = true
 
-	cfg.SetDiscover(true)
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
 		log.Fatalf("failed to create snowth client: %v", err)

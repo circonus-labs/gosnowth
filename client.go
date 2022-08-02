@@ -13,6 +13,7 @@ import (
 	"net/textproto"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -62,6 +63,32 @@ func (sn *SnowthNode) GetCurrentTopology() string {
 // values.
 type httpClient interface {
 	Do(req *http.Request) (*http.Response, error)
+}
+
+// Config values represent configuration information SnowthClient values.
+type Config struct {
+	Discover       bool          `json:"discover"`
+	DialTimeout    time.Duration `json:"dial_timeout,omitempty"`
+	Timeout        time.Duration `json:"timeout,omitempty"`
+	WatchInterval  time.Duration `json:"watch_interval,omitempty"`
+	Retries        int64         `json:"retries,omitempty"`
+	ConnectRetries int64         `json:"connect_retries,omitempty"`
+	Servers        []string      `json:"servers,omitempty"`
+	CtxKeyTraceID  interface{}   `json:"-"`
+}
+
+// NewConfig creates and initializes a new SnowthClient configuration value
+// using default values.
+func NewConfig(servers ...string) *Config {
+	return &Config{
+		DialTimeout:    500 * time.Millisecond,
+		Discover:       false,
+		Servers:        servers,
+		Timeout:        10 * time.Second,
+		WatchInterval:  30 * time.Second,
+		Retries:        0,
+		ConnectRetries: -1,
+	}
 }
 
 // SnowthClient values provide client functionality for accessing IRONdb.
@@ -135,6 +162,10 @@ type SnowthClient struct {
 	dumpRequests  string
 	traceRequests string
 
+	// ctxKeyTraceID is a context key to use to retrieve trace ID's from
+	// contexts passed to gosnowth functions.
+	ctxKeyTraceID interface{}
+
 	// current topology
 	currentTopology         string
 	currentTopologyCompiled *Topology
@@ -145,16 +176,8 @@ type SnowthClient struct {
 // The discover parameter, when true, will allow the client to discover new
 // nodes from the topology.
 func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
-	cfg, err := NewConfig()
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.SetDiscover(discover)
-
-	if err := cfg.SetServers(addrs...); err != nil {
-		return nil, err
-	}
+	cfg := NewConfig(addrs...)
+	cfg.Discover = discover
 
 	return NewClient(context.Background(), cfg)
 }
@@ -162,11 +185,11 @@ func NewSnowthClient(discover bool, addrs ...string) (*SnowthClient, error) {
 // NewClient creates and performs initial setup of a new SnowthClient.
 func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 	client := &http.Client{
-		Timeout: cfg.Timeout(),
+		Timeout: cfg.Timeout,
 		Transport: &http.Transport{
 			Proxy: http.ProxyFromEnvironment,
 			DialContext: (&net.Dialer{
-				Timeout:   cfg.DialTimeout(),
+				Timeout:   cfg.DialTimeout,
 				KeepAlive: 30 * time.Second,
 				DualStack: true,
 			}).DialContext,
@@ -176,8 +199,8 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 			MaxIdleConns:          10,
 			MaxIdleConnsPerHost:   1,
 			IdleConnTimeout:       5 * time.Second,
-			TLSHandshakeTimeout:   cfg.DialTimeout(),
-			ExpectContinueTimeout: cfg.DialTimeout(),
+			TLSHandshakeTimeout:   cfg.DialTimeout,
+			ExpectContinueTimeout: cfg.DialTimeout,
 		},
 	}
 
@@ -185,12 +208,13 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 		c:             client,
 		activeNodes:   []*SnowthNode{},
 		inactiveNodes: []*SnowthNode{},
-		watchInterval: cfg.WatchInterval(),
-		timeout:       cfg.Timeout(),
-		retries:       cfg.Retries(),
-		connRetries:   cfg.ConnectRetries(),
+		watchInterval: cfg.WatchInterval,
+		timeout:       cfg.Timeout,
+		retries:       cfg.Retries,
+		connRetries:   cfg.ConnectRetries,
 		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
 		traceRequests: os.Getenv("GOSNOWTH_TRACE_REQUESTS"),
+		ctxKeyTraceID: cfg.CtxKeyTraceID,
 	}
 
 	// For each of the addrs we need to parse the connection string,
@@ -200,7 +224,7 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 	numActiveNodes := 0
 	nErr := newMultiError()
 
-	for _, addr := range cfg.Servers() {
+	for _, addr := range cfg.Servers {
 		url, err := url.Parse(addr)
 		if err != nil {
 			// This node had an error, put on inactive list.
@@ -240,7 +264,7 @@ func NewClient(ctx context.Context, cfg *Config) (*SnowthClient, error) {
 		return nil, fmt.Errorf("no snowth nodes could be activated")
 	}
 
-	if cfg.Discover() {
+	if cfg.Discover {
 		// For robustness, we will perform a discovery of associated nodes
 		// this works by pulling the topology information for given nodes
 		// and adding nodes discovered within the topology into the client.
@@ -822,7 +846,10 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 
 	var status int
 
-	traceID := time.Now().UnixNano()
+	traceID, ok := ctx.Value(sc.ctxKeyTraceID).(string)
+	if !ok {
+		traceID = strconv.FormatInt(time.Now().UnixNano(), 10)
+	}
 
 	for r := int64(0); r < retries+1; r++ {
 		connRetries := cr
@@ -849,7 +876,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			surl := sc.getURL(sn, url)
 
 			sc.LogDebugf("gosnowth %s request "+
-				"[retry: %d, connRetry: %d]: %s %s %s traceID: %d",
+				"[retry: %d, connRetry: %d]: %s %s %s traceID: %s",
 				reqMsg, r, (cr - connRetries), method, surl,
 				string(bBody), traceID)
 
@@ -859,7 +886,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				bytes.NewBuffer(bBody), headers, traceID)
 
 			sc.LogDebugf("gosnowth request complete "+
-				"[retry: %d, connRetry: %d]: %s %s latency: %+v traceID: %d",
+				"[retry: %d, connRetry: %d]: %s %s latency: %+v traceID: %s",
 				r, (cr - connRetries), method, surl,
 				time.Since(start), traceID)
 
@@ -868,7 +895,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			}
 
 			sc.LogWarnf("gosnowth request error "+
-				"[retry: %d, connRetry: %d]: %s %s traceID: %d %+v",
+				"[retry: %d, connRetry: %d]: %s %s traceID: %s %+v",
 				r, (cr - connRetries), method, surl, traceID, err)
 
 			// Stop retrying other nodes if he context deadline was reached
@@ -907,9 +934,12 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 }
 
 // do sends a request to IRONdb.
-func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
-	method, url string, body io.Reader, headers http.Header,
-	traceID int64,
+func (sc *SnowthClient) do(ctx context.Context,
+	node *SnowthNode,
+	method, url string,
+	body io.Reader,
+	headers http.Header,
+	traceID string,
 ) (io.Reader, http.Header, int, error) {
 	if ctx == nil {
 		ctx = context.Background()
@@ -967,58 +997,58 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if traceReq {
 		ctrace := &httptrace.ClientTrace{
 			GetConn: func(hostPort string) {
-				sc.LogDebugf("gosnowth TRACE-%d: connecting %s\n",
+				sc.LogDebugf("gosnowth TRACE-%s: connecting %s\n",
 					traceID, hostPort)
 			},
 			GotConn: func(info httptrace.GotConnInfo) {
-				sc.LogDebugf("gosnowth TRACE-%d: connected %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: connected %+v\n",
 					traceID, info)
 			},
 			PutIdleConn: func(err error) {
-				sc.LogDebugf("gosnowth TRACE-%d: put conn back in idle pool, err: %v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: put conn back in idle pool, err: %v\n",
 					traceID, err)
 			},
 			GotFirstResponseByte: func() {
-				sc.LogDebugf("gosnowth TRACE-%d: got first byte\n", traceID)
+				sc.LogDebugf("gosnowth TRACE-%s: got first byte\n", traceID)
 			},
 			Got100Continue: func() {
-				sc.LogDebugf("gosnowth TRACE-%d: got 100 Continue\n", traceID)
+				sc.LogDebugf("gosnowth TRACE-%s: got 100 Continue\n", traceID)
 			},
 			Got1xxResponse: func(code int, header textproto.MIMEHeader) error {
-				sc.LogDebugf("gosnowth TRACE-%d: %d %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: %d %+v\n",
 					traceID, code, header)
 
 				return nil
 			},
 			DNSStart: func(info httptrace.DNSStartInfo) {
-				sc.LogDebugf("gosnowth TRACE-%d: dns start %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: dns start %+v\n",
 					traceID, info)
 			},
 			DNSDone: func(info httptrace.DNSDoneInfo) {
-				sc.LogDebugf("gosnowth TRACE-%d: dns done %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: dns done %+v\n",
 					traceID, info)
 			},
 			ConnectStart: func(network, addr string) {
-				sc.LogDebugf("gosnowth TRACE-%d: dialing %s/%s\n",
+				sc.LogDebugf("gosnowth TRACE-%s: dialing %s/%s\n",
 					traceID, network, addr)
 			},
 			ConnectDone: func(network, addr string, err error) {
-				sc.LogDebugf("gosnowth TRACE-%d: dial complete %s/%s err: %v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: dial complete %s/%s err: %v\n",
 					traceID, network, addr, err)
 			},
 			WroteHeaderField: func(key string, values []string) {
-				sc.LogDebugf("gosnowth TRACE-%d: wrote header %s: %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: wrote header %s: %+v\n",
 					traceID, key, values)
 			},
 			WroteHeaders: func() {
-				sc.LogDebugf("gosnowth TRACE-%d: wrote all headers\n", traceID)
+				sc.LogDebugf("gosnowth TRACE-%s: wrote all headers\n", traceID)
 			},
 			Wait100Continue: func() {
-				sc.LogDebugf("gosnowth TRACE-%d: waiting for '100 Continue' from server\n",
+				sc.LogDebugf("gosnowth TRACE-%s: waiting for '100 Continue' from server\n",
 					traceID)
 			},
 			WroteRequest: func(info httptrace.WroteRequestInfo) {
-				sc.LogDebugf("gosnowth TRACE-%d: wrote request %s %s - info: %+v\n",
+				sc.LogDebugf("gosnowth TRACE-%s: wrote request %s %s - info: %+v\n",
 					traceID, r.Method, r.URL.Path, info)
 			},
 		}
@@ -1029,7 +1059,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 	if dumpReq {
 		dump, err := httputil.DumpRequestOut(r, true)
 		if err != nil {
-			sc.LogErrorf("gosnowth error: %v traceID: %d", err, traceID)
+			sc.LogErrorf("gosnowth error: %v traceID: %s", err, traceID)
 		}
 
 		sc.LogDebugf("gosnowth request dump: %s", string(dump))
@@ -1076,7 +1106,7 @@ func (sc *SnowthClient) do(ctx context.Context, node *SnowthNode,
 			msg = string(res)
 		}
 
-		sc.LogDebugf("gosnowth TRACE-%d: complete %s - %s\n",
+		sc.LogDebugf("gosnowth TRACE-%s: complete %s - %s\n",
 			traceID, resp.Status, msg)
 	}
 

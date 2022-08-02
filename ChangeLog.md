@@ -6,6 +6,18 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.11.1] - 2022-07-29
+
+* upd: Simplifies to gosnowth.Config type to no longer implement unneeded
+thread safety and JSON marshaling functionality. No longer uses getters and
+setters to access configuration properties.
+* add: Allows a CtxKeyTraceID value to be set when configuring a gosnowth
+SnowthClient. This will be used to retrieve a trace ID from the context passed
+into gosnowth functions, allowing gosnowth log entries to contain the same
+trace ID being used by the caller of the gosnowth function. If this is not
+configured, or the context does not contain a trace ID, gosnowth will still
+generate its own trace ID using the previous behavior.
+
 ## [v1.11.0] - 2022-07-21
 
 * upd: Changes the DF4 data types to include fields that were missing for
@@ -387,6 +399,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.11.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.1
 [v1.11.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.0
 [v1.10.11]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.11
 [v1.10.10]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.10
