@@ -46,7 +46,7 @@ func TestReadTextValuesFindMetricNode(t *testing.T) {
 			return
 		}
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()
@@ -100,7 +100,7 @@ func TestReadTextValues(t *testing.T) {
 			return
 		}
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()
@@ -156,12 +156,12 @@ func TestWriteText(t *testing.T) {
 
 		if strings.HasPrefix(r.RequestURI,
 			"/write/text") {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 
 			return
 		}
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()

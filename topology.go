@@ -129,20 +129,21 @@ func (topo *Topology) compile() error {
 
 	// This matches the horrible backware compatibility requirements in the
 	// C version.
-	//nolint nestif
-	if topo.WriteCopies != 2 {
+	if topo.WriteCopies != 2 { //nolint:nestif
 		if _, err := hash.Write(bytes.Repeat([]byte{0}, 38)); err != nil {
 			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		netshort := make([]byte, 2)
 		binary.BigEndian.PutUint16(netshort, uint16(topo.WriteCopies))
+
 		if _, err := hash.Write(netshort); err != nil {
 			return fmt.Errorf("unable to write hash: %w", err)
 		}
 
 		if topo.useSide {
 			binary.BigEndian.PutUint16(netshort, 0)
+
 			if _, err := hash.Write(netshort); err != nil {
 				return fmt.Errorf("unable to write hash: %w", err)
 			}

@@ -76,11 +76,11 @@ const testDF4Response = `{
 	]
 }`
 
-//nolint shortif
 func TestDF4ResponseCopy(t *testing.T) {
 	t.Parallel()
 
 	var v *DF4Response
+
 	err := json.NewDecoder(bytes.NewBufferString(testDF4Response)).Decode(&v)
 	if err != nil {
 		t.Fatal(err)
@@ -88,6 +88,7 @@ func TestDF4ResponseCopy(t *testing.T) {
 
 	b := v.Copy()
 	buf := &bytes.Buffer{}
+
 	err = json.NewEncoder(buf).Encode(&b)
 	if err != nil {
 		t.Fatal(err)
@@ -95,6 +96,7 @@ func TestDF4ResponseCopy(t *testing.T) {
 
 	s1 := buf.String()
 	buf = &bytes.Buffer{}
+
 	err = json.NewEncoder(buf).Encode(&v)
 	if err != nil {
 		t.Fatal(err)

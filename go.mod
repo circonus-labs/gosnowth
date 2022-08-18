@@ -1,6 +1,6 @@
 module github.com/circonus-labs/gosnowth
 
-go 1.14
+go 1.17
 
 require (
 	github.com/google/flatbuffers v2.0.6+incompatible

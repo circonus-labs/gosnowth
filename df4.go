@@ -28,13 +28,11 @@ type DF4Meta struct {
 // DF4Head values contain information about the time range of the data elements
 // in a DF4 time series data response.
 type DF4Head struct {
-	Count   int64    `json:"count"`
-	Start   int64    `json:"start"`
-	Period  int64    `json:"period"`
-	Error   []string `json:"error,omitempty"`
-	Warning []string `json:"warning,omitempty"`
-	// TODO: Replace the Explain value with an actual typed schema when one
-	// becomes available.
+	Count   int64           `json:"count"`
+	Start   int64           `json:"start"`
+	Period  int64           `json:"period"`
+	Error   []string        `json:"error,omitempty"`
+	Warning []string        `json:"warning,omitempty"`
 	Explain json.RawMessage `json:"explain,omitempty"`
 }
 
@@ -98,8 +96,7 @@ func (h *DF4Head) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON decodes a DF4Head value from a JSON format byte slice.
-//nolint gocyclo
-func (h *DF4Head) UnmarshalJSON(b []byte) error {
+func (h *DF4Head) UnmarshalJSON(b []byte) error { //nolint:gocyclo
 	m := map[string]interface{}{}
 
 	if err := json.Unmarshal(b, &m); err != nil {

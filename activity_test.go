@@ -2,7 +2,7 @@ package gosnowth
 
 import (
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -29,26 +29,26 @@ func TestRebuildActivity(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/surrogate/activity_rebuild") {
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				t.Error("Unable to read request body")
 			}
 
 			if string(b) == "[]\n" {
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, "misdirected": 0, "errors": 0 }`))
 
 				return
 			}
 
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte("invalid request body"))
 
 			return
 		}
 
 		t.Errorf("Unexpected request: %v", r)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()

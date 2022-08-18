@@ -170,14 +170,14 @@ func TestWriteHistogram(t *testing.T) {
 		if r.RequestURI == "/histogram/write" {
 			rb := []HistogramData{}
 			if err := json.NewDecoder(r.Body).Decode(&rb); err != nil {
-				w.WriteHeader(500)
+				w.WriteHeader(http.StatusInternalServerError)
 				t.Error("Unable to decode JSON data")
 
 				return
 			}
 
 			if len(rb) < 1 {
-				w.WriteHeader(500)
+				w.WriteHeader(http.StatusInternalServerError)
 				t.Error("Invalid request")
 
 				return
@@ -185,7 +185,7 @@ func TestWriteHistogram(t *testing.T) {
 
 			exp := "ae0f7f90-2a6b-481c-9cf5-21a31837020e"
 			if rb[0].ID != exp {
-				w.WriteHeader(500)
+				w.WriteHeader(http.StatusInternalServerError)
 				t.Errorf("Expected UUID: %v, got: %v", exp, rb[0].ID)
 
 				return

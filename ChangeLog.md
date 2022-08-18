@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.11.2] - 2022-08-18
+
+* upd: Removes all use of the deprecated ioutil package, includes some code
+cleanup and adds additional linters.
+* upd: Updates the minumum go build version to 1.17.
+
 ## [v1.11.1] - 2022-07-29
 
 * upd: Simplifies to gosnowth.Config type to no longer implement unneeded
@@ -399,6 +405,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.11.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.2
 [v1.11.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.1
 [v1.11.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.0
 [v1.10.11]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.10.11

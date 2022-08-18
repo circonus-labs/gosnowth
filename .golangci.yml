@@ -14,12 +14,10 @@ linters:
     disable:
       - dupl
       - funlen
-      - gci
       - gocognit
       - goconst
-      - godox
       - gomnd
-      - nolintlint
+      - ifshort
       - scopelint
       - tagliatelle
       - testpackage

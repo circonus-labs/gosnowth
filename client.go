@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/http/httptrace"
@@ -92,30 +91,6 @@ func NewConfig(servers ...string) *Config {
 }
 
 // SnowthClient values provide client functionality for accessing IRONdb.
-// Operations for the client can be broken down into 6 major sections:
-//		1.) State and Topology
-// Within the state and topology APIs, there are several useful apis, including
-// apis to retrieve Node state, Node gossip information, topology information,
-// and topo ring information.  Each of these operations is implemented as a method
-// on this client.
-//		2.) Rebalancing APIs
-// In order to add or remove nodes within an IRONdb cluster you will have to use
-// the rebalancing APIs.  Implemented within this package you will be able to
-// load a new topology, rebalance nodes to the new topology, as well as check
-// load state information and abort a topology change.
-//		3.) Data Retrieval APIs
-// IRONdb houses data, and the data retrieval APIs allow for accessing of that
-// stored data.  Data types implemented include NNT, Text, and Histogram data
-// element types.
-//		4.) Data Submission APIs
-// IRONdb houses data, to which you can use to submit data to the cluster.  Data
-// types supported include the same for the retrieval APIs, NNT, Text and
-// Histogram data types.
-//		5.) Data Deletion APIs
-// Data sometimes needs to be deleted, and that is performed with the data
-// deletion APIs.  This client implements the data deletion apis to remove data
-// from the nodes.
-//		6.) Lua Extensions APIs
 type SnowthClient struct {
 	sync.RWMutex
 	c httpClient
@@ -825,7 +800,7 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 	var err error
 
 	if body != nil {
-		bBody, err = ioutil.ReadAll(body)
+		bBody, err = io.ReadAll(body)
 		if err != nil {
 			return nil, nil, fmt.Errorf("unable to read request body: %w", err)
 		}
@@ -1081,7 +1056,7 @@ func (sc *SnowthClient) do(ctx context.Context,
 		_ = resp.Body.Close()
 	}()
 
-	res, err := ioutil.ReadAll(resp.Body)
+	res, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, nil, resp.StatusCode,
 			fmt.Errorf("unable to read response body: %w", err)

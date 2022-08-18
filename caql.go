@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"strings"
 )
 
@@ -111,7 +111,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 		return nil, err
 	}
 
-	bBuf, err := ioutil.ReadAll(qBuf)
+	bBuf, err := io.ReadAll(qBuf)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read request body buffer: %w", err)
 	}
@@ -136,7 +136,7 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 		return nil, err
 	}
 
-	rb, err := ioutil.ReadAll(body)
+	rb, err := io.ReadAll(body)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read IRONdb response body: %w", err)
 	}

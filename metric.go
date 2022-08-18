@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 )
 
@@ -166,7 +165,7 @@ func (ms *metricScanner) scanMetricName() (scanToken, string, error) {
 
 	for {
 		ch := ms.read()
-		if ch == '|' { //nolint nestif
+		if ch == '|' { //nolint:nestif
 			if err := ms.unread(); err != nil {
 				return tokenIllegal, "", fmt.Errorf(
 					"unable to unread to scan buffer: %w", err)
@@ -225,7 +224,7 @@ loop:
 					"unable to write to tag name canonical buffer: %w", err)
 			}
 		case '\\':
-			if quoted { //nolint nestif
+			if quoted { //nolint:nestif
 				ch2 := ms.read()
 				if ch2 == '"' || ch2 == '\\' {
 					if _, err := buf.WriteRune(ch2); err != nil {
@@ -314,12 +313,11 @@ loop:
 }
 
 // scanTagValue attempts to read a tag value token from the scan buffer.
-//nolint gocyclo
-func (ms *metricScanner) scanTagValue(
+func (ms *metricScanner) scanTagValue( //nolint:gocyclo
 	tt tagType,
 ) (scanToken, string, string, error) {
-	var buf bytes.Buffer
-	var can bytes.Buffer
+	var buf, can bytes.Buffer
+
 	quoted := false
 
 loop:
@@ -339,7 +337,7 @@ loop:
 					"unable to write to canonical tag name buffer: %w", err)
 			}
 		case '\\':
-			if quoted {
+			if quoted { //nolint:nestif
 				ch2 := ms.read()
 				if ch2 == '"' || ch2 == '\\' {
 					if _, err := buf.WriteRune(ch2); err != nil {
@@ -481,7 +479,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 			strings.HasSuffix(tag.Category, `"`) {
 			val := strings.Trim(tag.Category[1:], `"`)
 
-			b, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding,
+			b, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding,
 				bytes.NewBufferString(val)))
 			if err != nil {
 				return "", nil, fmt.Errorf(
@@ -521,7 +519,7 @@ func (mp *MetricParser) parseTagSet(tt tagType) (string, []Tag, error) {
 			strings.HasSuffix(tag.Value, `"`) {
 			val := strings.Trim(tag.Value[1:], `"`)
 
-			b, err := ioutil.ReadAll(base64.NewDecoder(base64.StdEncoding,
+			b, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding,
 				bytes.NewBufferString(val)))
 			if err != nil {
 				return "", nil, fmt.Errorf(
