@@ -5,14 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
 
-	flatbuffers "github.com/google/flatbuffers/go"
-
 	"github.com/circonus-labs/gosnowth/fb/fetch"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 // FetchStream values represent queries for individual data streams in an
@@ -165,7 +164,7 @@ func (sc *SnowthClient) FetchValuesContext(ctx context.Context,
 		return nil, err
 	}
 
-	rb, err := ioutil.ReadAll(body)
+	rb, err := io.ReadAll(body)
 	if err != nil {
 		return nil, fmt.Errorf("unable to read IRONdb response body: %w", err)
 	}
@@ -212,7 +211,7 @@ func (sc *SnowthClient) FetchValuesFbContext(ctx context.Context,
 		return nil, err
 	}
 
-	df4Buf, err := ioutil.ReadAll(body)
+	df4Buf, err := io.ReadAll(body)
 	if err != nil {
 		return nil, err
 	}

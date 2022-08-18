@@ -3,7 +3,7 @@ package gosnowth
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -12,9 +12,8 @@ import (
 	"testing"
 	"time"
 
-	flatbuffers "github.com/google/flatbuffers/go"
-
 	"github.com/circonus-labs/gosnowth/fb/noit"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 func TestWriteRaw(t *testing.T) {
@@ -36,27 +35,27 @@ func TestWriteRaw(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/raw") {
-			buf, err := ioutil.ReadAll(r.Body)
+			buf, err := io.ReadAll(r.Body)
 			if err != nil {
 				t.Error("Unable to read request body")
 			}
 
 			if string(buf) == "test" {
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, ` +
 					`"misdirected": 0, "errors": 0 }`))
 
 				return
 			}
 
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte("invalid request body"))
 
 			return
 		}
 
 		t.Errorf("Unexpected request: %v", r)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()
@@ -121,7 +120,7 @@ func TestReadRawNumericValues(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/raw") {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 			_, _ = w.Write([]byte(
 				`[[1529509063064,0],[1529509122985,0],[1529509183764,0]]`))
 
@@ -129,7 +128,7 @@ func TestReadRawNumericValues(t *testing.T) {
 		}
 
 		t.Errorf("Unexpected request: %v", r)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()
@@ -176,27 +175,27 @@ func TestWriteRawMetricList(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/raw") {
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				t.Error("Unable to read request body")
 			}
 
 			if string(b)[4:8] == "CIML" {
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, ` +
 					`"misdirected": 0, "errors": 0 }`))
 
 				return
 			}
 
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte("invalid request body"))
 
 			return
 		}
 
 		t.Errorf("Unexpected request: %v", r)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()
@@ -360,27 +359,27 @@ func BenchmarkWriteRawMetricListLocal(b *testing.B) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/raw") {
-			buf, err := ioutil.ReadAll(r.Body)
+			buf, err := io.ReadAll(r.Body)
 			if err != nil {
 				b.Error("Unable to read request body")
 			}
 
 			if string(buf)[4:8] == "CIML" {
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte(`{ "records": 0, "updated": 0, ` +
 					`"misdirected": 0, "errors": 0 }`))
 
 				return
 			}
 
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte("invalid request body"))
 
 			return
 		}
 
 		b.Errorf("Unexpected request: %v", r)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()

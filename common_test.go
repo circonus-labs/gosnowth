@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -142,7 +142,7 @@ func TestEncodeXML(t *testing.T) {
 		t.Error("error encountered encoding: ", err)
 	}
 
-	b, _ := ioutil.ReadAll(reader)
+	b, _ := io.ReadAll(reader)
 	if !strings.Contains(string(b), "somethingelse") {
 		t.Error("Should contain somethingelse")
 	}

@@ -163,7 +163,7 @@ func TestNNTReadWrite(t *testing.T) {
 
 		u = "/write/nnt"
 		if strings.HasPrefix(r.RequestURI, u) {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 
 			return
 		}

@@ -233,19 +233,19 @@ func TestTopology(t *testing.T) {
 
 		if strings.HasPrefix(r.RequestURI,
 			"/topology/test") {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 
 			return
 		}
 
 		if strings.HasPrefix(r.RequestURI,
 			"/activate/test") {
-			w.WriteHeader(200)
+			w.WriteHeader(http.StatusOK)
 
 			return
 		}
 
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()

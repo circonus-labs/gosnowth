@@ -12,9 +12,8 @@ import (
 	"strconv"
 	"time"
 
-	flatbuffers "github.com/google/flatbuffers/go"
-
 	"github.com/circonus-labs/gosnowth/fb/noit"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 // MetriclistFlatbufferContentType is the content type header for flatbuffer

@@ -1,7 +1,7 @@
 package gosnowth
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -56,7 +56,7 @@ func TestGetCAQLQuery(t *testing.T) {
 
 		if r.Method == "POST" && strings.HasPrefix(r.RequestURI,
 			"/extension/lua/public/caql_v1") {
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				w.WriteHeader(http.StatusInternalServerError)
 				_, _ = w.Write([]byte(testCAQLError))
@@ -72,7 +72,7 @@ func TestGetCAQLQuery(t *testing.T) {
 			}
 
 			if strings.Contains(string(b), "histograms") {
-				w.WriteHeader(502)
+				w.WriteHeader(http.StatusBadGateway)
 				_, _ = w.Write([]byte(testCAQLError))
 
 				return

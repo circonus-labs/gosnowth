@@ -7,9 +7,8 @@ import (
 	"fmt"
 	"net/http"
 
-	flatbuffers "github.com/google/flatbuffers/go"
-
 	"github.com/circonus-labs/gosnowth/fb/nntbs"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 const metricSourceGraphite = 0x2

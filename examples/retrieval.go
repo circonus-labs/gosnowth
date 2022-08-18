@@ -7,9 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/google/uuid"
-
 	"github.com/circonus-labs/gosnowth"
+	"github.com/google/uuid"
 )
 
 // ExampleReadNNT demonstrates how to read NNT values from a given snowth node.

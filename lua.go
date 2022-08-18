@@ -33,18 +33,20 @@ type LuaExtension struct {
 type LuaExtensions map[string]*LuaExtension
 
 // UnmarshalJSON decodes a byte slice of JSON data into a LuaExtensions map.
-//nolint gocyclo
-func (le *LuaExtensions) UnmarshalJSON(b []byte) error {
+func (le *LuaExtensions) UnmarshalJSON(b []byte) error { //nolint:gocyclo
 	r := map[string]interface{}{}
+
 	err := json.NewDecoder(bytes.NewBuffer(b)).Decode(&r)
 	if err != nil {
 		return err
 	}
 
 	*le = make(map[string]*LuaExtension, len(r))
+
 	for k, ext := range r {
 		(*le)[k] = &LuaExtension{Name: k}
-		if v, ok := ext.(map[string]interface{}); ok {
+
+		if v, ok := ext.(map[string]interface{}); ok { //nolint:nestif
 			for key, val := range v {
 				switch key {
 				case "documentation":
@@ -63,9 +65,11 @@ func (le *LuaExtensions) UnmarshalJSON(b []byte) error {
 					if value, ok := val.(map[string]interface{}); ok {
 						(*le)[k].Params = make(map[string]*ExtensionParam,
 							len(value))
+
 						for pk, pv := range value {
 							if pMap, ok := pv.(map[string]interface{}); ok {
 								(*le)[k].Params[pk] = &ExtensionParam{Name: pk}
+
 								for pKey, pVal := range pMap {
 									switch pKey {
 									case "type":
@@ -85,6 +89,7 @@ func (le *LuaExtensions) UnmarshalJSON(b []byte) error {
 									case "alias_list":
 										if pV, ok := pVal.([]interface{}); ok {
 											(*le)[k].Params[pk].AliasList = make([]string, len(pV))
+
 											for n, iV := range pV {
 												if itV, ok := iV.(string); ok {
 													(*le)[k].Params[pk].

@@ -1,16 +1,15 @@
 package gosnowth
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
 
-	flatbuffers "github.com/google/flatbuffers/go"
-
 	"github.com/circonus-labs/gosnowth/fb/nntbs"
+	flatbuffers "github.com/google/flatbuffers/go"
 )
 
 func TestWriteNNTBSFlatbuffer(t *testing.T) {
@@ -32,19 +31,19 @@ func TestWriteNNTBSFlatbuffer(t *testing.T) {
 		}
 
 		if strings.HasPrefix(r.RequestURI, "/nntbs") {
-			b, err := ioutil.ReadAll(r.Body)
+			b, err := io.ReadAll(r.Body)
 			if err != nil {
 				t.Error("Unable to read request body")
 			}
 
 			if string(b)[4:8] == "CINN" {
-				w.WriteHeader(200)
+				w.WriteHeader(http.StatusOK)
 				_, _ = w.Write([]byte(`{ "records": 1, "updated": 1, "misdirected": 0, "errors": 0 }`))
 
 				return
 			}
 
-			w.WriteHeader(500)
+			w.WriteHeader(http.StatusInternalServerError)
 			_, _ = w.Write([]byte("invalid request body:"))
 			_, _ = w.Write(b)
 
@@ -52,7 +51,7 @@ func TestWriteNNTBSFlatbuffer(t *testing.T) {
 		}
 
 		t.Errorf("Unexpected request: %v", r)
-		w.WriteHeader(500)
+		w.WriteHeader(http.StatusInternalServerError)
 	}))
 
 	defer ms.Close()
