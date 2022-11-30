@@ -458,18 +458,18 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 	}
 
 	go func(wi time.Duration) {
-		tick := time.NewTicker(wi)
-		defer tick.Stop()
+		tick := time.NewTimer(wi)
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-tick.C:
-				sc.LogDebugf("firing watch and update")
+				sc.LogDebugf("updating active snowth nodes")
 
 				if err := sc.discoverNodes(ctx); err != nil {
-					sc.LogErrorf("failed to perform watch discovery: %v", err)
+					sc.LogErrorf("failed to perform snowth node discovery: %v",
+						err)
 				}
 
 				sc.RLock()
@@ -477,12 +477,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				sc.RUnlock()
 
 				for _, node := range sc.ListInactiveNodes() {
-					sc.LogDebugf("checking node for inactive -> active: %s",
-						node.GetURL().Host)
-
 					if sc.isNodeActive(ctx, node) {
-						// Move to active.
-						sc.LogDebugf("active, moving to active list: %s",
+						sc.LogDebugf("moving snowth node to active list: %s",
 							node.GetURL().Host)
 						sc.ActivateNodes(node)
 					}
@@ -493,12 +489,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 				}
 
 				for _, node := range sc.ListActiveNodes() {
-					sc.LogDebugf("checking node for active -> inactive: %s",
-						node.GetURL().Host)
-
 					if !sc.isNodeActive(ctx, node) {
-						// Move to inactive.
-						sc.LogWarnf("inactive, moving to inactive list: %s",
+						sc.LogWarnf("moving snowth node to inactive list: %s",
 							node.GetURL().Host)
 						sc.DeactivateNodes(node)
 					}
@@ -507,6 +499,8 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						wf(node)
 					}
 				}
+
+				tick = time.NewTimer(wi)
 			}
 		}
 	}(wi)
@@ -556,6 +550,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 	for i := 0; i < len(sc.activeNodes); i++ {
 		if sc.activeNodes[i].identifier == topology.ID {
 			found = true
+
 			url := url.URL{
 				Scheme: "http",
 				Host: fmt.Sprintf("%s:%d", topology.Address,
@@ -565,14 +560,14 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 			sc.activeNodes[i].url = &url
 			sc.activeNodes[i].currentTopology = hash
 
-			continue
+			break
 		}
 	}
 
 	for i := 0; i < len(sc.inactiveNodes); i++ {
-		found = true
-
 		if sc.inactiveNodes[i].identifier == topology.ID {
+			found = true
+
 			url := url.URL{
 				Scheme: "http",
 				Host: fmt.Sprintf("%s:%d", topology.Address,
@@ -582,7 +577,7 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 			sc.inactiveNodes[i].url = &url
 			sc.inactiveNodes[i].currentTopology = hash
 
-			continue
+			break
 		}
 	}
 
