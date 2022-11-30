@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.11.3] - 2022-11-30
+
+* upd: Updates the WatchAndUpdate() functionality of SnowthClient to correctly
+update cluster topology and node active status on a configured interval.
+
 ## [v1.11.2] - 2022-08-18
 
 * upd: Removes all use of the deprecated ioutil package, includes some code
@@ -405,6 +410,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.11.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.3
 [v1.11.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.2
 [v1.11.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.1
 [v1.11.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.0
