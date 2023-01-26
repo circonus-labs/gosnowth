@@ -518,17 +518,27 @@ func (sc *SnowthClient) discoverNodes(ctx context.Context) error {
 		// lookup the topology
 		topology, err := sc.GetTopologyInfoContext(ctx, node)
 		if err != nil {
-			mErr.Add(fmt.Errorf("error getting topology info: %w", err))
+			mErr.Add(fmt.Errorf("error getting topology info from node %s: %w",
+				node.GetURL().String(), err))
+
+			continue
+		}
+
+		if topology == nil || len(topology.Nodes) == 0 {
+			mErr.Add(fmt.Errorf("received no topology info from node %s: %w",
+				node.GetURL().String(), err))
 
 			continue
 		}
 
 		// populate all the nodes with the appropriate topology information
 		for _, topoNode := range topology.Nodes {
-			sc.populateNodeInfo(node.GetCurrentTopology(), topoNode)
+			sc.populateNodeInfo(ctx, node.GetCurrentTopology(), topoNode)
 		}
 
 		success = true
+
+		break
 	}
 
 	if !success {
@@ -542,7 +552,8 @@ func (sc *SnowthClient) discoverNodes(ctx context.Context) error {
 
 // populateNodeInfo populates an existing node with details from the topology.
 // If a node doesn't exist, it will be added to the list of active nodes.
-func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
+func (sc *SnowthClient) populateNodeInfo(ctx context.Context, hash string,
+	topology TopologyNode) {
 	sc.Lock()
 
 	found := false
@@ -599,8 +610,17 @@ func (sc *SnowthClient) populateNodeInfo(hash string, topology TopologyNode) {
 			currentTopology: hash,
 		}
 
-		sc.AddNodes(newNode)
-		sc.ActivateNodes(newNode)
+		stats, err := sc.GetStatsNodeContext(ctx, newNode)
+		if err != nil {
+			// This node is not returning stats, put it on the inactive list.
+			sc.AddNodes(newNode)
+		} else {
+			newNode.identifier = stats.Identity()
+			newNode.semVer = stats.SemVer()
+
+			sc.AddNodes(newNode)
+			sc.ActivateNodes(newNode)
+		}
 	}
 }
 
