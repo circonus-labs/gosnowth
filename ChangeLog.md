@@ -6,6 +6,12 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.11.4] - 2023-01-26
+
+* fix: Ensures that snowth nodes loaded by the topology discovery process are
+properly populated with all stats information, and are correctly added as
+inactive servers if they are not responding to network requests.
+
 ## [v1.11.3] - 2022-11-30
 
 * upd: Updates the WatchAndUpdate() functionality of SnowthClient to correctly
@@ -410,6 +416,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.11.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.4
 [v1.11.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.3
 [v1.11.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.2
 [v1.11.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.1
