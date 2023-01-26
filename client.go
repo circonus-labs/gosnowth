@@ -553,7 +553,8 @@ func (sc *SnowthClient) discoverNodes(ctx context.Context) error {
 // populateNodeInfo populates an existing node with details from the topology.
 // If a node doesn't exist, it will be added to the list of active nodes.
 func (sc *SnowthClient) populateNodeInfo(ctx context.Context, hash string,
-	topology TopologyNode) {
+	topology TopologyNode,
+) {
 	sc.Lock()
 
 	found := false
