@@ -1,5 +1,5 @@
-github.com/google/flatbuffers v22.11.23+incompatible h1:334TygA7iuxt0hoamawsM36xoui01YiouEZnr0qeFMI=
-github.com/google/flatbuffers v22.11.23+incompatible/go.mod h1:1AeVuKshWv4vARoZatz6mlQ0JxURH0Kv5+zNeJKJCa8=
+github.com/google/flatbuffers v23.1.21+incompatible h1:bUqzx/MXCDxuS0hRJL2EfjyZL3uQrPbMocUa8zGqsTA=
+github.com/google/flatbuffers v23.1.21+incompatible/go.mod h1:1AeVuKshWv4vARoZatz6mlQ0JxURH0Kv5+zNeJKJCa8=
 github.com/google/uuid v1.3.0 h1:t6JiXgmwXMjEs8VusXIJk2BXHsn+wx8BZdTaoZ5fu7I=
 github.com/google/uuid v1.3.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/openhistogram/circonusllhist v0.3.0 h1:CuEawy94hKEzjhSABdqkGirl6o67QrqtRoZg3CXBn6k=
