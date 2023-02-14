@@ -18,20 +18,20 @@ const testCAQLError = `{
 	},
 	"status": "520 (User facing error)",
 	"arguments": {
-		"ignore_duration_limits": false,
 		"_debug": 0,
-		"period": 300,
 		"_id": 33545929,
-		"account_id": "1",
-		"start_time": 1567500000,
 		"_timeout": 15,
-		"min_prefill": 0,
+		"account_id": "1",
 		"end_time": 1567566000,
+		"expansion": [],
 		"format": "DF4",
-		"q": "find:histograms(\"latency\",\"and(service:api)\")",
-		"prepare_results": "JSON",
+		"ignore_duration_limits": false,
 		"method": "fetch",
-		"expansion": []
+		"min_prefill": 0,
+		"period": 300,
+		"prepare_results": "JSON",
+		"q": "find:histograms(\"latency\",\"and(service:api)\")",
+		"start_time": 1567500000
 	},
 	"success": false
 }`
@@ -154,9 +154,9 @@ func TestGetCAQLQuery(t *testing.T) {
 	}
 
 	exp := "Function not found: histograms"
-	if vErr.UserError.Message != exp {
+	if vErr.Message() != exp {
 		t.Errorf("Expected user error: %v, got: %v", exp,
-			vErr.UserError.Message)
+			vErr.Message())
 	}
 
 	exp = strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(

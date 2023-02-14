@@ -6,6 +6,13 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.12.0] - 2023-02-14
+
+* add: Adds support for PromQL queries via the new snowth PromQL support.
+* upd: Improves CAQLError values to include more information from snowth.
+Access to the message previously in CAQLError.UserError.Message must now be
+retrived via the CAQLError.Message() method instead.
+
 ## [v1.11.4] - 2023-01-26
 
 * fix: Ensures that snowth nodes loaded by the topology discovery process are
@@ -416,6 +423,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.12.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.0
 [v1.11.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.4
 [v1.11.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.3
 [v1.11.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.2
