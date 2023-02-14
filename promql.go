@@ -159,36 +159,38 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 	body, _, rErr := sc.DoRequestContext(ctx, node, "POST", u,
 		bytes.NewBuffer(bBuf), nil)
 
-	if body != nil {
-		buf, err := io.ReadAll(body)
+	if body == nil {
+		return nil, rErr
+	}
+
+	buf, err := io.ReadAll(body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read response body buffer: %w",
+			err)
+	}
+
+	if rErr != nil {
+		r = &PromQLResponse{
+			Status:    "error",
+			ErrorType: "caql",
+			Error:     string(buf),
+		}
+
+		var cErr *CAQLError
+
+		err := decodeJSON(bytes.NewBuffer(buf), &cErr)
 		if err != nil {
-			return nil, fmt.Errorf("unable to read response body buffer: %w",
+			return nil, fmt.Errorf("unable to decode error response: %w",
 				err)
 		}
 
-		if rErr != nil {
-			r = &PromQLResponse{
-				Status:    "error",
-				ErrorType: "caql",
-				Error:     string(buf),
-			}
-
-			var cErr *CAQLError
-
-			err := decodeJSON(bytes.NewBuffer(buf), &cErr)
-			if err != nil {
-				return nil, fmt.Errorf("unable to decode error response: %w",
-					err)
-			}
-
-			if cErr != nil && cErr.Message() != "" {
-				r.Error = cErr.Message()
-			}
-		} else {
-			if err := decodeJSON(bytes.NewBuffer(buf), &r); err != nil {
-				return nil, fmt.Errorf("unable to decode PromQL response: %w",
-					err)
-			}
+		if cErr != nil && cErr.Message() != "" {
+			r.Error = cErr.Message()
+		}
+	} else {
+		if err := decodeJSON(bytes.NewBuffer(buf), &r); err != nil {
+			return nil, fmt.Errorf("unable to decode PromQL response: %w",
+				err)
 		}
 	}
 
