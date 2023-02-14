@@ -11,7 +11,7 @@ to [Semantic Versioning](http://semver.org/) rules.
 * add: Adds support for PromQL queries via the new snowth PromQL support.
 * upd: Improves CAQLError values to include more information from snowth.
 Access to the message previously in CAQLError.UserError.Message must now be
-retrived via the CAQLError.Message() method instead.
+retrieved via the CAQLError.Message() method instead.
 
 ## [v1.11.4] - 2023-01-26
 
