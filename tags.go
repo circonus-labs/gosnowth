@@ -220,6 +220,10 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 		node = sc.GetActiveNode()
 	}
 
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
 	u := fmt.Sprintf("%s?query=%s",
 		fmt.Sprintf("/find/%d/tags", accountID),
 		url.QueryEscape(query))
@@ -314,6 +318,10 @@ func (sc *SnowthClient) FindTagCatsContext(ctx context.Context,
 		node = sc.GetActiveNode()
 	}
 
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
 	u := fmt.Sprintf("%s?query=%s",
 		fmt.Sprintf("/find/%d/tag_cats", accountID),
 		url.QueryEscape(query))
@@ -351,6 +359,10 @@ func (sc *SnowthClient) FindTagValsContext(ctx context.Context,
 		node = nodes[0]
 	} else {
 		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
 	}
 
 	u := fmt.Sprintf("%s?query=%s&category=%s",
@@ -402,6 +414,10 @@ func (sc *SnowthClient) GetCheckTagsContext(ctx context.Context,
 		node = sc.GetActiveNode()
 	}
 
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
 	u := fmt.Sprintf("/meta/check/tag/%s", checkUUID)
 
 	r := CheckTags{}
@@ -440,6 +456,10 @@ func (sc *SnowthClient) DeleteCheckTagsContext(ctx context.Context,
 		node = sc.GetActiveNode()
 	}
 
+	if node == nil {
+		return fmt.Errorf("unable to get active node")
+	}
+
 	u := fmt.Sprintf("/meta/check/tag/%s", checkUUID)
 
 	_, _, err := sc.DoRequestContext(ctx, node, "DELETE", u, nil, nil)
@@ -474,6 +494,10 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 		node = nodes[0]
 	} else {
 		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return 0, fmt.Errorf("unable to get active node")
 	}
 
 	old, err := sc.GetCheckTagsContext(ctx, checkUUID, node)

@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.12.1] - 2023-02-15
+
+* upd: Removes the WatchFunc functionality as this is not used anymore.
+* upd: Improves error handling when no active nodes are available.
+
 ## [v1.12.0] - 2023-02-14
 
 * add: Adds support for PromQL queries via the new snowth PromQL support.
@@ -423,6 +428,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.12.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.1
 [v1.12.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.0
 [v1.11.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.4
 [v1.11.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.11.3
