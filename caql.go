@@ -95,10 +95,14 @@ func (sc *SnowthClient) GetCAQLQueryContext(ctx context.Context, q *CAQLQuery,
 		node = sc.GetActiveNode()
 	}
 
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
 	u := "/extension/lua/public/caql_v1"
 
 	if q == nil {
-		q = &CAQLQuery{}
+		return nil, fmt.Errorf("invalid CAQL query: null")
 	}
 
 	q.Format = "DF4"

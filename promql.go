@@ -55,8 +55,12 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 		node = sc.GetActiveNode()
 	}
 
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
 	if query == nil {
-		return nil, fmt.Errorf("invalid promql query: null")
+		return nil, fmt.Errorf("invalid PromQL query: null")
 	}
 
 	u := "/extension/lua/public/caql_v1"
@@ -186,6 +190,8 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 
 		if cErr != nil && cErr.Message() != "" {
 			r.Error = cErr.Message()
+
+			rErr = cErr
 		}
 	} else {
 		if err := decodeJSON(bytes.NewBuffer(buf), &r); err != nil {

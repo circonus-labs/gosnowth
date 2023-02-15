@@ -124,11 +124,6 @@ type SnowthClient struct {
 	// or other context information can be added by this function.
 	request func(r *http.Request) error
 
-	// watch is an assignable middleware function which can plugin functionality
-	// to activate or deactivate snowth cluster nodes during the watch and
-	// update process, using custom logic.
-	watch func(n *SnowthNode)
-
 	// dumpRequests and traceRequests are settings from the environment
 	// GOSNOWTH_DUMP_REQUESTS and GOSNOWTH_TRACE_REQUESTS respectively.
 	// Set to a path `/data/fetch` or `*` for all paths.
@@ -307,15 +302,6 @@ func (sc *SnowthClient) SetRequestFunc(f func(r *http.Request) error) {
 	sc.request = f
 }
 
-// SetWatchFunc sets an optional middleware function that can be used to
-// inspect and activate or deactivate IRONdb cluster nodes during the watch and
-// update process.
-func (sc *SnowthClient) SetWatchFunc(f func(n *SnowthNode)) {
-	sc.Lock()
-	defer sc.Unlock()
-	sc.watch = f
-}
-
 // SetWatchInterval sets the interval at which the watch process executes.
 func (sc *SnowthClient) SetWatchInterval(d time.Duration) {
 	sc.Lock()
@@ -472,19 +458,11 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						err)
 				}
 
-				sc.RLock()
-				wf := sc.watch
-				sc.RUnlock()
-
 				for _, node := range sc.ListInactiveNodes() {
 					if sc.isNodeActive(ctx, node) {
 						sc.LogDebugf("moving snowth node to active list: %s",
 							node.GetURL().Host)
 						sc.ActivateNodes(node)
-					}
-
-					if wf != nil {
-						wf(node)
 					}
 				}
 
@@ -493,10 +471,6 @@ func (sc *SnowthClient) WatchAndUpdate(ctx context.Context) {
 						sc.LogWarnf("moving snowth node to inactive list: %s",
 							node.GetURL().Host)
 						sc.DeactivateNodes(node)
-					}
-
-					if wf != nil {
-						wf(node)
 					}
 				}
 
