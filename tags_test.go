@@ -535,7 +535,7 @@ func TestUpdateCheckTags(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if r != 1 {
-		t.Fatalf("expecting return: 1, got: %v", r)
+	if r != 2 {
+		t.Fatalf("expecting return: 2, got: %v", r)
 	}
 }

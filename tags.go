@@ -525,7 +525,6 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 	}
 
 	del := []string{}
-	add := []string{}
 
 	for _, oldTag := range ex {
 		d := true
@@ -543,28 +542,8 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 		}
 	}
 
-	for _, newTag := range tags {
-		a := true
-
-		for _, oldTag := range ex {
-			if oldTag == newTag {
-				a = false
-
-				break
-			}
-		}
-
-		if a {
-			add = append(add, newTag)
-		}
-	}
-
-	if len(add) == 0 && len(del) == 0 {
-		return 0, nil
-	}
-
 	mod := ModifyTags{
-		Add:    add,
+		Add:    tags,
 		Remove: del,
 	}
 
@@ -580,7 +559,7 @@ func (sc *SnowthClient) UpdateCheckTagsContext(ctx context.Context,
 		return 0, fmt.Errorf("unable to post tags update: %w", err)
 	}
 
-	return int64(len(add) + len(del)), nil
+	return int64(len(tags) + len(del)), nil
 }
 
 // encodeTags performs base64 encoding on tags when needed.

@@ -6,6 +6,13 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.12.3] - 2023-02-17
+
+* upd: Changes the mechanism of updating check tags to mitigate a race condition
+that can occur if check tags are being rapidly changed. Always attempts to add
+the full set of check tags being submitted rather than only the ones it snowth
+thinks do not already exist.
+
 ## [v1.12.2] - 2023-02-17
 
 * upd: Improve trace ID placement in log entries to ensure it is not truncated
@@ -433,6 +440,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.12.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.3
 [v1.12.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.2
 [v1.12.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.1
 [v1.12.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.0
