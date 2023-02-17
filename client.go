@@ -841,9 +841,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 			surl := sc.getURL(sn, url)
 
 			sc.LogDebugf("gosnowth %s request "+
-				"[retry: %d, connRetry: %d]: %s %s %s traceID: %s",
-				reqMsg, r, (cr - connRetries), method, surl,
-				string(bBody), traceID)
+				"[traceID: %s, retry: %d, connRetry: %d]: %s %s %s",
+				reqMsg, traceID, r, (cr - connRetries), method, surl,
+				string(bBody))
 
 			start := time.Now()
 
@@ -851,9 +851,9 @@ func (sc *SnowthClient) DoRequestContext(ctx context.Context, node *SnowthNode,
 				bytes.NewBuffer(bBody), headers, traceID)
 
 			sc.LogDebugf("gosnowth request complete "+
-				"[retry: %d, connRetry: %d]: %s %s latency: %+v traceID: %s",
-				r, (cr - connRetries), method, surl,
-				time.Since(start), traceID)
+				"[traceID: %s, retry: %d, connRetry: %d]: %s %s latency: %+v",
+				traceID, r, (cr - connRetries), method, surl,
+				time.Since(start))
 
 			if err == nil {
 				return bdy, hdr, nil
