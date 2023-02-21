@@ -3,6 +3,7 @@ package gosnowth
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strconv"
@@ -33,6 +34,34 @@ type PromQLResponse struct {
 	ErrorType string                 `json:"errorType,omitempty"`
 	Error     string                 `json:"error,omitempty"`
 	Warnings  []string               `json:"warnings,omitempty"`
+}
+
+// PromQLError values represent a PromQL response envelope containing an error.
+type PromQLError struct {
+	Status    string                 `json:"status,omitempty"`
+	Data      map[string]interface{} `json:"data,omitempty"`
+	ErrorType string                 `json:"errorType,omitempty"`
+	Err       string                 `json:"error,omitempty"`
+	Warnings  []string               `json:"warnings,omitempty"`
+}
+
+// String returns this value as a JSON format string.
+func (pe *PromQLError) String() string {
+	buf := &bytes.Buffer{}
+
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+
+	if err := enc.Encode(pe); err != nil {
+		return "unable to encode JSON: " + err.Error()
+	}
+
+	return buf.String()
+}
+
+// Error returns this error as a JSON format string.
+func (pe *PromQLError) Error() string {
+	return pe.String()
 }
 
 // PromQLRangeQuery evaluates a PromQL query over a range of time.
@@ -176,7 +205,7 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 	if rErr != nil {
 		r = &PromQLResponse{
 			Status:    "error",
-			ErrorType: "caql",
+			ErrorType: "database",
 			Error:     string(buf),
 		}
 
@@ -189,9 +218,14 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 		}
 
 		if cErr != nil && cErr.Message() != "" {
+			r.ErrorType = "caql"
 			r.Error = cErr.Message()
+		}
 
-			rErr = cErr
+		rErr = &PromQLError{
+			Status:    r.Status,
+			ErrorType: r.ErrorType,
+			Err:       r.Error,
 		}
 	} else {
 		if err := decodeJSON(bytes.NewBuffer(buf), &r); err != nil {
