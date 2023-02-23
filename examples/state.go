@@ -12,7 +12,6 @@ import (
 func ExampleGetNodeState() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -34,7 +33,6 @@ func ExampleGetNodeState() {
 func ExampleGetNodeGossip() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -56,7 +54,6 @@ func ExampleGetNodeGossip() {
 func ExampleGetTopology() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {

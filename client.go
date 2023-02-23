@@ -143,6 +143,14 @@ type SnowthClient struct {
 func NewClient(ctx context.Context, cfg *Config,
 	logs ...Logger,
 ) (*SnowthClient, error) {
+	if cfg.Timeout == 0 {
+		cfg.Timeout = time.Second * 10
+	}
+
+	if cfg.DialTimeout == 0 {
+		cfg.DialTimeout = time.Millisecond * 500
+	}
+
 	client := &http.Client{
 		Timeout: cfg.Timeout,
 		Transport: &http.Transport{

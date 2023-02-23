@@ -15,7 +15,6 @@ import (
 func ExampleReadNNT() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -61,7 +60,6 @@ func ExampleReadNNT() {
 func ExampleReadText() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -94,7 +92,8 @@ func ExampleFetchQuery() {
 		return
 	}
 
-	sc, err := gosnowth.NewSnowthClient(false, host)
+	sc, err := gosnowth.NewClient(context.Background(),
+		&gosnowth.Config{Servers: []string{host}})
 	if err != nil {
 		log.Fatal("Unable to create snowth client", err)
 	}
@@ -144,7 +143,8 @@ func ExampleFetchQueryMultiStream() {
 		return
 	}
 
-	sc, err := gosnowth.NewSnowthClient(false, host)
+	sc, err := gosnowth.NewClient(context.Background(),
+		&gosnowth.Config{Servers: []string{host}})
 	if err != nil {
 		log.Fatal("Unable to create snowth client", err)
 	}
@@ -182,7 +182,8 @@ func ExampleCAQLQuery() {
 		return
 	}
 
-	sc, err := gosnowth.NewSnowthClient(false, host)
+	sc, err := gosnowth.NewClient(context.Background(),
+		&gosnowth.Config{Servers: []string{host}})
 	if err != nil {
 		log.Fatal("Unable to create snowth client", err)
 	}
@@ -216,7 +217,8 @@ func ExampleGetCheckTags() {
 		return
 	}
 
-	sc, err := gosnowth.NewSnowthClient(false, host)
+	sc, err := gosnowth.NewClient(context.Background(),
+		&gosnowth.Config{Servers: []string{host}})
 	if err != nil {
 		log.Fatal("Unable to create snowth client", err)
 	}

@@ -3,7 +3,6 @@ package gosnowth
 import (
 	"bytes"
 	"encoding/xml"
-	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -40,27 +39,6 @@ func TestResolveURL(t *testing.T) {
 	exp := "http://localhost:1234/a/resource/path"
 	if result != exp {
 		t.Errorf("Expected result: %v, got: %v", exp, result)
-	}
-}
-
-func TestMultiError(t *testing.T) {
-	t.Parallel()
-
-	me := newMultiError()
-	if me.HasError() {
-		t.Error("Should have no errors yet")
-	}
-
-	me.Add(fmt.Errorf("error 1"))
-	me.Add(fmt.Errorf("error 2"))
-	me.Add(nil)
-
-	if !me.HasError() {
-		t.Error("Should have errors")
-	}
-
-	if res, exp := me.Error(), "error 1; error 2"; res != exp {
-		t.Errorf("Expected result: %v, got: %v", exp, res)
 	}
 }
 

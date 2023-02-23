@@ -19,7 +19,6 @@ import (
 func ExampleSubmitText() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -43,7 +42,6 @@ func ExampleSubmitText() {
 func ExampleSubmitNNT() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -76,7 +74,6 @@ func ExampleSubmitNNT() {
 func ExampleSubmitHistogram() {
 	// Create a new client.
 	cfg := gosnowth.NewConfig(SnowthServers...)
-	cfg.Discover = true
 
 	client, err := gosnowth.NewClient(context.Background(), cfg)
 	if err != nil {
@@ -113,7 +110,8 @@ func ExampleWriteRawMetricList(b *testing.B) {
 		return
 	}
 
-	sc, err := gosnowth.NewSnowthClient(false, host)
+	sc, err := gosnowth.NewClient(context.Background(),
+		&gosnowth.Config{Servers: []string{host}})
 	if err != nil {
 		log.Fatal("Unable to create snowth client", err)
 	}
@@ -160,7 +158,8 @@ func ExampleBulkWriteRawMetricList(b *testing.B) {
 		return
 	}
 
-	sc, err := gosnowth.NewSnowthClient(false, host)
+	sc, err := gosnowth.NewClient(context.Background(),
+		&gosnowth.Config{Servers: []string{host}})
 	if err != nil {
 		log.Fatal("Unable to create snowth client", err)
 	}

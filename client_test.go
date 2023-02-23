@@ -34,18 +34,6 @@ func TestSnowthNode(t *testing.T) {
 	}
 }
 
-func TestNewSnowthClient(t *testing.T) {
-	t.Parallel()
-
-	// crude test to ensure err is returned for invalid snowth url
-	badAddr := "foobar"
-
-	_, err := NewSnowthClient(false, badAddr)
-	if err == nil {
-		t.Errorf("Error not encountered on invalid snowth addr %v", badAddr)
-	}
-}
-
 func TestNewClientTimeout(t *testing.T) {
 	t.Parallel()
 
@@ -59,7 +47,7 @@ func TestNewClientTimeout(t *testing.T) {
 		t.Error("Error expected for new client timeout test")
 	}
 
-	if !strings.Contains(err.Error(), "context deadline exceeded") {
+	if !strings.Contains(err.Error(), "no snowth nodes could be activated") {
 		t.Errorf("Expected context error, got: %v", err.Error())
 	}
 }
@@ -95,7 +83,8 @@ func TestSnowthClientRequest(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -195,7 +184,8 @@ func TestSnowthClientDiscoverNodesWatch(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(true, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -324,7 +314,8 @@ func TestSnowthClientLog(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(true, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}

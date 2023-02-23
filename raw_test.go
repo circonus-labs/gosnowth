@@ -60,7 +60,8 @@ func TestWriteRaw(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -133,7 +134,8 @@ func TestReadRawNumericValues(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -200,7 +202,8 @@ func TestWriteRawMetricList(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -249,7 +252,8 @@ func BenchmarkWriteRawFlatbuffer(b *testing.B) {
 
 	b.StopTimer()
 
-	sc, err := NewSnowthClient(false, host)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{host}})
 	if err != nil {
 		b.Fatal("Unable to create snowth client", err)
 	}
@@ -302,7 +306,8 @@ func BenchmarkWriteRawMetricList(b *testing.B) {
 
 	b.StopTimer()
 
-	sc, err := NewSnowthClient(false, host)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{host}})
 	if err != nil {
 		b.Fatal("Unable to create snowth client", err)
 	}
@@ -384,7 +389,8 @@ func BenchmarkWriteRawMetricListLocal(b *testing.B) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		b.Fatal("Unable to create snowth client", err)
 	}
