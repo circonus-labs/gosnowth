@@ -6,7 +6,14 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
-## [v1.12.4] - 2023-02-21
+## [v1.13.0] - 2023-02-23
+
+* fix: Corrects a bug that could cause snowth client creation to fail if a
+single cluster node does not respond within the context timeout.
+* upd: Removes the Config.Discover option and the deprecated NewSnowthClient()
+function. These were not used and were supplanted by WatchAndUpdate()
+
+## [v1.12.5] - 2023-02-21
 
 * upd: Adds a PromQLError type, which duplicates the PromQL response envelope,
 but also functions as a Go error type.
@@ -445,6 +452,8 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.0
+[v1.12.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.5
 [v1.12.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.4
 [v1.12.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.3
 [v1.12.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.2
