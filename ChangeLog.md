@@ -11,7 +11,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 * fix: Corrects a bug that could cause snowth client creation to fail if a
 single cluster node does not respond within the context timeout.
 * upd: Removes the Config.Discover option and the deprecated NewSnowthClient()
-function. These were not used and were supplanted by WatchAndUpdate()
+function. These were not used and were previously replaced by NewClient() and
+the WatchAndUpdate() functionality.
 
 ## [v1.12.5] - 2023-02-21
 
