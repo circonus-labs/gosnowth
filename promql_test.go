@@ -126,8 +126,8 @@ func TestPromQLRangeQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(res.Data) != 2 {
-		t.Fatalf("Expected data length: 2, got: %v", len(res.Data))
+	if res.Data == nil {
+		t.Fatalf("Expected data: 2, got: %v", res.Data)
 	}
 
 	res, err = sc.PromQLRangeQuery(&PromQLRangeQuery{

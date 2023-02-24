@@ -8,6 +8,8 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [v1.13.1] - 2023-02-23
 
+* upd: Modifies the PromQLResponse and PromQLError types to support more types
+of PromQL data values.
 * upd: Updates unit tests and examples to use NewClient().
 * upd: Ensures default values are set for snowth client timeouts.
 
