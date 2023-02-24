@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"encoding/xml"
 	"net/http"
@@ -174,7 +175,8 @@ func TestLiveNode(t *testing.T) {
 
 	nids := 10
 	nmetrics := 10
-	sc, err := NewSnowthClient(false, base)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -250,7 +252,8 @@ func TestTopology(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}

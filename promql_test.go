@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -98,7 +99,8 @@ func TestPromQLRangeQuery(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -124,8 +126,8 @@ func TestPromQLRangeQuery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(res.Data) != 2 {
-		t.Fatalf("Expected data length: 2, got: %v", len(res.Data))
+	if res.Data == nil {
+		t.Fatalf("Expected data: 2, got: %v", res.Data)
 	}
 
 	res, err = sc.PromQLRangeQuery(&PromQLRangeQuery{

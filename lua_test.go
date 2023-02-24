@@ -1,6 +1,7 @@
 package gosnowth
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -84,7 +85,8 @@ func TestGetLuaExtension(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -172,7 +174,8 @@ func TestExecLuaExtensionContext(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}

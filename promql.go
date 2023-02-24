@@ -29,20 +29,20 @@ type PromQLRangeQuery struct {
 // decoder, and is left to subsequent parsing and decoding by the user.
 // This is intentional to avoid tight coupling to PromQL protocol formats.
 type PromQLResponse struct {
-	Status    string                 `json:"status,omitempty"`
-	Data      map[string]interface{} `json:"data,omitempty"`
-	ErrorType string                 `json:"errorType,omitempty"`
-	Error     string                 `json:"error,omitempty"`
-	Warnings  []string               `json:"warnings,omitempty"`
+	Status    string      `json:"status,omitempty"`
+	Data      interface{} `json:"data,omitempty"`
+	ErrorType string      `json:"errorType,omitempty"`
+	Error     string      `json:"error,omitempty"`
+	Warnings  []string    `json:"warnings,omitempty"`
 }
 
 // PromQLError values represent a PromQL response envelope containing an error.
 type PromQLError struct {
-	Status    string                 `json:"status,omitempty"`
-	Data      map[string]interface{} `json:"data,omitempty"`
-	ErrorType string                 `json:"errorType,omitempty"`
-	Err       string                 `json:"error,omitempty"`
-	Warnings  []string               `json:"warnings,omitempty"`
+	Status    string      `json:"status,omitempty"`
+	Data      interface{} `json:"data,omitempty"`
+	ErrorType string      `json:"errorType,omitempty"`
+	Err       string      `json:"error,omitempty"`
+	Warnings  []string    `json:"warnings,omitempty"`
 }
 
 // String returns this value as a JSON format string.

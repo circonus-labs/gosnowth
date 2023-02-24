@@ -6,6 +6,13 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.1] - 2023-02-23
+
+* upd: Modifies the PromQLResponse and PromQLError types to support more types
+of PromQL data values.
+* upd: Updates unit tests and examples to use NewClient().
+* upd: Ensures default values are set for snowth client timeouts.
+
 ## [v1.13.0] - 2023-02-23
 
 * fix: Corrects a bug that could cause snowth client creation to fail if a
@@ -453,6 +460,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.1
 [v1.13.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.0
 [v1.12.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.5
 [v1.12.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.12.4

@@ -2,6 +2,7 @@ package gosnowth
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -134,7 +135,8 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -309,7 +311,8 @@ func TestFindTagCats(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -363,7 +366,8 @@ func TestFindTagVals(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -416,7 +420,8 @@ func TestGetCheckTags(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -469,7 +474,8 @@ func TestDeleteCheckTags(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
@@ -514,7 +520,8 @@ func TestUpdateCheckTags(t *testing.T) {
 
 	defer ms.Close()
 
-	sc, err := NewSnowthClient(false, ms.URL)
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
 	if err != nil {
 		t.Fatal("Unable to create snowth client", err)
 	}
