@@ -72,6 +72,7 @@ type Config struct {
 	Retries        int64         `json:"retries,omitempty"`
 	ConnectRetries int64         `json:"connect_retries,omitempty"`
 	Servers        []string      `json:"servers,omitempty"`
+	DenyHosts      []string      `json:"deny_hosts,omitempty"`
 	CtxKeyTraceID  interface{}   `json:"-"`
 }
 
@@ -108,6 +109,9 @@ type SnowthClient struct {
 	// we have two lists of SnowthNode types, active and inactive.
 	activeNodes   []*SnowthNode
 	inactiveNodes []*SnowthNode
+
+	// denyHosts are a list of hosts to always keep inactive.
+	denyHosts []string
 
 	// watchInterval is the duration between checks to tell if a node is active
 	// or inactive.
@@ -181,6 +185,7 @@ func NewClient(ctx context.Context, cfg *Config,
 		connRetries:   cfg.ConnectRetries,
 		dumpRequests:  os.Getenv("GOSNOWTH_DUMP_REQUESTS"),
 		traceRequests: os.Getenv("GOSNOWTH_TRACE_REQUESTS"),
+		denyHosts:     cfg.DenyHosts,
 		ctxKeyTraceID: cfg.CtxKeyTraceID,
 	}
 
@@ -215,6 +220,15 @@ func NewClient(ctx context.Context, cfg *Config,
 						addr, err)
 
 					return
+				}
+
+				for _, dh := range cfg.DenyHosts {
+					if url.Host == dh {
+						errCh <- fmt.Errorf("deny host found in servers: %s",
+							url.Host)
+
+						return
+					}
 				}
 
 				node := &SnowthNode{url: url}
@@ -423,6 +437,19 @@ func (sc *SnowthClient) FindMetricNodeIDs(uuid, metric string) []string {
 func (sc *SnowthClient) isNodeActive(ctx context.Context,
 	node *SnowthNode,
 ) bool {
+	sc.RLock()
+	dhosts := sc.denyHosts
+	sc.RUnlock()
+
+	for _, dh := range dhosts {
+		if node.GetURL().Host == dh {
+			sc.LogWarnf("deny host from active node check: %s",
+				node.GetURL().Host)
+
+			return false
+		}
+	}
+
 	if node.identifier == "" || node.semVer == "" {
 		// go get state to figure out identity
 		stats, err := sc.GetStatsNodeContext(ctx, node)
@@ -598,6 +625,8 @@ func (sc *SnowthClient) populateNodeInfo(ctx context.Context, hash string,
 		sc.currentTopologyCompiled = nil
 	}
 
+	dhosts := sc.denyHosts
+
 	sc.Unlock()
 
 	if !found {
@@ -611,17 +640,28 @@ func (sc *SnowthClient) populateNodeInfo(ctx context.Context, hash string,
 			currentTopology: hash,
 		}
 
+		for _, dh := range dhosts {
+			if newNode.GetURL().Host == dh {
+				sc.LogWarnf("deny host found from topology: %s",
+					newNode.GetURL().Host)
+
+				return
+			}
+		}
+
 		stats, err := sc.GetStatsNodeContext(ctx, newNode)
 		if err != nil {
 			// This node is not returning stats, put it on the inactive list.
 			sc.AddNodes(newNode)
-		} else {
-			newNode.identifier = stats.Identity()
-			newNode.semVer = stats.SemVer()
 
-			sc.AddNodes(newNode)
-			sc.ActivateNodes(newNode)
+			return
 		}
+
+		newNode.identifier = stats.Identity()
+		newNode.semVer = stats.SemVer()
+
+		sc.AddNodes(newNode)
+		sc.ActivateNodes(newNode)
 	}
 }
 
