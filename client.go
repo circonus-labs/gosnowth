@@ -222,6 +222,15 @@ func NewClient(ctx context.Context, cfg *Config,
 					return
 				}
 
+				for _, dh := range cfg.DenyHosts {
+					if url.Host == dh {
+						errCh <- fmt.Errorf("deny host found in servers: %s",
+							url.Host)
+
+						return
+					}
+				}
+
 				node := &SnowthNode{url: url}
 
 				stats, err := sc.GetStatsNodeContext(ctx, node)
