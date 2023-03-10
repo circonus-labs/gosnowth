@@ -9,7 +9,7 @@ to [Semantic Versioning](http://semver.org/) rules.
 ## [v1.13.3] - 2023-03-10
 
 * fix: Removes quote handling from the metric name parser. This handling is
-correct for tag queries, but not for cannonical name parsing.
+correct for tag queries, but not for canonical name parsing.
 
 ## [v1.13.2] - 2023-03-09
 
