@@ -306,7 +306,7 @@ loop:
 }
 
 // scanTagValue attempts to read a tag value token from the scan buffer.
-func (ms *metricScanner) scanTagValue( //nolint:gocyclo
+func (ms *metricScanner) scanTagValue(
 	tt tagType,
 ) (scanToken, string, string, error) {
 	var buf, can bytes.Buffer
