@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.3] - 2023-03-10
+
+* fix: Removes quote handling from the metric name parser. This handling is
+correct for tag queries, but not for cannonical name parsing.
+
 ## [v1.13.2] - 2023-03-09
 
 * add: Adds a configuration item, DenyHosts, to allow a list of hosts to
@@ -465,6 +470,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.3
 [v1.13.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.2
 [v1.13.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.1
 [v1.13.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.0
