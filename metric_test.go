@@ -235,19 +235,19 @@ func TestMetricParser(t *testing.T) {
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["blah":blah]|MT{blah:"MTblah"}`,
+			input: `testing|ST["blah:|ST[]":blah]|MT{blah:",}:|MTblah"}`,
 			numST: 1,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["blah":blah]|MT{blah:"|MTblah"}`,
+			input: `testing|ST["blah:|ST[]":blah]|MT{blah:",}:|MTblah"}`,
 			numST: 1,
 			numMT: 1,
 			lit:   "testing",
 		},
 		{
-			input: `testing|ST["b":"b"]|MT{b:"MTb"}|ST[a:b]|MT{c:d}`,
+			input: `testing|ST["b:|ST[]":b]|MT{b:",}:|MTb"}|ST[a:b]|MT{c:d}`,
 			numST: 2,
 			numMT: 2,
 			lit:   "testing",

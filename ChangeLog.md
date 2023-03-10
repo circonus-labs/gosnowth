@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.4] - 2023-03-10
+
+* fix: Restores some quote handling for metric name parsing but corrects the
+bug that was causing removal of quotes from quoted values.
+
 ## [v1.13.3] - 2023-03-10
 
 * fix: Removes quote handling from the metric name parser. This handling is
@@ -470,6 +475,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.4
 [v1.13.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.3
 [v1.13.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.2
 [v1.13.1]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.1
