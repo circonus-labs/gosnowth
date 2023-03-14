@@ -6,6 +6,11 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.6] - 2023-03-14
+
+* upd: Adds support for fractional seconds for PromQL queries for compatibility.
+PromQL fractional seconds are truncated when converting to CAQL queries.
+
 ## [v1.13.5] - 2023-03-14
 
 * add: Adds support for PromQL instant queries.
@@ -479,6 +484,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.6
 [v1.13.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.5
 [v1.13.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.4
 [v1.13.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.3
