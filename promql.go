@@ -11,6 +11,17 @@ import (
 	"time"
 )
 
+// PromQLInstantQuery values represent Prometheus queries for data from a
+// single point in time.
+// These values are accepted as strings and will accept the same values as
+// would be passed to the prometheus /api/v1/query endpoint.
+type PromQLInstantQuery struct {
+	Query     string `json:"query,omitempty"`
+	Time      string `json:"time,omitempty"`
+	Timeout   string `json:"timeout,omitempty"`
+	AccountID string `json:"account_id,omitempty"`
+}
+
 // PromQLRangeQuery values represent Prometheus range queries.
 // These values are accepted as strings and will accept the same values as
 // would be passed to the prometheus /api/v1/query_range endpoint.
@@ -64,6 +75,150 @@ func (pe *PromQLError) Error() string {
 	return pe.String()
 }
 
+// PromQLInstantQuery evaluates a PromQL query at a single point in time.
+func (sc *SnowthClient) PromQLInstantQuery(query *PromQLInstantQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	return sc.PromQLInstantQueryContext(context.Background(), query, nodes...)
+}
+
+// PromQLInstantQueryContext is the context aware version of PromQLInstantQuery.
+func (sc *SnowthClient) PromQLInstantQueryContext(ctx context.Context,
+	query *PromQLInstantQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	var node *SnowthNode
+
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
+	if query == nil {
+		return nil, fmt.Errorf("invalid PromQL query: null")
+	}
+
+	u := "/extension/lua/public/caql_v1"
+
+	q := &CAQLQuery{
+		Query:  `#lang="promql" ` + query.Query,
+		Format: "PQ",
+		Period: 1,
+	}
+
+	if query.AccountID != "" {
+		i, err := strconv.ParseInt(query.AccountID, 10, 64)
+		if err != nil {
+			return nil,
+				fmt.Errorf("invalid PromQL query: invalid account_id: %v",
+					query.AccountID)
+		}
+
+		q.AccountID = i
+	}
+
+	if query.Time != "" {
+		if t, err := time.Parse(time.RFC3339, query.Time); err != nil {
+			i, err := strconv.ParseInt(query.Time, 10, 64)
+			if err != nil {
+				return nil,
+					fmt.Errorf("invalid PromQL query: invalid time: %v",
+						query.Time)
+			}
+
+			q.End = i
+			q.Start = i - 1
+		} else {
+			q.End = t.Unix()
+			q.Start = t.Unix() - 1
+		}
+	}
+
+	if query.Timeout != "" {
+		if d, err := time.ParseDuration(query.Timeout); err != nil {
+			f, err := strconv.ParseFloat(query.Timeout, 64)
+			if err != nil {
+				return nil,
+					fmt.Errorf("invalid PromQL range query: invalid timeout: %v",
+						query.Timeout)
+			}
+
+			q.Timeout = int64(f)
+		} else {
+			q.Period = int64(d.Seconds())
+		}
+	}
+
+	qBuf, err := encodeJSON(q)
+	if err != nil {
+		return nil, err
+	}
+
+	bBuf, err := io.ReadAll(qBuf)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read request body buffer: %w", err)
+	}
+
+	// CAQL extension does not like the JSON in the request body to end with \n.
+	if strings.HasSuffix(string(bBuf), "\n") {
+		bBuf = bBuf[:len(bBuf)-1]
+	}
+
+	var r *PromQLResponse
+
+	body, _, rErr := sc.DoRequestContext(ctx, node, "POST", u,
+		bytes.NewBuffer(bBuf), nil)
+
+	if body == nil {
+		return nil, rErr
+	}
+
+	buf, err := io.ReadAll(body)
+	if err != nil {
+		return nil, fmt.Errorf("unable to read response body buffer: %w",
+			err)
+	}
+
+	if rErr != nil {
+		r = &PromQLResponse{
+			Status:    "error",
+			ErrorType: "database",
+			Error:     string(buf),
+		}
+
+		var cErr *CAQLError
+
+		err := decodeJSON(bytes.NewBuffer(buf), &cErr)
+		if err != nil {
+			return nil, fmt.Errorf("unable to decode error response: %w",
+				err)
+		}
+
+		if cErr != nil && cErr.Message() != "" {
+			r.ErrorType = "caql"
+			r.Error = cErr.Message()
+		}
+
+		rErr = &PromQLError{
+			Status:    r.Status,
+			ErrorType: r.ErrorType,
+			Err:       r.Error,
+		}
+	} else {
+		if err := decodeJSON(bytes.NewBuffer(buf), &r); err != nil {
+			return nil, fmt.Errorf("unable to decode PromQL response: %w",
+				err)
+		}
+	}
+
+	return r, rErr
+}
+
 // PromQLRangeQuery evaluates a PromQL query over a range of time.
 func (sc *SnowthClient) PromQLRangeQuery(query *PromQLRangeQuery,
 	nodes ...*SnowthNode,
@@ -89,7 +244,7 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 	}
 
 	if query == nil {
-		return nil, fmt.Errorf("invalid PromQL query: null")
+		return nil, fmt.Errorf("invalid PromQL range query: null")
 	}
 
 	u := "/extension/lua/public/caql_v1"
@@ -98,8 +253,6 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 		Query:  `#lang="promql" ` + query.Query,
 		Format: "PQR",
 	}
-
-	q.Format = "PQR"
 
 	if query.AccountID != "" {
 		i, err := strconv.ParseInt(query.AccountID, 10, 64)
