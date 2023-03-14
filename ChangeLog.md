@@ -6,6 +6,10 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.5] - 2023-03-14
+
+* add: Adds support for PromQL instant queries.
+
 ## [v1.13.4] - 2023-03-10
 
 * fix: Restores some quote handling for metric name parsing but corrects the
@@ -475,6 +479,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.5
 [v1.13.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.4
 [v1.13.3]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.3
 [v1.13.2]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.2

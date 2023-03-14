@@ -16,7 +16,28 @@ const testPromQLError = `{
 	"error": "test"
 }`
 
-const testPromQLResponse = `{
+const testPromQLInstantQueryResponse = `{
+    "status": "success",
+    "data": {
+        "result": [
+            {
+                "value": [
+                    [
+                        1676388600,
+                        "3568"
+                    ]
+                ],
+                "metric": {
+                    "__name__": "bytes",
+                    "__check_uuid": "09fc1c4e-8540-49a8-a109-8895553718fc"
+                }
+            }
+        ],
+        "resulttype": "vector"
+    }
+}`
+
+const testPromQLRangeQueryResponse = `{
     "status": "success",
     "data": {
         "result": [
@@ -48,6 +69,105 @@ const testPromQLResponse = `{
         "resulttype": "matrix"
     }
 }`
+
+func TestPromQLInstantQuery(t *testing.T) {
+	t.Parallel()
+
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request,
+	) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+
+			return
+		}
+
+		if r.Method == "POST" && strings.HasPrefix(r.RequestURI,
+			"/extension/lua/public/caql_v1") {
+			b, err := io.ReadAll(r.Body)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(testPromQLError))
+
+				return
+			}
+
+			if len(b) == 0 {
+				w.WriteHeader(http.StatusInternalServerError)
+				_, _ = w.Write([]byte(testPromQLError))
+
+				return
+			}
+
+			if strings.Contains(string(b), "127") {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte(testCAQLError))
+
+				return
+			}
+
+			_, _ = w.Write([]byte(testPromQLInstantQueryResponse))
+
+			return
+		}
+	}))
+
+	defer ms.Close()
+
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	sc.SetRetries(1)
+	sc.SetConnectRetries(1)
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	res, err := sc.PromQLInstantQuery(&PromQLInstantQuery{
+		AccountID: "1",
+		Query:     "test",
+		Time:      "300",
+	}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Data == nil {
+		t.Fatalf("Expected data: 2, got: %v", res.Data)
+	}
+
+	res, err = sc.PromQLInstantQuery(&PromQLInstantQuery{
+		AccountID: "1",
+		Query:     "test",
+		Time:      "127",
+	}, node)
+	if err == nil {
+		t.Fatal("Expected PromQL error response")
+	}
+
+	if res.ErrorType != "caql" {
+		t.Errorf("Expected error type: caql, got: %v", res.ErrorType)
+	}
+
+	exp := "Function not found: histograms"
+
+	if res.Error != exp {
+		t.Errorf("Expected error: %v, got: %v", exp, res.Error)
+	}
+}
 
 func TestPromQLRangeQuery(t *testing.T) {
 	t.Parallel()
@@ -91,7 +211,7 @@ func TestPromQLRangeQuery(t *testing.T) {
 				return
 			}
 
-			_, _ = w.Write([]byte(testPromQLResponse))
+			_, _ = w.Write([]byte(testPromQLRangeQueryResponse))
 
 			return
 		}
