@@ -139,7 +139,7 @@ func TestPromQLInstantQuery(t *testing.T) {
 	res, err := sc.PromQLInstantQuery(&PromQLInstantQuery{
 		AccountID: "1",
 		Query:     "test",
-		Time:      "300",
+		Time:      "300.123",
 	}, node)
 	if err != nil {
 		t.Fatal(err)

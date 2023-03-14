@@ -124,15 +124,15 @@ func (sc *SnowthClient) PromQLInstantQueryContext(ctx context.Context,
 
 	if query.Time != "" {
 		if t, err := time.Parse(time.RFC3339, query.Time); err != nil {
-			i, err := strconv.ParseInt(query.Time, 10, 64)
+			f, err := strconv.ParseFloat(query.Time, 64)
 			if err != nil {
 				return nil,
 					fmt.Errorf("invalid PromQL query: invalid time: %v",
 						query.Time)
 			}
 
-			q.End = i
-			q.Start = i - 1
+			q.End = int64(f)
+			q.Start = int64(f) - 1
 		} else {
 			q.End = t.Unix()
 			q.Start = t.Unix() - 1
@@ -267,14 +267,14 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 
 	if query.Start != "" {
 		if t, err := time.Parse(time.RFC3339, query.Start); err != nil {
-			i, err := strconv.ParseInt(query.Start, 10, 64)
+			f, err := strconv.ParseFloat(query.Start, 64)
 			if err != nil {
 				return nil,
 					fmt.Errorf("invalid PromQL range query: invalid start: %v",
 						query.Start)
 			}
 
-			q.Start = i
+			q.Start = int64(f)
 		} else {
 			q.Start = t.Unix()
 		}
@@ -282,14 +282,14 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 
 	if query.End != "" {
 		if t, err := time.Parse(time.RFC3339, query.End); err != nil {
-			i, err := strconv.ParseInt(query.End, 10, 64)
+			f, err := strconv.ParseFloat(query.End, 64)
 			if err != nil {
 				return nil,
 					fmt.Errorf("invalid PromQL range query: invalid end: %v",
 						query.End)
 			}
 
-			q.End = i
+			q.End = int64(f)
 		} else {
 			q.End = t.Unix()
 		}
