@@ -3,6 +3,7 @@ package gosnowth
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -388,4 +389,630 @@ func (sc *SnowthClient) PromQLRangeQueryContext(ctx context.Context,
 	}
 
 	return r, rErr
+}
+
+// ConvertSeriesSelector will convert a PromQL series selector into an IRONdb
+// tag query.
+func ConvertSeriesSelector(selector string) (string, error) { //nolint:gocyclo
+	selector = strings.TrimSpace(selector)
+
+	parts := strings.SplitN(selector, "{", 2)
+
+	q := "and("
+
+	commaNeeded := false
+
+	if len(parts) > 0 && strings.TrimSpace(parts[0]) != "" {
+		val := strings.TrimSpace(parts[0])
+
+		val = base64.StdEncoding.EncodeToString([]byte(val))
+
+		q += "__name:" + `b"` + val + `"`
+
+		commaNeeded = true
+	}
+
+	if len(parts) < 2 {
+		q += ")"
+
+		return q, nil
+	}
+
+	ss := strings.TrimSpace(parts[1])
+
+	if !strings.HasSuffix(ss, "}") {
+		q += ss + ")"
+
+		return q, nil
+	}
+
+	ss = ss[:len(ss)-1]
+
+	buf := ""
+
+	op := ""
+
+	cat := ""
+
+	val := ""
+
+	ch := ""
+
+	for len(ss) > 0 {
+		ch, ss = ss[:1], ss[1:]
+
+		switch ch {
+		case `"`:
+			ch = ""
+
+			for ch != `"` && len(ss) > 0 {
+				ch, ss = ss[:1], ss[1:]
+
+				switch ch {
+				case `\`:
+					if len(ss) > 0 {
+						ch, ss = ss[:1], ss[1:]
+
+						switch ch {
+						case `\`:
+							buf += `\`
+						case `"`:
+							buf += `"`
+						default:
+							buf += `\` + ch
+						}
+
+						ch = ""
+					}
+				case `"`:
+					ch = `"`
+				default:
+					buf += ch
+				}
+			}
+		case "!":
+			if len(ss) > 0 {
+				ch, ss = ss[:1], ss[1:]
+
+				switch ch {
+				case "=":
+					op = "!="
+					cat = buf
+					buf = ""
+				case "~":
+					op = "!~"
+					cat = buf
+					buf = ""
+				default:
+					op = ""
+					buf += "!"
+					ss = ch + ss
+				}
+			} else {
+				buf += ch
+			}
+		case "=":
+			cat = buf
+			buf = ""
+
+			if len(ss) > 0 {
+				ch, ss = ss[:1], ss[1:]
+
+				if ch == "~" {
+					op = "=~"
+				} else {
+					op = "="
+					ss = ch + ss
+				}
+			} else {
+				op = "="
+			}
+		case ",":
+			val = buf
+
+			if commaNeeded {
+				q += ","
+			}
+
+			if strings.HasPrefix(op, "!") {
+				q += "not("
+			} else {
+				q += "and("
+			}
+
+			if cat != "" {
+				cat = base64.StdEncoding.EncodeToString([]byte(cat))
+
+				q += `b"` + cat + `":`
+			}
+
+			if val != "" {
+				val = base64.StdEncoding.EncodeToString([]byte(val))
+
+				if strings.HasSuffix(op, "~") {
+					q += "b/" + val + "/"
+				} else {
+					q += `b"` + val + `"`
+				}
+			}
+
+			q += ")"
+
+			buf = ""
+			cat = ""
+			op = ""
+			commaNeeded = true
+		default:
+			buf += ch
+		}
+	}
+
+	val = buf
+
+	if commaNeeded {
+		q += ","
+	}
+
+	if strings.HasPrefix(op, "!") {
+		q += "not("
+	} else {
+		q += "and("
+	}
+
+	if cat != "" {
+		cat = base64.StdEncoding.EncodeToString([]byte(cat))
+
+		q += `b"` + cat + `":`
+	}
+
+	if val != "" {
+		val = base64.StdEncoding.EncodeToString([]byte(val))
+
+		if strings.HasSuffix(op, "~") {
+			q += "b/" + val + "/"
+		} else {
+			q += `b"` + val + `"`
+		}
+	}
+
+	q += ")"
+
+	q += ")"
+
+	return q, nil
+}
+
+// PromQLSeriesQuery values represent Prometheus queries for time series
+// matching specified label sets.
+// These values are accepted as strings and will accept the same values as
+// would be passed to the prometheus /api/v1/series endpoint.
+type PromQLSeriesQuery struct {
+	Match     []string `json:"match[],omitempty"`
+	Start     string   `json:"start,omitempty"`
+	End       string   `json:"end,omitempty"`
+	AccountID string   `json:"account_id,omitempty"`
+}
+
+// PromQLSeriesQuery returns all time series matching specified labels sets.
+func (sc *SnowthClient) PromQLSeriesQuery(query *PromQLSeriesQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	return sc.PromQLSeriesQueryContext(context.Background(), query, nodes...)
+}
+
+// PromQLSeriesQueryContext is the context aware version of PromQLSeriesQuery.
+func (sc *SnowthClient) PromQLSeriesQueryContext(ctx context.Context, //nolint:gocyclo,maintidx
+	query *PromQLSeriesQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	var node *SnowthNode
+
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
+	if query == nil {
+		return nil, fmt.Errorf("invalid PromQL series query: null")
+	}
+
+	aID := int64(0)
+
+	opts := &FindTagsOptions{
+		Activity: 0,
+		Latest:   0,
+	}
+
+	if len(query.Match) == 0 {
+		return nil, fmt.Errorf("invalid PromQL series query: missing match[]")
+	}
+
+	terms := []string{}
+
+	for _, sel := range query.Match {
+		mt, err := ConvertSeriesSelector(sel)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PromQL series query: "+
+				"invalid series selector: %s: %w", sel, err)
+		}
+
+		terms = append(terms, mt)
+	}
+
+	q := "or("
+
+	for i, t := range terms {
+		if i > 0 {
+			q += ","
+		}
+
+		q += t
+	}
+
+	q += ")"
+
+	if query.AccountID != "" {
+		i, err := strconv.ParseInt(query.AccountID, 10, 64)
+		if err != nil {
+			return nil,
+				fmt.Errorf("invalid PromQL series query: invalid account_id: %v",
+					query.AccountID)
+		}
+
+		aID = i
+	}
+
+	if query.Start != "" {
+		if t, err := time.Parse(time.RFC3339, query.Start); err != nil {
+			f, err := strconv.ParseFloat(query.Start, 64)
+			if err != nil {
+				return nil,
+					fmt.Errorf("invalid PromQL series query: invalid start: %v",
+						query.Start)
+			}
+
+			opts.Start = time.Unix(int64(f), 0)
+		} else {
+			opts.Start = t
+		}
+	}
+
+	if query.End != "" {
+		if t, err := time.Parse(time.RFC3339, query.End); err != nil {
+			f, err := strconv.ParseFloat(query.End, 64)
+			if err != nil {
+				return nil,
+					fmt.Errorf("invalid PromQL series query: invalid end: %v",
+						query.End)
+			}
+
+			opts.End = time.Unix(int64(f), 0)
+		} else {
+			opts.End = t
+		}
+	}
+
+	res, err := sc.FindTagsContext(ctx, aID, q, opts, node)
+	if err != nil {
+		r := &PromQLResponse{
+			Status:    "error",
+			ErrorType: "database",
+			Error:     err.Error(),
+		}
+
+		rErr := &PromQLError{
+			Status:    r.Status,
+			ErrorType: r.ErrorType,
+			Err:       r.Error,
+		}
+
+		return r, rErr
+	}
+
+	r := &PromQLResponse{
+		Status: "success",
+	}
+
+	data := []map[string]string{}
+
+	for _, fti := range res.Items {
+		m := map[string]string{
+			"__name":   fti.MetricName,
+			"__name__": fti.MetricName,
+		}
+
+		mn, err := ParseMetricName(fti.MetricName)
+		if err != nil {
+			r.Warnings = append(r.Warnings, fmt.Errorf(
+				"unable to parse metric name: %w", err).Error())
+		}
+
+		if mn != nil {
+			m["__name__"] = mn.Name
+
+			for _, st := range mn.StreamTags {
+				m[st.Category] = st.Value
+			}
+		}
+
+		for _, ct := range fti.CheckTags {
+			cat := ct
+
+			val := ""
+
+			parts := strings.SplitN(cat, ":", 2)
+
+			if len(parts) > 0 {
+				cat = parts[0]
+			}
+
+			if strings.HasPrefix(cat, `b"`) &&
+				strings.HasSuffix(cat, `"`) {
+				cat = strings.Trim(cat[1:], `"`)
+
+				b, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding,
+					bytes.NewBufferString(cat)))
+				if err != nil {
+					r.Warnings = append(r.Warnings, fmt.Errorf(
+						"unable to parse base64 tag category: %w", err).Error())
+				}
+
+				if b != nil {
+					cat = string(b)
+				}
+			}
+
+			if len(parts) > 1 {
+				val = parts[1]
+			}
+
+			if strings.HasPrefix(val, `b"`) &&
+				strings.HasSuffix(val, `"`) {
+				val = strings.Trim(val[1:], `"`)
+
+				b, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding,
+					bytes.NewBufferString(val)))
+				if err != nil {
+					r.Warnings = append(r.Warnings, fmt.Errorf(
+						"unable to parse base64 tag value: %w", err).Error())
+				}
+
+				if b != nil {
+					val = string(b)
+				}
+			}
+
+			m[cat] = val
+		}
+
+		data = append(data, m)
+	}
+
+	r.Data = data
+
+	return r, nil
+}
+
+// PromQLLabelQuery values represent Prometheus queries for labels or label
+// values optionally from time series matching specified label sets.
+// These values are accepted as strings and will accept the same values as
+// would be passed to the prometheus /api/v1/labels endpoint.
+type PromQLLabelQuery struct {
+	Match     []string `json:"match[],omitempty"`
+	Start     string   `json:"start,omitempty"`
+	End       string   `json:"end,omitempty"`
+	AccountID string   `json:"account_id,omitempty"`
+}
+
+// PromQLLabelQuery returns a list of all label names, or those from any time
+// series matching the specified query.
+func (sc *SnowthClient) PromQLLabelQuery(query *PromQLLabelQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	return sc.PromQLLabelQueryContext(context.Background(), query, nodes...)
+}
+
+// PromQLLabelQueryContext is the context aware version of PromQLLabelQuery.
+func (sc *SnowthClient) PromQLLabelQueryContext(ctx context.Context,
+	query *PromQLLabelQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	var node *SnowthNode
+
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
+	if query == nil {
+		return nil, fmt.Errorf("invalid PromQL label query: null")
+	}
+
+	aID := int64(0)
+
+	terms := []string{}
+
+	for _, sel := range query.Match {
+		mt, err := ConvertSeriesSelector(sel)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PromQL label query: "+
+				"invalid series selector: %s: %w", sel, err)
+		}
+
+		terms = append(terms, mt)
+	}
+
+	q := "or("
+
+	if len(terms) == 0 {
+		q = "and(__name:*)"
+	} else {
+		for i, t := range terms {
+			if i > 0 {
+				q += ","
+			}
+
+			q += t
+		}
+
+		q += ")"
+	}
+
+	if query.AccountID != "" {
+		i, err := strconv.ParseInt(query.AccountID, 10, 64)
+		if err != nil {
+			return nil,
+				fmt.Errorf("invalid PromQL label query: invalid account_id: %v",
+					query.AccountID)
+		}
+
+		aID = i
+	}
+
+	res, err := sc.FindTagCatsContext(ctx, aID, q, node)
+	if err != nil {
+		r := &PromQLResponse{
+			Status:    "error",
+			ErrorType: "database",
+			Error:     err.Error(),
+		}
+
+		rErr := &PromQLError{
+			Status:    r.Status,
+			ErrorType: r.ErrorType,
+			Err:       r.Error,
+		}
+
+		return r, rErr
+	}
+
+	r := &PromQLResponse{
+		Status: "success",
+	}
+
+	data := []string{"__name__"}
+
+	data = append(data, res...)
+
+	r.Data = data
+
+	return r, nil
+}
+
+// PromQLLabelValuesQuery returns a list of all label values, or those from any
+// time series matching the specified query.
+func (sc *SnowthClient) PromQLLabelValuesQuery(label string,
+	query *PromQLLabelQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	return sc.PromQLLabelValuesQueryContext(context.Background(), label,
+		query, nodes...)
+}
+
+// PromQLLabelValuesQueryContext is the context aware version of
+// PromQLLabelValuesQuery.
+func (sc *SnowthClient) PromQLLabelValuesQueryContext(ctx context.Context,
+	label string,
+	query *PromQLLabelQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	var node *SnowthNode
+
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
+	if label == "" {
+		return nil, fmt.Errorf("invalid PromQL label values query: " +
+			"missing label name")
+	}
+
+	if query == nil {
+		return nil, fmt.Errorf("invalid PromQL label values query: null")
+	}
+
+	aID := int64(0)
+
+	terms := []string{}
+
+	for _, sel := range query.Match {
+		mt, err := ConvertSeriesSelector(sel)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PromQL label query: "+
+				"invalid series selector: %s: %w", sel, err)
+		}
+
+		terms = append(terms, mt)
+	}
+
+	q := "or("
+
+	if len(terms) == 0 {
+		q = "and(__name:*)"
+	} else {
+		for i, t := range terms {
+			if i > 0 {
+				q += ","
+			}
+
+			q += t
+		}
+
+		q += ")"
+	}
+
+	if query.AccountID != "" {
+		i, err := strconv.ParseInt(query.AccountID, 10, 64)
+		if err != nil {
+			return nil,
+				fmt.Errorf("invalid PromQL label values query: "+
+					"invalid account_id: %v", query.AccountID)
+		}
+
+		aID = i
+	}
+
+	if label == "__name__" {
+		label = "__name"
+	}
+
+	res, err := sc.FindTagValsContext(ctx, aID, q, label, node)
+	if err != nil {
+		r := &PromQLResponse{
+			Status:    "error",
+			ErrorType: "database",
+			Error:     err.Error(),
+		}
+
+		rErr := &PromQLError{
+			Status:    r.Status,
+			ErrorType: r.ErrorType,
+			Err:       r.Error,
+		}
+
+		return r, rErr
+	}
+
+	r := &PromQLResponse{
+		Status: "success",
+		Data:   res,
+	}
+
+	return r, nil
 }
