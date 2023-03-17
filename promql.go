@@ -601,7 +601,8 @@ func (sc *SnowthClient) PromQLSeriesQuery(query *PromQLSeriesQuery,
 }
 
 // PromQLSeriesQueryContext is the context aware version of PromQLSeriesQuery.
-func (sc *SnowthClient) PromQLSeriesQueryContext(ctx context.Context, //nolint:gocyclo,maintidx
+func (sc *SnowthClient) PromQLSeriesQueryContext( //nolint:gocyclo,maintidx
+	ctx context.Context,
 	query *PromQLSeriesQuery,
 	nodes ...*SnowthNode,
 ) (*PromQLResponse, error) {
