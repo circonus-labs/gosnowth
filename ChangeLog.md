@@ -6,6 +6,10 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.8] - 2023-03-21
+
+* add: Adds PromQL support for metadata queries via PromQLMetadataQuery().
+
 ## [v1.13.7] - 2023-03-17
 
 * add: Adds PromQL support for series queries via PromQLSeriesQuery().
@@ -493,6 +497,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.8]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.8
 [v1.13.7]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.7
 [v1.13.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.6
 [v1.13.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.5

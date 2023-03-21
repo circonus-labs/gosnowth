@@ -1021,3 +1021,194 @@ func (sc *SnowthClient) PromQLLabelValuesQueryContext(ctx context.Context,
 
 	return r, nil
 }
+
+// PromQLMetadataQuery values represent Prometheus queries for series metadata.
+// These values are accepted as strings and will accept the same values as
+// would be passed to the prometheus /api/v1/metadata endpoint.
+type PromQLMetadataQuery struct {
+	Limit     string `json:"limit,omitempty"`
+	Metric    string `json:"metric,omitempty"`
+	AccountID string `json:"account_id,omitempty"`
+}
+
+// PromQLMetadataQuery returns all time series metadata for a specified metric.
+func (sc *SnowthClient) PromQLMetadataQuery(query *PromQLMetadataQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	return sc.PromQLMetadataQueryContext(context.Background(), query, nodes...)
+}
+
+// PromQLMetadataQueryContext is the context aware version of PromQLMetadataQuery.
+func (sc *SnowthClient) PromQLMetadataQueryContext(
+	ctx context.Context,
+	query *PromQLMetadataQuery,
+	nodes ...*SnowthNode,
+) (*PromQLResponse, error) {
+	var node *SnowthNode
+
+	if len(nodes) > 0 && nodes[0] != nil {
+		node = nodes[0]
+	} else {
+		node = sc.GetActiveNode()
+	}
+
+	if node == nil {
+		return nil, fmt.Errorf("unable to get active node")
+	}
+
+	if query == nil {
+		return nil, fmt.Errorf("invalid PromQL metadata query: null")
+	}
+
+	aID := int64(0)
+
+	opts := &FindTagsOptions{
+		Activity: 0,
+		Latest:   0,
+	}
+
+	q := "and(__name:*)"
+
+	if query.Metric != "" {
+		mt, err := ConvertSeriesSelector(query.Metric)
+		if err != nil {
+			return nil, fmt.Errorf("invalid PromQL metadata query: "+
+				"invalid metric selector: %s: %w", query.Metric, err)
+		}
+
+		q = mt
+	}
+
+	if query.Limit != "" {
+		i, err := strconv.ParseInt(query.Limit, 10, 64)
+		if err != nil {
+			return nil,
+				fmt.Errorf("invalid PromQL metadata query: invalid limit: %v",
+					query.Limit)
+		}
+
+		opts.Limit = i
+	}
+
+	if query.AccountID != "" {
+		i, err := strconv.ParseInt(query.AccountID, 10, 64)
+		if err != nil {
+			return nil,
+				fmt.Errorf("invalid PromQL series query: invalid account_id: %v",
+					query.AccountID)
+		}
+
+		aID = i
+	}
+
+	res, err := sc.FindTagsContext(ctx, aID, q, opts, node)
+	if err != nil {
+		r := &PromQLResponse{
+			Status:    "error",
+			ErrorType: "database",
+			Error:     err.Error(),
+		}
+
+		rErr := &PromQLError{
+			Status:    r.Status,
+			ErrorType: r.ErrorType,
+			Err:       r.Error,
+		}
+
+		return r, rErr
+	}
+
+	r := &PromQLResponse{
+		Status: "success",
+	}
+
+	data := map[string][]map[string]string{}
+
+	for _, fti := range res.Items {
+		name := fti.MetricName
+
+		m := map[string]string{
+			"__name":   name,
+			"__name__": name,
+			"type":     fti.Type,
+			"unit":     "",
+			"help":     "",
+		}
+
+		mn, err := ParseMetricName(name)
+		if err != nil {
+			r.Warnings = append(r.Warnings, fmt.Errorf(
+				"unable to parse metric name: %s: %w", name, err).Error())
+		}
+
+		if mn != nil {
+			name = mn.Name
+
+			m["__name__"] = name
+
+			for _, st := range mn.StreamTags {
+				m[st.Category] = st.Value
+			}
+		}
+
+		for _, ct := range fti.CheckTags {
+			cat := ct
+
+			val := ""
+
+			parts := strings.SplitN(cat, ":", 2)
+
+			if len(parts) > 0 {
+				cat = parts[0]
+			}
+
+			if strings.HasPrefix(cat, `b"`) &&
+				strings.HasSuffix(cat, `"`) {
+				cat = strings.Trim(cat[1:], `"`)
+
+				b, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding,
+					bytes.NewBufferString(cat)))
+				if err != nil {
+					r.Warnings = append(r.Warnings, fmt.Errorf(
+						"unable to parse base64 tag category: %w", err).Error())
+				}
+
+				if b != nil {
+					cat = string(b)
+				}
+			}
+
+			if len(parts) > 1 {
+				val = parts[1]
+			}
+
+			if strings.HasPrefix(val, `b"`) &&
+				strings.HasSuffix(val, `"`) {
+				val = strings.Trim(val[1:], `"`)
+
+				b, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding,
+					bytes.NewBufferString(val)))
+				if err != nil {
+					r.Warnings = append(r.Warnings, fmt.Errorf(
+						"unable to parse base64 tag value: %w", err).Error())
+				}
+
+				if b != nil {
+					val = string(b)
+				}
+			}
+
+			m[cat] = val
+		}
+
+		if _, ok := data[name]; !ok {
+			data[name] = []map[string]string{}
+		}
+
+		data[name] = append(data[name], m)
+	}
+
+	r.Data = data
+
+	return r, nil
+}

@@ -557,3 +557,70 @@ func TestPromQLLabelValuesQuery(t *testing.T) {
 		t.Errorf("Expected data: test, got: %v", ds[0])
 	}
 }
+
+func TestPromQLMetadataQuery(t *testing.T) {
+	t.Parallel()
+
+	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
+		r *http.Request,
+	) {
+		if r.RequestURI == "/state" {
+			_, _ = w.Write([]byte(stateTestData))
+
+			return
+		}
+
+		if r.RequestURI == "/stats.json" {
+			_, _ = w.Write([]byte(statsTestData))
+
+			return
+		}
+
+		w.Header().Set("X-Snowth-Search-Result-Count", "1")
+		_, _ = w.Write([]byte(promQLSeriesTestData))
+
+		return
+	}))
+
+	defer ms.Close()
+
+	sc, err := NewClient(context.Background(),
+		&Config{Servers: []string{ms.URL}})
+	if err != nil {
+		t.Fatal("Unable to create snowth client", err)
+	}
+
+	u, err := url.Parse(ms.URL)
+	if err != nil {
+		t.Fatal("Invalid test URL")
+	}
+
+	node := &SnowthNode{url: u}
+
+	res, err := sc.PromQLMetadataQuery(&PromQLMetadataQuery{
+		Limit:     "2",
+		Metric:    "test",
+		AccountID: "1",
+	}, node)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if res.Data == nil {
+		t.Fatalf("Expected data, got: %v", res.Data)
+	}
+
+	dm, ok := res.Data.(map[string][]map[string]string)
+	if !ok {
+		t.Fatalf("Invalid type for result data: %T", res.Data)
+	}
+
+	if len(dm) != 1 {
+		t.Fatalf("Expected data length: 1, got: %v", len(dm))
+	}
+
+	if dm["test"][0]["type"] != "numeric,histogram" {
+		t.Errorf("Expected type: numeric,histogram, got: %v",
+			dm["test"][0]["type"])
+	}
+}
