@@ -645,6 +645,10 @@ func (sc *SnowthClient) PromQLSeriesQueryContext( //nolint:gocyclo,maintidx
 		terms = append(terms, mt)
 	}
 
+	if len(terms) == 0 {
+		return nil, fmt.Errorf("invalid PromQL series query: missing match[]")
+	}
+
 	q := "or("
 
 	for i, t := range terms {
