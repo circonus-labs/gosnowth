@@ -1039,7 +1039,7 @@ func (sc *SnowthClient) PromQLMetadataQuery(query *PromQLMetadataQuery,
 }
 
 // PromQLMetadataQueryContext is the context aware version of PromQLMetadataQuery.
-func (sc *SnowthClient) PromQLMetadataQueryContext( //nolint:gocyclo,maintidx
+func (sc *SnowthClient) PromQLMetadataQueryContext(
 	ctx context.Context,
 	query *PromQLMetadataQuery,
 	nodes ...*SnowthNode,
