@@ -6,6 +6,15 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.13.7] - 2023-03-17
+
+* add: Adds PromQL support for series queries via PromQLSeriesQuery().
+* add: Adds PromQL support for label names queries via PromQLLabelQuery().
+* add: Adds PromQL support for label values queries via
+PromQLLabelValuesQuery().
+* add: Adds conversion of PromQL series selectors into IRONdb tag queries via
+ConvertSeriesSelector().
+
 ## [v1.13.6] - 2023-03-14
 
 * upd: Adds support for fractional seconds for PromQL queries for compatibility.
@@ -484,6 +493,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.13.7]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.7
 [v1.13.6]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.6
 [v1.13.5]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.5
 [v1.13.4]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.4
