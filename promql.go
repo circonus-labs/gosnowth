@@ -1079,6 +1079,8 @@ func (sc *SnowthClient) PromQLMetadataQueryContext(
 		q = mt
 	}
 
+	q = "and(not(__type:text)," + q + ")"
+
 	if query.Limit != "" {
 		i, err := strconv.ParseInt(query.Limit, 10, 64)
 		if err != nil {
