@@ -1079,6 +1079,8 @@ func (sc *SnowthClient) PromQLMetadataQueryContext(
 		q = mt
 	}
 
+	q = "and(not(__type:text)," + q + ")"
+
 	if query.Limit != "" {
 		i, err := strconv.ParseInt(query.Limit, 10, 64)
 		if err != nil {
@@ -1127,10 +1129,20 @@ func (sc *SnowthClient) PromQLMetadataQueryContext(
 	for _, fti := range res.Items {
 		name := fti.MetricName
 
+		promType := ""
+
+		if strings.Contains(fti.Type, "histogram") {
+			promType = "histogram"
+		} else if strings.Contains(fti.Type, "numeric") {
+			promType = "gauge"
+		} else {
+			continue
+		}
+
 		m := map[string]string{
 			"__name":   name,
 			"__name__": name,
-			"type":     fti.Type,
+			"type":     promType,
 			"unit":     "",
 			"help":     "",
 		}
