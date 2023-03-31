@@ -619,8 +619,7 @@ func TestPromQLMetadataQuery(t *testing.T) {
 		t.Fatalf("Expected data length: 1, got: %v", len(dm))
 	}
 
-	if dm["test"][0]["type"] != "numeric,histogram" {
-		t.Errorf("Expected type: numeric,histogram, got: %v",
-			dm["test"][0]["type"])
+	if dm["test"][0]["type"] != "histogram" {
+		t.Errorf("Expected type: histogram, got: %v", dm["test"][0]["type"])
 	}
 }

@@ -1127,10 +1127,20 @@ func (sc *SnowthClient) PromQLMetadataQueryContext(
 	for _, fti := range res.Items {
 		name := fti.MetricName
 
+		promType := ""
+
+		if strings.Contains(fti.Type, "histogram") {
+			promType = "histogram"
+		} else if strings.Contains(fti.Type, "numeric") {
+			promType = "gauge"
+		} else {
+			continue
+		}
+
 		m := map[string]string{
 			"__name":   name,
 			"__name__": name,
-			"type":     fti.Type,
+			"type":     promType,
 			"unit":     "",
 			"help":     "",
 		}
