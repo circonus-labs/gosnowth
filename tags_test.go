@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-const tagsCountTestData = `{"count":22,"estimate":false}`
+const tagsCountTestData = `{"count":22,"estimate":true}`
 
 const getCheckTagsTestData = `{
 	"11223344-5566-7788-9900-aabbccddeeff":["test:test"]
@@ -100,7 +100,7 @@ func TestFindTagsJSON(t *testing.T) {
 	}
 }
 
-func TestFindTags(t *testing.T) { //nolint:gocyclo
+func TestFindTags(t *testing.T) { //nolint:gocyclo,maintidx
 	t.Parallel()
 
 	ms := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter,
@@ -160,8 +160,12 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 		t.Fatal(err)
 	}
 
-	if res.Count != 1 {
-		t.Fatalf("Expected result count: 1, got: %v", res.Count)
+	if res.Count != 22 {
+		t.Errorf("Expected result count: 22, got: %v", res.Count)
+	}
+
+	if !res.Estimate {
+		t.Errorf("Expected result estimate: true, got: %v", res.Estimate)
 	}
 
 	res, err = sc.FindTags(1, "test", &FindTagsOptions{
@@ -176,8 +180,12 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 		t.Fatal(err)
 	}
 
+	if res.Estimate {
+		t.Errorf("Expected result estimate: false, got: %v", res.Estimate)
+	}
+
 	if res.Count != 1 {
-		t.Fatalf("Expected result count: 1, got: %v", res.Count)
+		t.Errorf("Expected result count: 1, got: %v", res.Count)
 	}
 
 	if len(res.Items) != 1 {
@@ -201,7 +209,7 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 	}
 
 	if res.Count != 1 {
-		t.Fatalf("Expected result count: 1, got: %v", res.Count)
+		t.Errorf("Expected result count: 1, got: %v", res.Count)
 	}
 
 	if len(res.Items) != 1 {
@@ -233,7 +241,7 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 	}
 
 	if res.Items[0].Activity[1][1] != 1561848300 {
-		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
+		t.Errorf("Expected activity timestamp: 1561848300, got %v",
 			res.Items[0].Activity[1][1])
 	}
 
@@ -243,7 +251,7 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 	}
 
 	if res.Count != 1 {
-		t.Fatalf("Expected result count: 1, got: %v", res.Count)
+		t.Errorf("Expected result count: 1, got: %v", res.Count)
 	}
 
 	if len(res.Items) != 1 {
@@ -279,7 +287,7 @@ func TestFindTags(t *testing.T) { //nolint:gocyclo
 	}
 
 	if res.Items[0].Activity[1][1] != 1561848300 {
-		t.Fatalf("Expected activity timestamp: 1561848300, got %v",
+		t.Errorf("Expected activity timestamp: 1561848300, got %v",
 			res.Items[0].Activity[1][1])
 	}
 }

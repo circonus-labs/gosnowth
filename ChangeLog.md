@@ -6,6 +6,15 @@ to [Semantic Versioning](http://semver.org/) rules.
 
 ## [Next Release]
 
+## [v1.14.0] - 2023-05-19
+
+* refactor!: Modifies the FindTagsResult values returned by the FindTags()
+functions so that they do not include a separate FindCount value, but use the
+count and estimate fields on the FindTagsResult when the query is count only.
+* feat: Includes accurate values in FindTagsResult.Estimate when results
+from a FindTags() query return estimated results from IRONdb. This can be
+used to determine that a timeout occurred during processing by IRONdb.
+
 ## [v1.13.9] - 2023-03-31
 
 * fix: Ensures PromQLMetadataQuery() only returns metrics with valid PromQL
@@ -502,6 +511,7 @@ writing to histogram endpoints.
 any delay, once started. Created: 2019-03-12. Fixed: 2019-03-13.
 
 [Next Release]: https://github.com/circonus-labs/gosnowth
+[v1.14.0]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.14.0
 [v1.13.9]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.9
 [v1.13.8]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.8
 [v1.13.7]: https://github.com/circonus-labs/gosnowth/releases/tag/v1.13.7
