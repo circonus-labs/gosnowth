@@ -29,15 +29,9 @@ type FindTagsItem struct {
 
 // FindTagsResult values contain the results of a find tags request.
 type FindTagsResult struct {
-	Items     []FindTagsItem
-	FindCount *FindTagsCount
-	Count     int64
-}
-
-// FindTagsCount values represent results from count only requests.
-type FindTagsCount struct {
-	Count    int64 `json:"count"`
-	Estimate bool  `json:"estimate"`
+	Items    []FindTagsItem `json:"items,omitempty"`
+	Count    int64          `json:"count"`
+	Estimate bool           `json:"estimate"`
 }
 
 // FindTagsOptions values contain optional parameters to be passed to the
@@ -274,28 +268,36 @@ func (sc *SnowthClient) FindTagsContext(ctx context.Context, accountID int64,
 	}
 
 	if options.CountOnly != 0 {
-		if err := decodeJSON(body, &r.FindCount); err != nil {
+		if err := decodeJSON(body, &r); err != nil {
 			return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 		}
-	} else {
-		if err := decodeJSON(body, &r.Items); err != nil {
-			return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
-		}
+
+		return r, nil
 	}
 
-	// Return a results count and capture it from the header , if provided.
+	if err := decodeJSON(body, &r.Items); err != nil {
+		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
+	}
+
 	r.Count = int64(len(r.Items))
 
-	if header != nil {
-		c := header.Get("X-Snowth-Search-Result-Count")
-		if c != "" {
-			if cv, err := strconv.ParseInt(c, 10, 64); err == nil {
-				r.Count = cv
-			}
+	if header == nil {
+		return r, nil
+	}
+
+	if v := header.Get("X-Snowth-Search-Result-Count"); v != "" {
+		if iv, err := strconv.ParseInt(v, 10, 64); err == nil {
+			r.Count = iv
 		}
 	}
 
-	return r, err
+	if v := header.Get("X-Snowth-Search-Result-Count-Is-Estimate"); v != "" {
+		if bv, err := strconv.ParseBool(v); err == nil {
+			r.Estimate = bv
+		}
+	}
+
+	return r, nil
 }
 
 // FindTagCats retrieves tag categories that are associated with the
@@ -337,7 +339,7 @@ func (sc *SnowthClient) FindTagCatsContext(ctx context.Context,
 		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
-	return r, err
+	return r, nil
 }
 
 // FindTagVals retrieves tag values that are associated with the
@@ -380,7 +382,7 @@ func (sc *SnowthClient) FindTagValsContext(ctx context.Context,
 		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
-	return r, err
+	return r, nil
 }
 
 // CheckTags values contain check tag data from IRONdb.
@@ -431,7 +433,7 @@ func (sc *SnowthClient) GetCheckTagsContext(ctx context.Context,
 		return nil, fmt.Errorf("unable to decode IRONdb response: %w", err)
 	}
 
-	return r, err
+	return r, nil
 }
 
 // DeleteCheckTags removes check tags from IRONdb for a specified check.
