@@ -21,13 +21,13 @@ type topologyNodeSlot struct {
 
 // Topology values represent IRONdb topology structure.
 type Topology struct {
-	XMLName        xml.Name `xml:"nodes" json:"-"`
-	OldWriteCopies uint8    `xml:"n,attr" json:"-"`
-	WriteCopies    uint8    `xml:"write_copies,attr" json:"-"`
-	useSide        bool
-	Hash           string         `xml:"-"`
-	Nodes          []TopologyNode `xml:"node"`
-	ring           []topologyNodeSlot
+	XMLName        xml.Name           `json:"-" xml:"nodes"`
+	OldWriteCopies uint8              `json:"-" xml:"n,attr"`
+	WriteCopies    uint8              `json:"-" xml:"write_copies,attr"`
+	useSide        bool               `json:"-" xml:"-"`
+	Hash           string             `json:"-" xml:"-"`
+	Nodes          []TopologyNode     `json:"-" xml:"node"`
+	ring           []topologyNodeSlot `json:"-" xml:"-"`
 }
 
 func (topo *Topology) Len() int { return len(topo.ring) }
@@ -74,14 +74,14 @@ func (i TopoSide) MarshalXMLAttr(name xml.Name) (xml.Attr, error) {
 
 // TopologyNode represent a node in the IRONdb topology structure.
 type TopologyNode struct {
-	XMLName     xml.Name `xml:"node" json:"-"`
-	ID          string   `xml:"id,attr" json:"id"`
-	Address     string   `xml:"address,attr" json:"address"`
-	Port        uint16   `xml:"port,attr" json:"port"`
-	APIPort     uint16   `xml:"apiport,attr" json:"apiport"`
-	Weight      uint16   `xml:"weight,attr" json:"weight"`
-	Side        TopoSide `xml:"side,attr" json:"side"`
-	WriteCopies uint8    `xml:"-" json:"n"`
+	XMLName     xml.Name `json:"-"       xml:"node"`
+	ID          string   `json:"id"      xml:"id,attr"`
+	Address     string   `json:"address" xml:"address,attr"`
+	Port        uint16   `json:"port"    xml:"port,attr"`
+	APIPort     uint16   `json:"apiport" xml:"apiport,attr"`
+	Weight      uint16   `json:"weight " xml:"weight,attr"`
+	Side        TopoSide `json:"side"    xml:"side,attr"`
+	WriteCopies uint8    `json:"n"       xml:"-"`
 }
 
 func (topo *Topology) compile() error {

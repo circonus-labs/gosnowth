@@ -12,6 +12,7 @@ linters:
     fast: true
     enable-all: true
     disable:
+      - depguard
       - dupl
       - funlen
       - gocognit
